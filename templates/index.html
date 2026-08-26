@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRAHARI AI — Intelligent Border Surveillance & Command Center</title>
+    
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest" onerror="window._lucideFailed=true"></script>
+
+    <style>
+        :root {
+            --bg-base: #06090f;
+            --bg-surface: #0b111e;
+            --bg-panel: rgba(14, 22, 38, 0.82);
+            --bg-panel-hover: rgba(18, 30, 52, 0.9);
+            --bg-card: rgba(20, 32, 54, 0.7);
+            --bg-card-alt: rgba(16, 26, 44, 0.85);
+            --bg-glass: rgba(11, 18, 32, 0.85);
+            
+            --border-glow: rgba(0, 212, 255, 0.28);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-panel: rgba(56, 189, 248, 0.2);
+            
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            --accent-cyan: #00e5ff;
+            --accent-cyan-glow: rgba(0, 229, 255, 0.35);
+            --accent-blue: #38bdf8;
+            --accent-blue-dim: rgba(56, 189, 248, 0.12);
+            
+            --color-live: #00e676;
+            --color-live-dim: rgba(0, 230, 118, 0.15);
+            --color-warn: #ffb703;
+            --color-warn-dim: rgba(255, 183, 3, 0.15);
+            --color-danger: #ff3366;
+            --color-danger-dim: rgba(255, 51, 102, 0.18);
+            --color-night: #a855f7;
+            --color-night-dim: rgba(168, 85, 247, 0.18);
+            
+            --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Roboto Mono', monospace;
+            
+            --shadow-panel: 0 10px 30px -5px rgba(0, 0, 0, 0.6), 0 0 1px 1px rgba(56, 189, 248, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            font-family: var(--font-ui);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            padding: 0.55rem 0.85rem;
+            position: relative;
+            gap: 0.5rem;
+        }
+
+        /* Subtle Tactical Grid Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: 
+                radial-gradient(circle at 50% 30%, rgba(0, 212, 255, 0.04) 0%, transparent 70%),
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 100% 100%, 36px 36px, 36px 36px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Reusable Glass Panel */
+        .glass-panel {
+            background: var(--bg-panel);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-panel);
+            border-radius: 9px;
+            box-shadow: var(--shadow-panel);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ─── HEADER ─── */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.45rem 0.9rem;
+            height: 48px;
+            flex-shrink: 0;
+        }
+
+        .brand-cluster {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        .brand-icon-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 7px;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(56, 189, 248, 0.05));
+            border: 1px solid var(--accent-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-cyan);
+            box-shadow: 0 0 12px var(--accent-cyan-glow);
+        }
+
+        .brand-title-wrap h1 {
+            font-size: 1.12rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            color: #ffffff;
+            line-height: 1.1;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .brand-title-wrap h1 span {
+            color: var(--accent-cyan);
+            text-shadow: 0 0 10px var(--accent-cyan-glow);
+        }
+
+        .brand-subtitle {
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .header-telemetry {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.55rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            letter-spacing: 0.03em;
+            border: 1px solid var(--border-subtle);
+            background: rgba(16, 24, 40, 0.6);
+        }
+
+        .badge-cam {
+            color: var(--accent-cyan);
+            border-color: rgba(0, 229, 255, 0.3);
+            background: rgba(0, 229, 255, 0.08);
+        }
+
+        .badge-live {
+            color: var(--color-live);
+            border-color: rgba(0, 230, 118, 0.3);
+            background: var(--color-live-dim);
+        }
+
+        .badge-live.disconnected {
+            color: var(--color-danger);
+            border-color: rgba(255, 51, 102, 0.3);
+            background: var(--color-danger-dim);
+        }
+
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 8px currentColor;
+            animation: pulse-glow 1.5s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        .badge-cuda {
+            color: #76b900;
+            border-color: rgba(118, 185, 0, 0.3);
+            background: rgba(118, 185, 0, 0.08);
+        }
+
+        .badge-night {
+            display: none;
+            color: var(--color-night);
+            border-color: rgba(168, 85, 247, 0.4);
+            background: var(--color-night-dim);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.25);
+        }
+
+        .badge-night.active {
+            display: inline-flex;
+        }
+
+        .badge-sync {
+            color: var(--text-secondary);
+        }
+
+        /* ─── MAIN WORKSPACE (2 Columns) ─── */
+        .main-workspace {
+            display: grid;
+            grid-template-columns: 1fr 410px;
+            gap: 0.55rem;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* ─── LEFT PANEL: LIVE SURVEILLANCE FEED ─── */
+        .surveillance-panel {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-radius: 9px;
+            position: relative;
+        }
+
+        .panel-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.4rem 0.8rem;
+            background: rgba(10, 16, 28, 0.92);
+            border-bottom: 1px solid var(--border-subtle);
+            flex-shrink: 0;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .panel-header-title {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            color: var(--accent-cyan);
+        }
+
+        .feed-hud-tags {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+        }
+
+        .feed-container {
+            flex: 1;
+            position: relative;
+            background: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .live-video-stream {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            image-rendering: auto;
+        }
+
+        /* HUD Overlays on Video */
+        .hud-overlay-top-left {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .hud-chip {
+            background: rgba(6, 11, 20, 0.82);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(0, 229, 255, 0.25);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.66rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .hud-chip span {
+            color: var(--accent-cyan);
+        }
+
+        .hud-overlay-top-right {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .hud-chip-live {
+            background: rgba(0, 230, 118, 0.15);
+            border-color: rgba(0, 230, 118, 0.4);
+            color: var(--color-live);
+        }
+
+        .hud-crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 36px;
+            height: 36px;
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .hud-crosshair::before, .hud-crosshair::after {
+            content: '';
+            position: absolute;
+            background: rgba(0, 229, 255, 0.25);
+        }
+
+        .hud-crosshair::before {
+            top: 50%;
+            left: -6px;
+            right: -6px;
+            height: 1px;
+        }
+
+        .hud-crosshair::after {
+            left: 50%;
+            top: -6px;
+            bottom: -6px;
+            width: 1px;
+        }
+
+        /* ─── RIGHT PANEL: COMMAND & INTELLIGENCE CONSOLE ─── */
+        .command-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        /* SECTION 1: THREAT LEVEL GAUGE */
+        .threat-gauge-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .section-label {
+            font-size: 0.64rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .threat-display-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.35rem;
+        }
+
+        .threat-status-text {
+            font-size: 1.1rem;
+            font-weight: 900;
+            font-family: var(--font-mono);
+            letter-spacing: 0.06em;
+            color: var(--color-live);
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .threat-status-text.elevated {
+            color: var(--color-warn);
+            text-shadow: 0 0 10px rgba(255, 183, 3, 0.3);
+        }
+
+        .threat-status-text.critical {
+            color: var(--color-danger);
+            text-shadow: 0 0 12px rgba(255, 51, 102, 0.4);
+        }
+
+        .threat-meter-bar {
+            height: 5px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            display: flex;
+            gap: 3px;
+        }
+
+        .threat-segment {
+            flex: 1;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .threat-segment.active-green { background: var(--color-live); box-shadow: 0 0 6px var(--color-live); }
+        .threat-segment.active-yellow { background: var(--color-warn); box-shadow: 0 0 6px var(--color-warn); }
+        .threat-segment.active-red { background: var(--color-danger); box-shadow: 0 0 6px var(--color-danger); }
+
+        /* SECTION 2: LIVE INTELLIGENCE READOUTS (4 Box Grid) */
+        .live-intel-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.35rem;
+            flex-shrink: 0;
+        }
+
+        .intel-tile {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 7px;
+            padding: 0.4rem 0.45rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .intel-tile::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--accent-cyan);
+            opacity: 0.6;
+        }
+
+        .intel-tile.tile-warn::before { background: var(--color-warn); }
+        .intel-tile.tile-faces::before { background: #38bdf8; }
+
+        .intel-tile-title {
+            font-size: 0.58rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.12rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .intel-tile-val {
+            font-size: 1.2rem;
+            font-weight: 900;
+            font-family: var(--font-mono);
+            color: #ffffff;
+            line-height: 1;
+        }
+
+        .intel-sub-text {
+            font-size: 0.52rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            font-family: var(--font-mono);
+            letter-spacing: 0.02em;
+        }
+
+        /* SECTION 3: INCIDENT STREAMS & TIMELINE TABS */
+        .console-tabs-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .console-tab-header {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border-subtle);
+            background: rgba(10, 16, 28, 0.9);
+            flex-shrink: 0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.4rem 0.5rem;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.15rem;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn-top {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .tab-btn.active {
+            color: var(--accent-cyan);
+            border-bottom-color: var(--accent-cyan);
+            background: rgba(0, 229, 255, 0.05);
+        }
+
+        .tab-badges-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tab-badge-count {
+            background: rgba(0, 230, 118, 0.15);
+            color: var(--color-live);
+            font-size: 0.58rem;
+            font-family: var(--font-mono);
+            padding: 0.05rem 0.3rem;
+            border-radius: 3px;
+            font-weight: 700;
+        }
+
+        .tab-badge-hist {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-muted);
+            font-size: 0.55rem;
+            font-family: var(--font-mono);
+            padding: 0.05rem 0.25rem;
+            border-radius: 3px;
+        }
+
+        .tab-content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.4rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            min-height: 0;
+        }
+
+        /* Custom Scrollbar */
+        .tab-content-area::-webkit-scrollbar {
+            width: 4px;
+        }
+        .tab-content-area::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .tab-content-area::-webkit-scrollbar-thumb {
+            background: rgba(56, 189, 248, 0.25);
+            border-radius: 2px;
+        }
+
+        /* Incident Item Card */
+        .incident-card {
+            background: rgba(14, 23, 40, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-left: 3px solid var(--color-danger);
+            border-radius: 5px;
+            padding: 0.35rem 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .incident-card:hover {
+            background: rgba(20, 32, 56, 0.95);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .incident-card.card-anpr {
+            border-left-color: var(--accent-cyan);
+        }
+
+        .incident-card.card-loiter {
+            border-left-color: var(--color-warn);
+        }
+
+        .incident-card.card-night {
+            border-left-color: var(--color-night);
+        }
+
+        .incident-thumb {
+            width: 44px;
+            height: 32px;
+            border-radius: 4px;
+            object-fit: cover;
+            background: #000;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+        }
+
+        .incident-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .incident-header-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.12rem;
+        }
+
+        .incident-type-tag {
+            font-size: 0.62rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--color-danger);
+        }
+
+        .incident-card.card-anpr .incident-type-tag { color: var(--accent-cyan); }
+        .incident-card.card-loiter .incident-type-tag { color: var(--color-warn); }
+        .incident-card.card-night .incident-type-tag { color: var(--color-night); }
+
+        .incident-time {
+            font-size: 0.6rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+        }
+
+        .incident-subtext {
+            font-size: 0.66rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-family: var(--font-mono);
+        }
+
+        .plate-highlight {
+            color: #ffffff;
+            font-weight: 700;
+            background: rgba(0, 229, 255, 0.15);
+            padding: 0.05rem 0.28rem;
+            border-radius: 3px;
+            border: 1px solid rgba(0, 229, 255, 0.3);
+        }
+
+        .empty-state-box {
+            text-align: center;
+            padding: 1.4rem 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+        }
+
+        /* ─── BOTTOM 4 METRIC CARDS ─── */
+        .bottom-intel-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            flex-shrink: 0;
+            height: 60px;
+            z-index: 1;
+        }
+
+        .metric-card {
+            background: var(--bg-panel);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-panel);
+            border-radius: 8px;
+            padding: 0.35rem 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .metric-card-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .metric-card-title {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .metric-card-value {
+            font-size: 1.02rem;
+            font-weight: 900;
+            font-family: var(--font-mono);
+            color: #ffffff;
+            line-height: 1.1;
+        }
+
+        .metric-card-sub {
+            font-size: 0.58rem;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .metric-card-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 1100px) {
+            .main-workspace {
+                grid-template-columns: 1fr 340px;
+            }
+            .bottom-intel-grid {
+                grid-template-columns: repeat(2, 1fr);
+                height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─── HEADER ─── -->
+    <header class="glass-panel">
+        <div class="brand-cluster">
+            <div class="brand-icon-box">
+                <i data-lucide="shield-alert" style="width:18px; height:18px;"></i>
+            </div>
+            <div class="brand-title-wrap">
+                <h1>PRAHARI <span>AI</span></h1>
+                <div class="brand-subtitle">Intelligent Border Surveillance & Video Analytics</div>
+            </div>
+        </div>
+
+        <div class="header-telemetry">
+            <div class="badge-pill badge-cam" id="camera-badge">
+                <i data-lucide="video" style="width:12px; height:12px;"></i>
+                <span id="cam-id-display">CAM-01 [Sector Alpha]</span>
+            </div>
+            <div class="badge-pill badge-live" id="stream-status-pill">
+                <div class="pulse-dot"></div>
+                <span id="stream-status-text">LIVE</span>
+            </div>
+            <div class="badge-pill badge-cuda" id="cuda-badge">
+                <i data-lucide="zap" style="width:12px; height:12px;"></i>
+                <span>CUDA GPU FP16</span>
+            </div>
+            <div class="badge-pill badge-night" id="night-badge">
+                <i data-lucide="moon" style="width:12px; height:12px;"></i>
+                <span id="night-text">NIGHT MODE</span>
+            </div>
+            <div class="badge-pill badge-sync" id="sync-pill" title="Border Resilience Air-gap Database Synchronization">
+                <i data-lucide="database" style="width:12px; height:12px;"></i>
+                <span id="sync-count-text">SYNC: PERSISTED</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ─── MAIN 2-COLUMN WORKSPACE ─── -->
+    <main class="main-workspace">
+        
+        <!-- LEFT: SURVEILLANCE FEED CENTERPIECE -->
+        <section class="surveillance-panel glass-panel">
+            <div class="panel-header-bar">
+                <div class="panel-header-title">
+                    <i data-lucide="crosshair" style="width:14px; height:14px;"></i>
+                    <span>Primary Surveillance Monitor — Sector Alpha</span>
+                </div>
+                <div class="feed-hud-tags">
+                    <span>RES: <strong style="color:var(--text-primary);" id="hud-resolution">1920x1080</strong></span>
+                    <span>•</span>
+                    <span>AI LATENCY: <strong style="color:var(--accent-cyan);" id="hud-latency">26ms</strong></span>
+                    <span>•</span>
+                    <span>FENCE: <strong style="color:var(--color-danger);">ARMED (Y=756)</strong></span>
+                </div>
+            </div>
+
+            <div class="feed-container">
+                <img src="/video_feed" alt="Live Surveillance Stream" class="live-video-stream" id="main-video-feed" onerror="this.src='/alerts/placeholder.jpg'">
+                
+                <!-- HUD Overlays -->
+                <div class="hud-overlay-top-left">
+                    <div class="hud-chip">
+                        <span>CAM:</span> CAM-01 (Sector Alpha)
+                    </div>
+                    <div class="hud-chip">
+                        <span>YOLOv8:</span> <strong id="hud-yolo-fps">0.0 FPS</strong>
+                    </div>
+                </div>
+
+                <div class="hud-overlay-top-right">
+                    <div class="hud-chip hud-chip-live">
+                        <div class="pulse-dot"></div>
+                        <span>ONLINE</span>
+                    </div>
+                </div>
+
+                <div class="hud-crosshair"></div>
+            </div>
+        </section>
+
+        <!-- RIGHT: COMMAND & INTELLIGENCE CONSOLE -->
+        <aside class="command-panel">
+            
+            <!-- 1. THREAT LEVEL GAUGE -->
+            <div class="threat-gauge-card glass-panel">
+                <div class="section-label">
+                    <span>SECTOR THREAT LEVEL</span>
+                    <span id="threat-eval-time" style="font-family:var(--font-mono); font-size:0.58rem;">LIVE EVAL</span>
+                </div>
+                <div class="threat-display-row">
+                    <div class="threat-status-text" id="threat-status-text">
+                        <i data-lucide="shield-check" id="threat-icon" style="width:17px; height:17px;"></i>
+                        <span id="threat-label">NORMAL</span>
+                    </div>
+                    <span style="font-size:0.66rem; color:var(--text-muted); font-family:var(--font-mono);" id="threat-reason">PERIMETER SECURE</span>
+                </div>
+                <div class="threat-meter-bar">
+                    <div class="threat-segment active-green" id="threat-bar-1"></div>
+                    <div class="threat-segment" id="threat-bar-2"></div>
+                    <div class="threat-segment" id="threat-bar-3"></div>
+                </div>
+            </div>
+
+            <!-- 2. LIVE INTELLIGENCE READOUTS -->
+            <div class="live-intel-grid">
+                <div class="intel-tile">
+                    <div class="intel-tile-title">People</div>
+                    <div class="intel-tile-val" id="stat-people">0</div>
+                    <div class="intel-sub-text">CURRENT</div>
+                </div>
+                <div class="intel-tile">
+                    <div class="intel-tile-title">Vehicles</div>
+                    <div class="intel-tile-val" id="stat-vehicles">0</div>
+                    <div class="intel-sub-text">CURRENT</div>
+                </div>
+                <div class="intel-tile tile-faces">
+                    <div class="intel-tile-title">Faces</div>
+                    <div class="intel-tile-val" id="stat-faces">0</div>
+                    <div class="intel-sub-text">LIVE</div>
+                </div>
+                <div class="intel-tile tile-warn">
+                    <div class="intel-tile-title">Suspicious</div>
+                    <div class="intel-tile-val" id="stat-suspicious">0</div>
+                    <div class="intel-sub-text" id="stat-suspicious-sub">NO THREAT</div>
+                </div>
+            </div>
+
+            <!-- 3. INCIDENT STREAMS & TIMELINE TABS -->
+            <div class="console-tabs-section glass-panel">
+                <div class="console-tab-header">
+                    <button class="tab-btn active" id="tab-btn-intrusions" onclick="switchTab('intrusions')">
+                        <div class="tab-btn-top">
+                            <i data-lucide="shield-alert" style="width:12px; height:12px;"></i>
+                            <span>Intrusions</span>
+                        </div>
+                        <div class="tab-badges-row">
+                            <span class="tab-badge-count" id="count-intrusions">0 Live</span>
+                            <span class="tab-badge-hist" id="hist-intrusions">Total: 0</span>
+                        </div>
+                    </button>
+                    <button class="tab-btn" id="tab-btn-anpr" onclick="switchTab('anpr')">
+                        <div class="tab-btn-top">
+                            <i data-lucide="car" style="width:12px; height:12px;"></i>
+                            <span>ANPR Plates</span>
+                        </div>
+                        <div class="tab-badges-row">
+                            <span class="tab-badge-count" id="count-anpr">0 Live</span>
+                            <span class="tab-badge-hist" id="hist-anpr">Total: 0</span>
+                        </div>
+                    </button>
+                    <button class="tab-btn" id="tab-btn-security" onclick="switchTab('security')">
+                        <div class="tab-btn-top">
+                            <i data-lucide="activity" style="width:12px; height:12px;"></i>
+                            <span>Security Log</span>
+                        </div>
+                        <div class="tab-badges-row">
+                            <span class="tab-badge-count" id="count-security">0 Live</span>
+                            <span class="tab-badge-hist" id="hist-security">Total: 0</span>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Tab 1: Intrusion Alerts -->
+                <div class="tab-content-area" id="tab-content-intrusions">
+                    <div class="empty-state-box">Listening for virtual fence crossing events in current session...</div>
+                </div>
+
+                <!-- Tab 2: ANPR Reads -->
+                <div class="tab-content-area" id="tab-content-anpr" style="display:none;">
+                    <div class="empty-state-box">Scanning for vehicle license plates in current session...</div>
+                </div>
+
+                <!-- Tab 3: Security Events (Loitering + Night Move) -->
+                <div class="tab-content-area" id="tab-content-security" style="display:none;">
+                    <div class="empty-state-box">Monitoring for loitering and nocturnal motion in current session...</div>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- ─── BOTTOM 4 METRIC CARDS ─── -->
+    <footer class="bottom-intel-grid">
+        
+        <!-- CARD 1: AI PERFORMANCE -->
+        <div class="metric-card">
+            <div class="metric-card-left">
+                <div class="metric-card-title">
+                    <i data-lucide="cpu" style="width:11px; height:11px; color:var(--accent-cyan);"></i>
+                    <span>AI Performance</span>
+                </div>
+                <div class="metric-card-value" id="card-ai-fps">0.0 FPS</div>
+                <div class="metric-card-sub">
+                    LAT: <span id="card-ai-lat" style="color:var(--accent-cyan);">26ms</span> • <span style="color:#76b900;">CUDA FP16</span>
+                </div>
+            </div>
+            <div class="metric-card-icon" style="color:var(--accent-cyan);">
+                <i data-lucide="zap" style="width:16px; height:16px;"></i>
+            </div>
+        </div>
+
+        <!-- CARD 2: INTRUSION ALERTS -->
+        <div class="metric-card">
+            <div class="metric-card-left">
+                <div class="metric-card-title">
+                    <i data-lucide="shield-alert" style="width:11px; height:11px; color:var(--color-danger);"></i>
+                    <span>Intrusion Alerts</span>
+                </div>
+                <div class="metric-card-value" id="card-intrusion-val" style="color:var(--color-danger);">0 LIVE</div>
+                <div class="metric-card-sub">
+                    LAST: <span id="card-intrusion-time">--</span> • <span id="card-threat-sub" style="color:var(--color-live);">SECURE</span>
+                </div>
+            </div>
+            <div class="metric-card-icon" style="color:var(--color-danger);">
+                <i data-lucide="alert-triangle" style="width:16px; height:16px;"></i>
+            </div>
+        </div>
+
+        <!-- CARD 3: ANPR INTELLIGENCE -->
+        <div class="metric-card">
+            <div class="metric-card-left">
+                <div class="metric-card-title">
+                    <i data-lucide="car" style="width:11px; height:11px; color:var(--accent-cyan);"></i>
+                    <span>ANPR Intelligence</span>
+                </div>
+                <div class="metric-card-value" id="card-anpr-val" style="color:var(--accent-cyan);">0 PLATES</div>
+                <div class="metric-card-sub">
+                    LAST: <span id="card-anpr-plate">--</span> <span id="card-anpr-conf" style="color:var(--text-muted);"></span>
+                </div>
+            </div>
+            <div class="metric-card-icon" style="color:var(--accent-cyan);">
+                <i data-lucide="scan" style="width:16px; height:16px;"></i>
+            </div>
+        </div>
+
+        <!-- CARD 4: SECURITY ANALYTICS -->
+        <div class="metric-card">
+            <div class="metric-card-left">
+                <div class="metric-card-title">
+                    <i data-lucide="activity" style="width:11px; height:11px; color:var(--color-live);"></i>
+                    <span>Security Analytics</span>
+                </div>
+                <div class="metric-card-value" id="card-security-state" style="color:var(--color-live);">PATROL NORMAL</div>
+                <div class="metric-card-sub">
+                    SUSP: <strong id="card-susp-count" style="color:#fff;">0</strong> • NIGHT: <strong id="card-night-count" style="color:#fff;">0</strong>
+                </div>
+            </div>
+            <div class="metric-card-icon" style="color:var(--color-live);">
+                <i data-lucide="shield-check" style="width:16px; height:16px;"></i>
+            </div>
+        </div>
+
+    </footer>
+
+    <!-- ─── DASHBOARD LOGIC (Zero Dummy Data, Real-Time Polling) ─── -->
+    <script>
+        // Initialize Lucide Icons safely
+        function initIcons() {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
+        }
+        document.addEventListener('DOMContentLoaded', initIcons);
+
+        let activeTab = 'intrusions';
+        function switchTab(tabName) {
+            activeTab = tabName;
+            ['intrusions', 'anpr', 'security'].forEach(t => {
+                const btn = document.getElementById(`tab-btn-${t}`);
+                const content = document.getElementById(`tab-content-${t}`);
+                if (btn) btn.classList.toggle('active', t === tabName);
+                if (content) content.style.display = (t === tabName) ? 'flex' : 'none';
+            });
+        }
+
+        // Keep track of rendered IDs to prevent redundant DOM updates
+        let lastIntrusionIds = '';
+        let lastAnprIds = '';
+        let lastSecurityIds = '';
+        let recentAlertTimestamp = 0;
+
+        async function fetchDashboardStatus() {
+            try {
+                const res = await fetch('/api/status');
+                if (!res.ok) throw new Error('Status network error');
+                const data = await res.json();
+
+                // 1. Live Video Connectivity & FPS
+                const isConn = data.connected;
+                const statusPill = document.getElementById('stream-status-pill');
+                const statusText = document.getElementById('stream-status-text');
+                if (statusPill && statusText) {
+                    if (isConn) {
+                        statusPill.className = 'badge-pill badge-live';
+                        statusText.innerText = 'LIVE';
+                    } else {
+                        statusPill.className = 'badge-pill badge-live disconnected';
+                        statusText.innerText = 'RECONNECTING';
+                    }
+                }
+
+                const fps = parseFloat(data.fps || 0).toFixed(1);
+                document.getElementById('hud-yolo-fps').innerText = `${fps} FPS`;
+                document.getElementById('card-ai-fps').innerText = `${fps} FPS`;
+
+                // 2. Numerical Live Session Counts
+                const people = (data.detected_objects && data.detected_objects.people_count) || 0;
+                const vehicles = (data.detected_objects && data.detected_objects.vehicle_count) || 0;
+                const faces = data.face_count || 0;
+                const sessionSuspicious = data.session_suspicious !== undefined ? data.session_suspicious : (data.suspicious_activity_count || 0);
+                const sessionAlerts = data.session_alerts !== undefined ? data.session_alerts : 0;
+                const sessionAnpr = data.session_anpr !== undefined ? data.session_anpr : 0;
+                const sessionNight = data.session_night !== undefined ? data.session_night : (data.night_alert_count || 0);
+
+                // DB historical totals
+                const dbAlerts = data.db_total_alerts || 0;
+                const dbAnpr = data.db_total_anpr || 0;
+                const dbSecurity = data.db_total_security || 0;
+
+                document.getElementById('stat-people').innerText = people;
+                document.getElementById('stat-vehicles').innerText = vehicles;
+                document.getElementById('stat-faces').innerText = faces;
+                document.getElementById('stat-suspicious').innerText = sessionSuspicious;
+                
+                const suspSub = document.getElementById('stat-suspicious-sub');
+                if (suspSub) {
+                    suspSub.innerText = sessionSuspicious > 0 ? 'LOITERING DETECTED' : 'NO ACTIVE THREAT';
+                    suspSub.style.color = sessionSuspicious > 0 ? 'var(--color-danger)' : 'var(--text-secondary)';
+                }
+
+                // Update Tab badges
+                document.getElementById('count-intrusions').innerText = `${sessionAlerts} Live`;
+                document.getElementById('hist-intrusions').innerText = `Total: ${dbAlerts}`;
+
+                document.getElementById('count-anpr').innerText = `${sessionAnpr} Live`;
+                document.getElementById('hist-anpr').innerText = `Total: ${dbAnpr}`;
+
+                const liveSecurityCount = sessionSuspicious + sessionNight;
+                document.getElementById('count-security').innerText = `${liveSecurityCount} Live`;
+                document.getElementById('hist-security').innerText = `Total: ${dbSecurity}`;
+
+                // Update Bottom 4 Metric Cards
+                document.getElementById('card-intrusion-val').innerText = `${sessionAlerts} LIVE`;
+                document.getElementById('card-anpr-val').innerText = `${sessionAnpr} PLATES`;
+                document.getElementById('card-susp-count').innerText = sessionSuspicious;
+                document.getElementById('card-night-count').innerText = sessionNight;
+
+                const secState = document.getElementById('card-security-state');
+                if (secState) {
+                    if (sessionAlerts > 0 && (Date.now()/1000 - recentAlertTimestamp) < 15) {
+                        secState.innerText = 'BREACH DETECTED';
+                        secState.style.color = 'var(--color-danger)';
+                    } else if (sessionSuspicious > 0) {
+                        secState.innerText = 'SUSPICIOUS ACTIVE';
+                        secState.style.color = 'var(--color-warn)';
+                    } else {
+                        secState.innerText = 'PATROL NORMAL';
+                        secState.style.color = 'var(--color-live)';
+                    }
+                }
+
+                // 3. Night Mode Indicator
+                const nightBadge = document.getElementById('night-badge');
+                if (nightBadge) {
+                    if (data.night_mode) {
+                        nightBadge.classList.add('active');
+                        document.getElementById('night-text').innerText = `NIGHT MODE (${data.brightness || 0})`;
+                    } else {
+                        nightBadge.classList.remove('active');
+                    }
+                }
+
+            } catch (err) {
+                console.error('Status fetch error:', err);
+            }
+        }
+
+        async function fetchThreatAndStats() {
+            try {
+                const res = await fetch('/api/dashboard_stats');
+                if (!res.ok) return;
+                const data = await res.json();
+
+                // Evaluate Threat Status derived strictly from recent alerts
+                const now = Date.now() / 1000;
+                const diff = now - recentAlertTimestamp;
+                
+                const threatLabel = document.getElementById('threat-label');
+                const threatText = document.getElementById('threat-status-text');
+                const threatReason = document.getElementById('threat-reason');
+                const threatIcon = document.getElementById('threat-icon');
+                const threatSub = document.getElementById('card-threat-sub');
+                const bar1 = document.getElementById('threat-bar-1');
+                const bar2 = document.getElementById('threat-bar-2');
+                const bar3 = document.getElementById('threat-bar-3');
+
+                if (diff < 15) { // Very recent intrusion in last 15 seconds
+                    threatLabel.innerText = 'CRITICAL';
+                    threatText.className = 'threat-status-text critical';
+                    threatReason.innerText = 'ACTIVE VIRTUAL FENCE BREACH';
+                    if (threatSub) { threatSub.innerText = 'ACTIVE BREACH'; threatSub.style.color = 'var(--color-danger)'; }
+                    bar1.className = 'threat-segment active-red';
+                    bar2.className = 'threat-segment active-red';
+                    bar3.className = 'threat-segment active-red';
+                } else if (diff < 45) { // Elevated within 45s
+                    threatLabel.innerText = 'ELEVATED';
+                    threatText.className = 'threat-status-text elevated';
+                    threatReason.innerText = 'RECENT MOVEMENT / ALERT';
+                    if (threatSub) { threatSub.innerText = 'RECENT ALERT'; threatSub.style.color = 'var(--color-warn)'; }
+                    bar1.className = 'threat-segment active-yellow';
+                    bar2.className = 'threat-segment active-yellow';
+                    bar3.className = 'threat-segment';
+                } else { // Normal
+                    threatLabel.innerText = 'NORMAL';
+                    threatText.className = 'threat-status-text';
+                    threatReason.innerText = 'PERIMETER SECURE';
+                    if (threatSub) { threatSub.innerText = 'SECURE'; threatSub.style.color = 'var(--color-live)'; }
+                    bar1.className = 'threat-segment active-green';
+                    bar2.className = 'threat-segment';
+                    bar3.className = 'threat-segment';
+                }
+            } catch (e) {
+                console.error('Threat eval error:', e);
+            }
+        }
+
+        async function fetchIntrusions() {
+            try {
+                const res = await fetch('/api/alerts?limit=25');
+                if (!res.ok) return;
+                const alerts = await res.json();
+
+                if (alerts.length > 0) {
+                    const idsStr = alerts.map(a => a.id).join(',');
+                    if (idsStr !== lastIntrusionIds) {
+                        lastIntrusionIds = idsStr;
+                        recentAlertTimestamp = Date.now() / 1000;
+                        renderIntrusions(alerts);
+                        const latestTime = (alerts[0].timestamp || '').split(' ')[1] || alerts[0].timestamp;
+                        const timeEl = document.getElementById('card-intrusion-time');
+                        if (timeEl) timeEl.innerText = latestTime;
+                    }
+                }
+            } catch (e) {
+                console.error('Intrusion fetch error:', e);
+            }
+        }
+
+        function renderIntrusions(alerts) {
+            const container = document.getElementById('tab-content-intrusions');
+            if (!alerts || alerts.length === 0) {
+                container.innerHTML = '<div class="empty-state-box">No virtual fence intrusions recorded in current session.</div>';
+                return;
+            }
+
+            container.innerHTML = alerts.slice(0, 15).map(a => {
+                const timeOnly = (a.timestamp || '').split(' ')[1] || a.timestamp;
+                const dir = a.direction || 'IN';
+                const dirColor = dir === 'IN' ? 'var(--color-danger)' : 'var(--accent-cyan)';
+                
+                let plateBadge = '';
+                if (a.object_type !== 'Person') {
+                    if (a.plate_text && a.plate_text !== 'PENDING' && a.plate_text !== 'ANALYZING...' && a.plate_text !== 'PLATE NOT READ' && a.plate_text !== 'N/A') {
+                        const confPct = Math.round((a.plate_confidence || 0) * 100);
+                        plateBadge = `<div style="margin-top:4px; font-size:0.7rem;"><span style="color:var(--text-muted);">Plate:</span> <strong class="plate-highlight" style="font-size:0.75rem; padding:1px 5px;">${a.plate_text}</strong> <span style="color:var(--accent-cyan); font-size:0.65rem;">(${confPct}%)</span></div>`;
+                    } else if (a.plate_text === 'PLATE NOT READ') {
+                        plateBadge = `<div style="margin-top:4px; font-size:0.68rem; color:var(--text-muted);">Plate: <span style="color:#f87171; font-weight:600;">NOT READ</span></div>`;
+                    } else {
+                        plateBadge = `<div style="margin-top:4px; font-size:0.68rem; color:var(--text-muted);">Plate: <span style="color:#94a3b8; font-style:italic;">ANALYZING...</span></div>`;
+                    }
+                }
+
+                return `
+                    <div class="incident-card">
+                        <img src="${a.snapshot_url}" alt="Snapshot" class="incident-thumb" onerror="this.style.display='none'">
+                        <div class="incident-details">
+                            <div class="incident-header-line">
+                                <span class="incident-type-tag">FENCE BREACH #${a.id}</span>
+                                <span class="incident-time">${timeOnly}</span>
+                            </div>
+                            <div class="incident-subtext">
+                                ID #${a.object_id || '—'} <strong style="color:#fff;">${a.object_type || 'Object'}</strong> • Direction: <span style="color:${dirColor}; font-weight:700;">${dir}</span>
+                                ${plateBadge}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function fetchANPR() {
+            try {
+                const res = await fetch('/api/anpr_log?limit=25');
+                if (!res.ok) return;
+                const plates = await res.json();
+
+                if (plates.length > 0) {
+                    const idsStr = plates.map(p => p.id).join(',');
+                    if (idsStr !== lastAnprIds) {
+                        lastAnprIds = idsStr;
+                        renderANPR(plates);
+                        const top = plates[0];
+                        const plateEl = document.getElementById('card-anpr-plate');
+                        const confEl = document.getElementById('card-anpr-conf');
+                        if (plateEl) {
+                            plateEl.innerText = top.plate_text;
+                            plateEl.className = 'plate-highlight';
+                        }
+                        if (confEl) {
+                            confEl.innerText = `(${Math.round((top.confidence || 0) * 100)}%)`;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('ANPR fetch error:', e);
+            }
+        }
+
+        function renderANPR(plates) {
+            const container = document.getElementById('tab-content-anpr');
+            if (!plates || plates.length === 0) {
+                container.innerHTML = '<div class="empty-state-box">No license plates recognized in current session.</div>';
+                return;
+            }
+
+            container.innerHTML = plates.slice(0, 15).map(p => {
+                const timeOnly = (p.timestamp || '').split(' ')[1] || p.timestamp;
+                const confPercent = Math.round((p.confidence || 0) * 100);
+                const isVerified = p.is_verified !== false && p.confidence >= 0.45;
+                const tagText = isVerified ? 'PLATE RECOGNIZED' : 'LOW CONFIDENCE READ';
+                const tagColor = isVerified ? 'var(--accent-cyan)' : 'var(--color-warn)';
+                return `
+                    <div class="incident-card card-anpr" style="${isVerified ? '' : 'border-left-color: var(--color-warn);'}">
+                        <img src="${p.snapshot_url}" alt="Plate" class="incident-thumb" onerror="this.style.display='none'">
+                        <div class="incident-details">
+                            <div class="incident-header-line">
+                                <span class="incident-type-tag" style="color:${tagColor};">${tagText}</span>
+                                <span class="incident-time">${timeOnly}</span>
+                            </div>
+                            <div class="incident-subtext">
+                                <span class="plate-highlight">${p.plate_text}</span>
+                                <span style="color:var(--text-muted); font-size:0.6rem; margin-left:4px;">(${confPercent}% conf)</span> • ID #${p.vehicle_id || '—'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function fetchSecurityEvents() {
+            try {
+                const res = await fetch('/api/security_events?limit=25');
+                if (!res.ok) return;
+                const events = await res.json();
+
+                if (events.length > 0) {
+                    const idsStr = events.map(e => e.id).join(',');
+                    if (idsStr !== lastSecurityIds) {
+                        lastSecurityIds = idsStr;
+                        renderSecurity(events);
+                    }
+                }
+            } catch (e) {
+                console.error('Security events fetch error:', e);
+            }
+        }
+
+        function renderSecurity(events) {
+            const container = document.getElementById('tab-content-security');
+            if (!events || events.length === 0) {
+                container.innerHTML = '<div class="empty-state-box">No loitering or night events logged in current session.</div>';
+                return;
+            }
+
+            container.innerHTML = events.slice(0, 15).map(e => {
+                const isNight = e.event_type === 'night_movement';
+                const timeOnly = (e.timestamp || '').split(' ')[1] || e.timestamp;
+                const cardClass = isNight ? 'card-night' : 'card-loiter';
+                const typeTag = isNight ? 'NIGHT MOVEMENT' : 'LOITERING';
+                return `
+                    <div class="incident-card ${cardClass}">
+                        <img src="${e.snapshot_url}" alt="Event" class="incident-thumb" onerror="this.style.display='none'">
+                        <div class="incident-details">
+                            <div class="incident-header-line">
+                                <span class="incident-type-tag">${typeTag}</span>
+                                <span class="incident-time">${timeOnly}</span>
+                            </div>
+                            <div class="incident-subtext">
+                                ${e.details || `${e.object_type} ID #${e.object_id}`}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function fetchSyncStatus() {
+            try {
+                const res = await fetch('/api/sync_status');
+                if (!res.ok) return;
+                const s = await res.json();
+                const total = s.total_events || 0;
+                const synced = s.synced_events || 0;
+                document.getElementById('sync-count-text').innerText = `SYNC: ${synced}/${total} PERSISTED`;
+            } catch (e) {
+                console.error('Sync fetch error:', e);
+            }
+        }
+
+        // Fast staggered polling loops
+        setInterval(fetchDashboardStatus, 500);
+        setInterval(fetchThreatAndStats, 800);
+        setInterval(fetchIntrusions, 1000);
+        setInterval(fetchANPR, 1200);
+        setInterval(fetchSecurityEvents, 1500);
+        setInterval(fetchSyncStatus, 5000);
+
+        // Initial fetch
+        fetchDashboardStatus();
+        fetchThreatAndStats();
+        fetchIntrusions();
+        fetchANPR();
+        fetchSecurityEvents();
+        fetchSyncStatus();
+    </script>
+</body>
+</html>

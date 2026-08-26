@@ -1,0 +1,52 @@
+# Python Bytecode & Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+.venv
+env/
+venv/
+ENV/
+
+# System & OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Runtime Databases & Logs
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.log
+synced_events.json
+
+# Snapshot Directories (Runtime Generated)
+static/alerts/*
+!static/alerts/.gitkeep
+static/anpr/*
+!static/anpr/.gitkeep
+static/anpr_debug/*
+!static/anpr_debug/.gitkeep
+
+# Temporary Scratches & Benchmarks
+scratch/
+.system_generated/
+*.tmp
+
+# External Infrastructure & Binaries (Installed separately)
+mediamtx/
+ffmpeg/
+
+# Auto-generated SSL Certificates & Keys
+auto.crt
+auto.key
+*.crt
+*.key
