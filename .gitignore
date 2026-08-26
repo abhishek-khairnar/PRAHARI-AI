@@ -50,3 +50,8 @@ auto.crt
 auto.key
 *.crt
 *.key
+
+# Unused Test Media & Non-Production Models (Preserved locally)
+test.mp4
+yolov8s.pt
+weights/best.pt

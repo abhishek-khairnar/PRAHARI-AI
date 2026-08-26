@@ -1,47 +1,58 @@
-# PRAHARI-AI — Intelligent Border Surveillance & Video Analytics
+# PRAHARI AI — Intelligent Border Surveillance & Video Analytics
 
 > **Real-Time Edge AI Surveillance, Virtual Fence Perimeter Defense, Automated ANPR, Face Detection, Loitering Analytics, and Offline-First Resilience.**
 
 ---
 
 ## Table of Contents
-1. [Project Overview](#1-project-overview)
-2. [Key Features](#2-key-features)
-3. [System Architecture](#3-system-architecture)
-4. [Complete Data Flow & Frame Lifecycle](#4-complete-data-flow--frame-lifecycle)
-5. [AI Models & Weights](#5-ai-models--weights)
-6. [Object Detection & Classification](#6-object-detection--classification)
-7. [Centroid & IoU Tracking Engine](#7-centroid--iou-tracking-engine)
-8. [Virtual Fence Perimeter Intrusion Detection](#8-virtual-fence-perimeter-intrusion-detection)
-9. [Automatic Number Plate Recognition (ANPR)](#9-automatic-number-plate-recognition-anpr)
-10. [Face Detection (YuNet ONNX)](#10-face-detection-yunet-onnx)
-11. [Suspicious Activity & Loitering Analytics](#11-suspicious-activity--loitering-analytics)
-12. [Night Mode & Nocturnal Movement Detection](#12-night-mode--nocturnal-movement-detection)
-13. [Database Architecture & Offline Sync](#13-database-architecture--offline-sync)
-14. [FastAPI Backend & API Reference](#14-fastapi-backend--api-reference)
-15. [Command & Intelligence Dashboard](#15-command--intelligence-dashboard)
-16. [Project Structure](#16-project-structure)
-17. [Installation & Environment Setup](#17-installation--environment-setup)
-18. [GPU Acceleration & CUDA Setup](#18-gpu-acceleration--cuda-setup)
-19. [RTSP Ingestion & MediaMTX Infrastructure](#19-rtsp-ingestion--mediamtx-infrastructure)
-20. [Run PRAHARI-AI — 3 Commands (Startup Flow)](#20-run-prahari-ai--3-commands-startup-flow)
-21. [Troubleshooting Guide](#21-troubleshooting-guide)
-22. [Tested Hardware & Performance Benchmarks](#22-tested-hardware--performance-benchmarks)
-23. [Security, Privacy & Air-Gap Design](#23-security-privacy--air-gap-design)
-24. [GitHub Publishing & Repository Setup](#24-github-publishing--repository-setup)
-25. [Team Member Onboarding Guide](#25-team-member-onboarding-guide)
-26. [What NOT to Commit (.gitignore Policy)](#26-what-not-to-commit-gitignore-policy)
-27. [Large Files Policy & Handling](#27-large-files-policy--handling)
-28. [License](#28-license)
-29. [Team Roles & Modular Responsibilities](#29-team-roles--modular-responsibilities)
-30. [SIH / Evaluator Demonstration Walkthrough](#30-sih--evaluator-demonstration-walkthrough)
-31. [Known Limitations](#31-known-limitations)
-32. [Future Improvements & Roadmap](#32-future-improvements--roadmap)
-33. [Technology Stack & Credits](#33-technology-stack--credits)
+1. [Project Title & Identity](#1-project-title--identity)
+2. [Project Overview](#2-project-overview)
+3. [Key Features](#3-key-features)
+4. [System Architecture](#4-system-architecture)
+5. [Complete Data Flow & Frame Lifecycle](#5-complete-data-flow--frame-lifecycle)
+6. [AI Models & Specifications](#6-ai-models--specifications)
+7. [Object Detection & Classification](#7-object-detection--classification)
+8. [Tracking Engine (Centroid & IoU Matching)](#8-tracking-engine-centroid--iou-matching)
+9. [Virtual Fence Perimeter Intrusion Detection](#9-virtual-fence-perimeter-intrusion-detection)
+10. [Automatic Number Plate Recognition (ANPR Pipeline)](#10-automatic-number-plate-recognition-anpr-pipeline)
+11. [Face Detection Engine (YuNet ONNX)](#11-face-detection-engine-yunet-onnx)
+12. [Loitering & Suspicious Activity Analytics](#12-loitering--suspicious-activity-analytics)
+13. [Night Mode & Nocturnal Movement Detection](#13-night-mode--nocturnal-movement-detection)
+14. [Database Architecture & Offline Persistence](#14-database-architecture--offline-persistence)
+15. [FastAPI Backend & API Reference](#15-fastapi-backend--api-reference)
+16. [Live Command & Intelligence Dashboard](#16-live-command--intelligence-dashboard)
+17. [Project Structure](#17-project-structure)
+18. [Installation & Environment Setup](#18-installation--environment-setup)
+19. [GPU Setup & CUDA Acceleration](#19-gpu-setup--cuda-acceleration)
+20. [RTSP Setup & Video Ingestion](#20-rtsp-setup--video-ingestion)
+21. [Run PRAHARI-AI — 3 Commands (Startup Flow)](#21-run-prahari-ai--3-commands-startup-flow)
+22. [Troubleshooting Guide](#22-troubleshooting-guide)
+23. [Tested Hardware & Performance Benchmarks](#23-tested-hardware--performance-benchmarks)
+24. [Security, Privacy & Air-Gap Architecture](#24-security-privacy--air-gap-architecture)
+25. [GitHub Setup & Publishing Guide](#25-github-setup--publishing-guide)
+26. [Team Member Onboarding Guide](#26-team-member-onboarding-guide)
+27. [What NOT to Commit (.gitignore Policy)](#27-what-not-to-commit-gitignore-policy)
+28. [Large Files Policy & Model Sizing](#28-large-files-policy--model-sizing)
+29. [License](#29-license)
+30. [Team Roles & Modular Responsibilities](#30-team-roles--modular-responsibilities)
+31. [SIH / Evaluator Demonstration Walkthrough](#31-sih--evaluator-demonstration-walkthrough)
+32. [Known System Limitations](#32-known-system-limitations)
+33. [Future Improvements & Roadmap](#33-future-improvements--roadmap)
+34. [Credits & Technology Stack](#34-credits--technology-stack)
 
 ---
 
-## 1. Project Overview
+## 1. Project Title & Identity
+
+- **Project Name**: PRAHARI-AI
+- **Full Title**: PRAHARI AI — Intelligent Border Surveillance & Video Analytics
+- **GitHub Account**: `abhishek-khairnar`
+- **Suggested Repository Name**: `PRAHARI-AI`
+- **Mission**: High-throughput, edge-accelerated, air-gapped perimeter security and automated video intelligence for forward checkpoints, remote borders, and sensitive defense facilities.
+
+---
+
+## 2. Project Overview
 
 Modern border security and perimeter enforcement operations face critical operational bottlenecks: vast geographical sectors, extreme terrain, intermittent network connectivity, human operator fatigue, and high false-alarm rates. 
 
@@ -55,7 +66,7 @@ Modern border security and perimeter enforcement operations face critical operat
 
 ---
 
-## 2. Key Features
+## 3. Key Features
 
 | Feature Module | Technology / Engine | Description |
 | :--- | :--- | :--- |
@@ -74,7 +85,7 @@ Modern border security and perimeter enforcement operations face critical operat
 
 ---
 
-## 3. System Architecture
+## 4. System Architecture
 
 ```text
 +---------------------------------------------------------------------------------------------------+
@@ -133,7 +144,7 @@ Modern border security and perimeter enforcement operations face critical operat
 
 ---
 
-## 4. Complete Data Flow & Frame Lifecycle
+## 5. Complete Data Flow & Frame Lifecycle
 
 Each video frame processed by PRAHARI-AI follows a deterministic, non-blocking lifecycle:
 
@@ -159,7 +170,7 @@ Each video frame processed by PRAHARI-AI follows a deterministic, non-blocking l
 
 ---
 
-## 5. AI Models & Weights
+## 6. AI Models & Specifications
 
 | Model Name | Task / Role | Framework | Source | Format | Default Location |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -171,7 +182,7 @@ Each video frame processed by PRAHARI-AI follows a deterministic, non-blocking l
 
 ---
 
-## 6. Object Detection & Classification
+## 7. Object Detection & Classification
 
 The primary detection engine runs **Ultralytics YOLOv8n** on CUDA with mixed precision (FP16).
 
@@ -190,7 +201,7 @@ Target COCO Classes:
 
 ---
 
-## 7. Centroid & IoU Tracking Engine
+## 8. Tracking Engine (Centroid & IoU Matching)
 
 The `CentroidTracker` class in `centroid_tracker.py` maintains persistent object identities across consecutive frames:
 
@@ -203,7 +214,7 @@ The `CentroidTracker` class in `centroid_tracker.py` maintains persistent object
 
 ---
 
-## 8. Virtual Fence Perimeter Intrusion Detection
+## 9. Virtual Fence Perimeter Intrusion Detection
 
 The virtual perimeter fence is configured as a horizontal tripwire across the surveillance frame.
 
@@ -232,7 +243,7 @@ The virtual perimeter fence is configured as a horizontal tripwire across the su
 
 ---
 
-## 9. Automatic Number Plate Recognition (ANPR)
+## 10. Automatic Number Plate Recognition (ANPR Pipeline)
 
 The ANPR engine (`anpr_engine.py`) operates as an asynchronous multi-stage pipeline:
 
@@ -275,7 +286,7 @@ The ANPR engine (`anpr_engine.py`) operates as an asynchronous multi-stage pipel
 
 ---
 
-## 10. Face Detection (YuNet ONNX)
+## 11. Face Detection Engine (YuNet ONNX)
 
 - **Model**: Local OpenCV Zoo YuNet ONNX (`face_detection_yunet_2023mar.onnx`, 232 KB).
 - **Execution Strategy**: Amortized execution every 8 frames (`FACE_DETECTION_INTERVAL = 8`).
@@ -285,7 +296,7 @@ The ANPR engine (`anpr_engine.py`) operates as an asynchronous multi-stage pipel
 
 ---
 
-## 11. Suspicious Activity & Loitering Analytics
+## 12. Loitering & Suspicious Activity Analytics
 
 - **Dwell Time Threshold**: Configured at `LOITERING_TIME_SECONDS = 20`.
 - **Spatial Anchor Radius**: Configured at `LOITERING_RADIUS_PIXELS = 100`.
@@ -295,7 +306,7 @@ The ANPR engine (`anpr_engine.py`) operates as an asynchronous multi-stage pipel
 
 ---
 
-## 12. Night Mode & Nocturnal Movement Detection
+## 13. Night Mode & Nocturnal Movement Detection
 
 - **Luminance Calculation**: Real-time mean pixel intensity of the grayscale frame is computed continuously.
 - **Low-Light Threshold**: Frames with mean brightness $\le 45$ are classified as low-light / night.
@@ -304,7 +315,7 @@ The ANPR engine (`anpr_engine.py`) operates as an asynchronous multi-stage pipel
 
 ---
 
-## 13. Database Architecture & Offline Sync
+## 14. Database Architecture & Offline Persistence
 
 PRAHARI-AI uses a local SQLite database (`prahari_events.db`) with **Write-Ahead Logging (WAL)** enabled for non-blocking concurrent reads and writes.
 
@@ -323,7 +334,7 @@ prahari_events.db (SQLite WAL Mode)
 
 ---
 
-## 14. FastAPI Backend & API Reference
+## 15. FastAPI Backend & API Reference
 
 FastAPI runs on `http://localhost:8001` providing high-throughput video streaming and structured JSON endpoints.
 
@@ -349,7 +360,7 @@ FastAPI runs on `http://localhost:8001` providing high-throughput video streamin
 
 ---
 
-## 15. Command & Intelligence Dashboard
+## 16. Live Command & Intelligence Dashboard
 
 The web dashboard (`templates/index.html`) is a dark-themed operational command center:
 
@@ -375,7 +386,7 @@ The web dashboard (`templates/index.html`) is a dark-themed operational command 
 
 ---
 
-## 16. Project Structure
+## 17. Project Structure
 
 ```text
 PRAHARI-AI/
@@ -403,7 +414,7 @@ PRAHARI-AI/
 
 ---
 
-## 17. Installation & Environment Setup
+## 18. Installation & Environment Setup
 
 ### Prerequisites
 - **Operating System**: Windows 10 / 11 (64-bit)
@@ -431,7 +442,7 @@ pip install -r requirements.txt
 
 ---
 
-## 18. GPU Acceleration & CUDA Setup
+## 19. GPU Setup & CUDA Acceleration
 
 Verify that PyTorch recognizes your NVIDIA GPU:
 
@@ -452,7 +463,7 @@ Device Name: NVIDIA GeForce RTX 3050 6GB Laptop GPU
 
 ---
 
-## 19. RTSP Ingestion & MediaMTX Infrastructure
+## 20. RTSP Setup & Video Ingestion
 
 ### Why `-c copy` is Used for RTSP Ingestion
 The video publisher uses the FFmpeg `-c copy` stream-copy flag:
@@ -468,7 +479,7 @@ ffmpeg -re -stream_loop -1 -i "D:\PRAHARI-AI\demo_videos\border_demo.mp4" -c cop
 
 ---
 
-## 20. Run PRAHARI-AI — 3 Commands (Startup Flow)
+## 21. Run PRAHARI-AI — 3 Commands (Startup Flow)
 
 Run the system using three separate terminals in the following exact sequence:
 
@@ -504,7 +515,7 @@ Open your web browser and navigate to:
 
 ---
 
-## 21. Troubleshooting Guide
+## 22. Troubleshooting Guide
 
 | Issue | Root Cause | Solution |
 | :--- | :--- | :--- |
@@ -519,7 +530,7 @@ Open your web browser and navigate to:
 
 ---
 
-## 22. Tested Hardware & Performance Benchmarks
+## 23. Tested Hardware & Performance Benchmarks
 
 ### Tested System Configuration
 - **GPU**: NVIDIA GeForce RTX 3050 6GB Laptop GPU
@@ -545,7 +556,7 @@ Open your web browser and navigate to:
 
 ---
 
-## 23. Security, Privacy & Air-Gap Design
+## 24. Security, Privacy & Air-Gap Architecture
 
 - **100% On-Premise Execution**: No video frames, bounding boxes, or metadata are ever transmitted to external cloud endpoints.
 - **Zero Hardcoded Secrets**: No hardcoded API keys, tokens, or personal credentials exist in the codebase.
@@ -554,7 +565,7 @@ Open your web browser and navigate to:
 
 ---
 
-## 24. GitHub Publishing & Repository Setup
+## 25. GitHub Setup & Publishing Guide
 
 ### Safe Git Initialization Commands
 
@@ -588,7 +599,7 @@ git push -u origin main
 
 ---
 
-## 25. Team Member Onboarding Guide
+## 26. Team Member Onboarding Guide
 
 To onboard a teammate on a new workstation:
 
@@ -620,7 +631,7 @@ To onboard a teammate on a new workstation:
 
 ---
 
-## 26. What NOT to Commit (.gitignore Policy)
+## 27. What NOT to Commit (.gitignore Policy)
 
 The following runtime artifacts are strictly excluded from version control:
 
@@ -631,25 +642,26 @@ The following runtime artifacts are strictly excluded from version control:
 - **Scratch & Test Outputs**: `scratch/`, `.system_generated/`, `*.tmp`.
 - **External Binaries**: `mediamtx/`, `ffmpeg/`.
 - **Auto-Generated SSL Certificates**: `auto.crt`, `auto.key`, `*.crt`, `*.key`.
+- **Unused Non-Production Models & Test Media**: `test.mp4`, `yolov8s.pt`, `weights/best.pt`.
 
 ---
 
-## 27. Large Files Policy & Handling
+## 28. Large Files Policy & Model Sizing
 
 - `demo_videos/border_demo.mp4`: **~10.3 MB** — Suitable for Git repository hosting (<25 MB soft limit).
-- `weights/yolov8n.pt`: **~6.5 MB** — Stored directly in `weights/` for out-of-the-box execution.
+- `weights/yolov8n.pt` & `yolov8n.pt`: **~6.5 MB** — Stored in `weights/` for out-of-the-box execution.
 - `weights/face_detection_yunet_2023mar.onnx`: **~232 KB** — Lightweight local ONNX model stored in `weights/`.
-- Large external binaries (`ffmpeg.exe`, `mediamtx.exe`) are excluded from Git and downloaded separately during setup.
+- Large external binaries (`ffmpeg.exe`, `mediamtx.exe`) and unused larger model variants (`yolov8s.pt`) are excluded from Git and kept locally.
 
 ---
 
-## 28. License
+## 29. License
 
 No license has been selected yet.
 
 ---
 
-## 29. Team Roles & Modular Responsibilities
+## 30. Team Roles & Modular Responsibilities
 
 | Role / Domain | Focus Areas | Key Code Files |
 | :--- | :--- | :--- |
@@ -663,7 +675,7 @@ No license has been selected yet.
 
 ---
 
-## 30. SIH / Evaluator Demonstration Walkthrough
+## 31. SIH / Evaluator Demonstration Walkthrough
 
 During an evaluation or hackathon demonstration, follow this 12-step flow:
 
@@ -682,7 +694,7 @@ During an evaluation or hackathon demonstration, follow this 12-step flow:
 
 ---
 
-## 31. Known Limitations
+## 32. Known System Limitations
 
 1. **Auto-Rickshaws**: Standard COCO YOLO classifies 3-wheelers under generic vehicle classes (`Car`, `Motorcycle`, `Vehicle`) rather than a dedicated auto-rickshaw label.
 2. **Severe Plate Degradation**: Extremely distant, blurred, or heavily angled plates are classified honestly as `PLATE NOT READ` rather than hallucinating false text.
@@ -691,7 +703,7 @@ During an evaluation or hackathon demonstration, follow this 12-step flow:
 
 ---
 
-## 32. Future Improvements & Roadmap
+## 33. Future Improvements & Roadmap
 
 - [ ] **Custom Indian Traffic YOLO Model**: Train on custom datasets including auto-rickshaws, tractors, and military transport vehicles.
 - [ ] **Dedicated Indian License Plate OCR**: Fine-tune CRNN/Transformer models specifically on high-contrast Indian HSRP fonts.
@@ -702,7 +714,7 @@ During an evaluation or hackathon demonstration, follow this 12-step flow:
 
 ---
 
-## 33. Technology Stack & Credits
+## 34. Credits & Technology Stack
 
 - **Core Language**: Python 3.10+
 - **Deep Learning Framework**: PyTorch, Ultralytics YOLOv8
