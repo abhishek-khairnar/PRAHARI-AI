@@ -27,6 +27,7 @@ desktop.ini
 *.db-shm
 *.log
 synced_events.json
+db_backups/
 
 # Snapshot Directories (Runtime Generated)
 static/alerts/*

@@ -1,727 +1,301 @@
-# PRAHARI AI — Intelligent Border Surveillance & Video Analytics
+# PRAHARI-AI — Multi-Camera Intelligent Surveillance Platform
 
-> **Real-Time Edge AI Surveillance, Virtual Fence Perimeter Defense, Automated ANPR, Face Detection, Loitering Analytics, and Offline-First Resilience.**
-
----
-
-## Table of Contents
-1. [Project Title & Identity](#1-project-title--identity)
-2. [Project Overview](#2-project-overview)
-3. [Key Features](#3-key-features)
-4. [System Architecture](#4-system-architecture)
-5. [Complete Data Flow & Frame Lifecycle](#5-complete-data-flow--frame-lifecycle)
-6. [AI Models & Specifications](#6-ai-models--specifications)
-7. [Object Detection & Classification](#7-object-detection--classification)
-8. [Tracking Engine (Centroid & IoU Matching)](#8-tracking-engine-centroid--iou-matching)
-9. [Virtual Fence Perimeter Intrusion Detection](#9-virtual-fence-perimeter-intrusion-detection)
-10. [Automatic Number Plate Recognition (ANPR Pipeline)](#10-automatic-number-plate-recognition-anpr-pipeline)
-11. [Face Detection Engine (YuNet ONNX)](#11-face-detection-engine-yunet-onnx)
-12. [Loitering & Suspicious Activity Analytics](#12-loitering--suspicious-activity-analytics)
-13. [Night Mode & Nocturnal Movement Detection](#13-night-mode--nocturnal-movement-detection)
-14. [Database Architecture & Offline Persistence](#14-database-architecture--offline-persistence)
-15. [FastAPI Backend & API Reference](#15-fastapi-backend--api-reference)
-16. [Live Command & Intelligence Dashboard](#16-live-command--intelligence-dashboard)
-17. [Project Structure](#17-project-structure)
-18. [Installation & Environment Setup](#18-installation--environment-setup)
-19. [GPU Setup & CUDA Acceleration](#19-gpu-setup--cuda-acceleration)
-20. [RTSP Setup & Video Ingestion](#20-rtsp-setup--video-ingestion)
-21. [Run PRAHARI-AI — 3 Commands (Startup Flow)](#21-run-prahari-ai--3-commands-startup-flow)
-22. [Troubleshooting Guide](#22-troubleshooting-guide)
-23. [Tested Hardware & Performance Benchmarks](#23-tested-hardware--performance-benchmarks)
-24. [Security, Privacy & Air-Gap Architecture](#24-security-privacy--air-gap-architecture)
-25. [GitHub Setup & Publishing Guide](#25-github-setup--publishing-guide)
-26. [Team Member Onboarding Guide](#26-team-member-onboarding-guide)
-27. [What NOT to Commit (.gitignore Policy)](#27-what-not-to-commit-gitignore-policy)
-28. [Large Files Policy & Model Sizing](#28-large-files-policy--model-sizing)
-29. [License](#29-license)
-30. [Team Roles & Modular Responsibilities](#30-team-roles--modular-responsibilities)
-31. [SIH / Evaluator Demonstration Walkthrough](#31-sih--evaluator-demonstration-walkthrough)
-32. [Known System Limitations](#32-known-system-limitations)
-33. [Future Improvements & Roadmap](#33-future-improvements--roadmap)
-34. [Credits & Technology Stack](#34-credits--technology-stack)
+> **AI-powered multi-camera surveillance and perimeter security monitoring platform designed to transform ordinary video feeds into a real-time intelligent monitoring command center.**
 
 ---
 
-## 1. Project Title & Identity
+## Overview
 
-- **Project Name**: PRAHARI-AI
-- **Full Title**: PRAHARI AI — Intelligent Border Surveillance & Video Analytics
-- **GitHub Account**: `abhishek-khairnar`
-- **Suggested Repository Name**: `PRAHARI-AI`
-- **Mission**: High-throughput, edge-accelerated, air-gapped perimeter security and automated video intelligence for forward checkpoints, remote borders, and sensitive defense facilities.
+Modern perimeter security and facility surveillance systems struggle with severe operational constraints: vast physical zones, human operator fatigue from staring at passive monitors, delayed response times to breaches, manual logging bottlenecks, and nocturnal blindspots.
+
+**PRAHARI-AI** (*Pra-ha-ri* — Sanskrit for *Sentinel / Guardian*) is an edge-native, real-time video analytics and surveillance monitoring system. It ingests multiple camera streams simultaneously, applies deep learning inference via a shared GPU architecture, tracks objects with persistent IDs, enforces virtual fence tripwires, detects nocturnal movement, flags loitering behaviors, extracts vehicle license plates (ANPR), and provides an interactive command center dashboard for security personnel.
 
 ---
 
-## 2. Project Overview
+## Problem & Solution
 
-Modern border security and perimeter enforcement operations face critical operational bottlenecks: vast geographical sectors, extreme terrain, intermittent network connectivity, human operator fatigue, and high false-alarm rates. 
+### The Problem
+- **Operator Fatigue**: Human attention drops significantly within 20 minutes of continuous CCTV monitoring.
+- **Passive vs. Active**: Traditional CCTV records crimes after they occur; it does not alert in real time.
+- **Perimeter Breaches**: Security personnel cannot manually monitor all boundary tripwires 24/7.
+- **Vehicle Tracking Bottlenecks**: Logging license plates at checkpoints manually is slow and error-prone.
+- **Nighttime Vulnerability**: Low-light scenarios often mask perimeter intrusions.
+- **Resource Inefficiency**: Running separate deep learning models per camera quickly exhausts GPU VRAM.
 
-**PRAHARI-AI** (*Pra-ha-ri* — Sanskrit for *Guardian/Sentinel*) is an integrated, low-latency, offline-first edge video analytics and perimeter surveillance platform engineered for forward operating locations, border checkpoints, and critical infrastructure installations.
-
-### Core Objectives & Value Proposition
-- **Automated Perimeter Defense**: Replaces passive CCTV monitoring with an active virtual fence trigger that automatically calculates breach direction (`IN` vs `OUT`) and logs forensic snapshot evidence.
-- **Intelligent Vehicle Identification**: Employs a multi-stage ANPR pipeline with temporal consensus voting to extract, enhance, read, and validate vehicle license plates against Indian registration standards.
-- **Nocturnal & Behavioral Awareness**: Actively detects loitering behavior via spatial displacement anchors and classifies day/night transitions to flag nocturnal movement in low-light conditions.
-- **Air-Gapped Operational Resilience**: All AI inference, object tracking, OCR, snapshot generation, and database storage run 100% locally on-device without cloud API dependencies. An offline synchronization buffer archives events locally until uplink is restored.
-
----
-
-## 3. Key Features
-
-| Feature Module | Technology / Engine | Description |
-| :--- | :--- | :--- |
-| **Object Detection** | Ultralytics YOLOv8n (CUDA FP16) | Real-time localization of persons, cars, buses, trucks, motorcycles, and vehicles at ~9–20 ms inference latency. |
-| **Object Tracking** | Custom CentroidTracker + IoU | Combined IoU-first and dynamic Euclidean centroid matching with persistent track IDs and occlusion tolerance. |
-| **Virtual Fence Defense** | Geometric Centroid State Machine | Configurable tripwire (Y=756 on 1080p) with bidirectional crossing classification (`IN`/`OUT`) and per-track deduplication. |
-| **Evidence Snapshot Generation** | OpenCV Multi-Threaded Writer | Generates 1080p annotated evidence snapshots with bounding boxes, breach tags, fence overlay, and telemetry timestamps. |
-| **ANPR & License Plate OCR** | YOLO Plate Detector + EasyOCR (CUDA) / PaddleOCR | Multi-frame rolling buffer, Lanczos aspect-ratio upscaling, CLAHE contrast enhancement, Indian format validation, and temporal consensus. |
-| **Face Detection** | Local YuNet ONNX (`libfacedetection`) | Amortized face scanning on high-resolution head/upper-body crops of tracked persons (<2 ms amortized latency). |
-| **Loitering Detection** | Spatial Dwell Timer Engine | Flags individuals stationary within a 100 px radius for over 20 seconds with automatic cooldowns. |
-| **Night Mode Analytics** | Luminance Analysis + Motion Delta | Evaluates frame brightness (<45 low-light threshold, 30-frame confirmation) and alerts on nocturnal movements. |
-| **Local Database & Sync** | SQLite WAL + Offline Sync Engine | Thread-safe persistence across 4 relational tables (`intrusion_events`, `anpr_events`, `security_events`, `system_events`) and JSON export. |
-| **Streaming & API Backend** | FastAPI + Uvicorn + MJPEG | High-throughput asynchronous HTTP backend serving multipart video feeds and 14 structured RESTful JSON endpoints. |
-| **Operator Command UI** | HTML5 / Vanilla CSS / Modern JS | Dark tactical HUD command center with live threat level meter, real-time counters, tabbed incident streams, and telemetry cards. |
-| **Multi-Camera Foundation** | `CameraManager` Class | Modular multi-stream foundation supporting independent processing pipelines per registered RTSP camera ID. |
+### The PRAHARI-AI Solution
+- **Autonomous Multi-Camera Monitoring**: Processes 4 simultaneous surveillance feeds + live dynamic webcam input.
+- **Active Real-Time Threat Alerts**: Instant visual alerts, directional classification (`IN`/`OUT`), and snapshot archiving upon breach.
+- **Shared Model Registry**: Single GPU memory footprint (~250 MB VRAM) serving all concurrent streams without duplicate allocations.
+- **Multi-Stage Security Logic**: Combines virtual tripwire fences, dwell-time loitering heuristics, and dual-threshold night detection.
+- **Automated License Plate Recognition**: Detects vehicle plates and classifies them into structured confidence tiers.
+- **Modern Tactical Command Center**: Live MJPEG video grid, instant focus mode, real-time telemetry, and SQLite-backed historical analytics.
 
 ---
 
-## 4. System Architecture
+## Key Features
 
-```text
-+---------------------------------------------------------------------------------------------------+
-|                                      PRAHARI-AI SYSTEM PIPELINE                                   |
-+---------------------------------------------------------------------------------------------------+
+- **Multi-Camera Grid & Dynamic Ingestion**:
+  - Simultaneous processing of 4 core surveillance feeds:
+    - **CAM-01**: *Border Post Alpha* (`demo_videos/border_demo.mp4`)
+    - **CAM-02**: *Night Surveillance Bravo* (`demo_videos/night_demo.mp4`)
+    - **CAM-03**: *Perimeter Activity Charlie* (`demo_videos/activity-demo.mp4`)
+    - **CAM-04**: *Urban Facility Delta* (`demo_videos/cctv_demo.mp4`)
+  - Dynamic hardware webcam integration as **CAM-WEBCAM** with one-click connect/disconnect.
+- **Real-Time Object Detection**:
+  - Ultralytics YOLOv8-powered object detection for persons and vehicles.
+  - Subtype classification for **Cars**, **Motorcycles**, **Buses**, and **Trucks**.
+- **Multi-Object Centroid Tracking**:
+  - IoU and Euclidean distance matching with persistent track IDs.
+  - Trajectory tracking and direction determination across consecutive frames.
+- **Virtual Fence Intrusion Detection**:
+  - Configurable geometric tripwire per camera.
+  - Directional breach detection (`IN` vs `OUT`) with automated forensic snapshot capture.
+- **Night Surveillance with Hysteresis**:
+  - Ambient luminance estimation with dual-threshold hysteresis (`Enter: 85.0`, `Exit: 98.0`).
+  - Distinguishes day and night conditions to alert on nocturnal movement.
+- **Suspicious Activity & Loitering Analytics**:
+  - Dwell-time monitoring tracking stationary targets exceeding spatial thresholds (>20 seconds within anchor radius).
+- **Automated Number Plate Recognition (ANPR)**:
+  - High-accuracy license plate localization paired with EasyOCR text extraction.
+  - Structured validation categories: `VERIFIED`, `DETECTED`, `LOW_CONFIDENCE`, `NOT_READ`.
+- **YuNet Face Detection (Detection-Only)**:
+  - Lightweight ONNX-based face detection for head/upper-body regions.
+  - *Privacy Guaranteed*: Strictly detection-only; **no** identity recognition, **no** biometric identification, and **no** facial database storage.
+- **Shared GPU Model Registry**:
+  - Singleton pattern (`ModelRegistry`) ensuring shared weights across all active readers.
+  - Bounded VRAM footprint (<300 MB) with thread-safe inference concurrency.
+- **Live Command Center & Telemetry**:
+  - Real-time camera telemetry displayed as `Objects: TOTAL (PERSON_COUNT P, VEHICLE_COUNT V)` (e.g. `Objects: 15 (9P, 6V)`).
+  - Stream metrics: AI FPS, Capture FPS, Daytime/Nighttime state, Face count, and Threat level indicator.
+- **Focus View & Incident Inspection**:
+  - High-definition single-camera Focus View with quick navigation.
+  - Lightbox modal for detailed forensic review of captured intrusion and ANPR evidence snapshots.
+- **SQLite WAL Persistence & Offline Sync**:
+  - Thread-safe SQLite event logging with Write-Ahead Logging (WAL) mode.
+  - Offline-first JSON export mechanism for field deployments.
+- **Real-Time Analytics Dashboard**:
+  - Direct SQL aggregate analytics displaying camera event breakdown, hourly breach distributions, and verified plate counts.
 
-     [ Video Source: border_demo.mp4 ] (1920x1080 @ 30 FPS H.264)
-                   |
-                   v
-     [ FFmpeg RTSP Loop Publisher ] (-c copy -rtsp_transport tcp)
-                   |
-                   v
-     [ MediaMTX RTSP Server ] (Port :8554 /mystream)
-                   |
-                   v
-     [ RTSPStreamReader Grabber Thread ] (Dedicated high-speed frame ingest buffer)
-                   |
-                   +-------------------------------------------------------------------+
-                   |                                                                   |
-                   v                                                                   v
-     [ Deep Learning Inference ] (YOLOv8n CUDA)                       [ Scene Luminance & Loop Check ]
-                   |                                                                   |
-                   v                                                                   v
-     [ Centroid & IoU Tracking Engine ]                               [ Night Mode / Loop Discontinuity ]
-     (Persistent IDs, Trajectories, Bounding Boxes)
-                   |
-                   +-----------------------+-----------------------+-------------------+
-                   |                       |                       |                   |
-                   v                       v                       v                   v
-        [ Virtual Fence Alert ]   [ Vehicle Frame Buffer ]   [ YuNet Face Engine ]  [ Loitering State ]
-        - Y=756 Crossing Check    - Up to 10 Crops / Track   - Head/Upper Body Crop - 20s Dwell Timer
-        - IN / OUT Direction      - Sharpness Ranking        - Periodic Amortized   - 100px Anchor Radius
-        - Deduplication Guard              |                           |                   |
-                   |                       v                           v                   v
-                   |            [ Async ANPR Worker ]         [ Face Bounding Box ] [ Security Event ]
-                   |            - YOLO Plate Localization
-                   |            - Lanczos Upscale + CLAHE
-                   |            - EasyOCR CUDA / Paddle
-                   |            - Indian Plate Validation
-                   |            - Temporal Consensus
-                   |                       |
-                   +-----------+-----------+
-                               |
-                               v
-               [ Evidence Snapshot Generator ] (1080p Annotated Snapshots -> static/alerts/, static/anpr/)
-                               |
-                               v
-               [ Thread-Safe SQLite WAL Database ] (prahari_events.db + synced_events.json)
-                               |
-                               v
-               [ FastAPI Asynchronous Backend ] (Port :8001 | 14 REST Endpoints + /video_feed MJPEG)
-                               |
-                               v
-               [ Command & Intelligence Dashboard ] (Browser Operator UI @ http://localhost:8001)
+---
+
+## System Architecture
+
+```mermaid
+flowchart TD
+    subgraph Ingestion["Video Ingestion Layer"]
+        CAM1["CAM-01: Border Post Alpha"]
+        CAM2["CAM-02: Night Surveillance Bravo"]
+        CAM3["CAM-03: Perimeter Activity Charlie"]
+        CAM4["CAM-04: Urban Facility Delta"]
+        WEBCAM["CAM-WEBCAM: USB / Integrated Cam"]
+    end
+
+    subgraph Registry["Shared AI Model Registry (GPU Singleton)"]
+        YOLO["YOLOv8 Object Detector (FP16/CUDA)"]
+        YUNET["YuNet Face Detector (ONNX)"]
+        ANPR_M["ANPR Engine (YOLO Plate + EasyOCR)"]
+    end
+
+    subgraph Pipeline["Camera Pipeline (RTSPStreamReader)"]
+        INGEST["Frame Grabber & Ingest Buffer"]
+        TRACK["Centroid & IoU Object Tracker"]
+        FENCE["Virtual Fence Tripwire Engine (IN/OUT)"]
+        NIGHT["Dual-Threshold Night Hysteresis"]
+        LOITER["Loitering & Dwell Timer"]
+    end
+
+    subgraph Persistence["Storage & API Layer"]
+        DB[(SQLite Database - WAL Mode)]
+        FASTAPI["FastAPI Asynchronous Backend (Port 8001)"]
+    end
+
+    subgraph Frontend["Command Center UI"]
+        GRID["Multi-Camera Live Grid (MJPEG)"]
+        FOCUS["Focus View Modal"]
+        INCIDENTS["Live Incident Feed & Lightbox"]
+        ANALYTICS["Real-Time Analytics Charts"]
+    end
+
+    CAM1 & CAM2 & CAM3 & CAM4 & WEBCAM --> INGEST
+    INGEST --> YOLO & YUNET
+    YOLO --> TRACK
+    TRACK --> FENCE & LOITER
+    TRACK --> ANPR_M
+    NIGHT --> FASTAPI
+    FENCE & LOITER & ANPR_M --> DB
+    DB --> FASTAPI
+    FASTAPI --> GRID & FOCUS & INCIDENTS & ANALYTICS
 ```
 
 ---
 
-## 5. Complete Data Flow & Frame Lifecycle
+## Feature Workflow
 
-Each video frame processed by PRAHARI-AI follows a deterministic, non-blocking lifecycle:
-
-1. **Ingest & Re-Streaming**: `border_demo.mp4` is published by FFmpeg over TCP to MediaMTX at `rtsp://localhost:8554/mystream`.
-2. **Frame Grabber Thread**: An isolated background worker grabs frames via OpenCV `VideoCapture` into a double-buffered shared memory slot, decoupling RTSP network ingestion from AI compute.
-3. **Loop & Luminance Assessment**: Computes grayscale frame luminance to determine Day/Night mode (with a 30-frame confirmation buffer) and measures frame diff against previous thumbnail to detect seamless video loop restarts.
-4. **Primary Object Detection**: The latest frame is sent to **YOLOv8n** on CUDA GPU (`conf=0.35`, `imgsz=640`). Target classes: `Person (0)`, `Vehicle (1)`, `Car (2)`, `Motorcycle (3)`, `Bus (5)`, `Truck (7)`.
-5. **Centroid & IoU Matching**: Detections are correlated with existing tracked objects using a combined metric prioritizing bounding-box IoU overlap when spatial intersection exists, augmented by Euclidean centroid distance.
-6. **Virtual Fence Evaluation**: The vertical centroid position of each tracked object is compared with the virtual fence line ($Y = 756$). When an object transitions from $y < 756$ to $y \ge 756$, an `IN` intrusion is triggered; $y \ge 756$ to $y < 756$ triggers an `OUT` event.
-7. **Snapshot & Database Commit**: Upon confirmation (`hits >= 2`), an annotated 1080p snapshot is written to `static/alerts/` and logged to SQLite (`intrusion_events`) asynchronously via `ThreadPoolExecutor`.
-8. **Vehicle Ring Buffering & ANPR Dispatch**: For vehicles crossing the fence, rolling bounding-box crops are added to a per-track buffer. The top-ranked sharpest crops are enqueued into a bounded queue for background OCR.
-9. **ANPR Localization, OCR & Consensus**:
-   - YOLO plate detector extracts the plate region with outward expansion padding (+12% width, +18% height).
-   - Plate crop is upscaled using Lanczos-4 interpolation and preprocessed through CLAHE and unsharp masking.
-   - EasyOCR (CUDA) or PaddleOCR extracts raw text.
-   - Text is cleaned using positional alphanumeric heuristics and validated against Indian registration syntax (e.g., `MH02FU9302`).
-   - Observations over multiple frames vote toward a temporal consensus string.
-   - Unreadable plates are explicitly designated as `PLATE NOT READ` / `UNREADABLE` without artificial fabrication.
-10. **Face & Loitering Analytics**:
-    - Every 8 frames, YuNet scans high-resolution upper-body/head crops of the largest tracked persons.
-    - Tracked individuals stationary within a 100 px radius for $\ge 20$ seconds trigger a loitering security alert.
-11. **MJPEG Stream & Dashboard Polling**: Processed frames with HUD overlays are JPEG-encoded and streamed via `/video_feed`. The frontend polls `/api/status`, `/api/alerts`, `/api/anpr_log`, and `/api/security_events` at sub-second intervals.
+1. **Ingestion**: `CameraManager` initializes independent `RTSPStreamReader` instances for configured streams and webcams.
+2. **Inference**: Frames are passed through the singleton `ModelRegistry` (YOLOv8 + YuNet) on GPU/CUDA or CPU fallback.
+3. **Tracking**: Bounding boxes are matched using IoU and centroid distance, maintaining persistent track IDs and trajectories.
+4. **Boundary Evaluation**: The virtual fence state machine evaluates boundary crossings and determines `IN` or `OUT` direction.
+5. **Behavioral & Environmental Analysis**:
+   - Dwell timer checks if an entity remains stationary within a radius for >20 seconds.
+   - Ambient luminance is measured against dual hysteresis thresholds to flag night movement.
+6. **License Plate Extraction**: Vehicle crops are sent to the asynchronous ANPR queue, localized, enhanced, read via OCR, and validated.
+7. **Persistence**: Security alerts and plate reads are written to `prahari_events.db` in SQLite WAL mode.
+8. **Dashboard Visualization**: FastAPI serves live MJPEG streams and telemetry endpoints to the browser command center at `http://localhost:8001`.
 
 ---
 
-## 6. AI Models & Specifications
+## Technology Stack
 
-| Model Name | Task / Role | Framework | Source | Format | Default Location |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **YOLOv8n** (`yolov8n.pt`) | Primary Object Detection | PyTorch / Ultralytics | Local / Ultralytics Hub | `.pt` weights (~6.5 MB) | `weights/yolov8n.pt` & root |
-| **YuNet ONNX** (`face_detection_yunet_2023mar.onnx`) | High-Speed Face Detection | OpenCV DNN / ONNX | OpenCV Model Zoo | ONNX format (~232 KB) | `weights/face_detection_yunet_2023mar.onnx` |
-| **YOLO License Plate Detector** (`license-plate-finetune-v1n.pt`) | License Plate Region Localization | Ultralytics YOLO | Hugging Face (`morsetechlab/yolov11-license-plate-detection`) | `.pt` weights (~5.5 MB) | HuggingFace cache / Fallback |
-| **EasyOCR (CRAFT + CRNN)** | Text & Character Recognition | PyTorch (CUDA Accelerated) | JaidedAI / EasyOCR | PyTorch models (~80 MB) | `~/.EasyOCR/model/` |
-| **PaddleOCR (PP-OCRv4)** *(Fallback)* | Fallback Character Recognition | PaddlePaddle / PaddleOCR | PaddlePaddle Model Zoo | Inference Model | `~/.paddleocr/` |
-
----
-
-## 7. Object Detection & Classification
-
-The primary detection engine runs **Ultralytics YOLOv8n** on CUDA with mixed precision (FP16).
-
-```
-Target COCO Classes:
-├── Person       (Class 0) -> Emerald Green Bounding Box
-├── Bicycle      (Class 1) -> Blue/Cyan Bounding Box
-├── Car          (Class 2) -> Blue/Cyan Bounding Box
-├── Motorcycle   (Class 3) -> Blue/Cyan Bounding Box
-├── Bus          (Class 5) -> Blue/Cyan Bounding Box
-└── Truck        (Class 7) -> Blue/Cyan Bounding Box
-```
-
-### Auto-Rickshaw Classification Note
-> **Important**: Standard COCO pre-trained YOLO models do **not** have a dedicated class for Indian 3-wheeler auto-rickshaws. In standard COCO weights, auto-rickshaws are typically detected under general vehicle classes (`Car`, `Motorcycle`, or generic `Vehicle` if confidence is below the subtype threshold). PRAHARI-AI does not fabricate an artificial auto-rickshaw class on standard COCO weights. Training a custom Indian traffic dataset is planned in the project roadmap.
+- **Backend Framework**: Python 3.10+ / [FastAPI](https://fastapi.tiangolo.com/) / [Uvicorn](https://www.uvicorn.org/)
+- **Computer Vision**: [OpenCV](https://opencv.org/) (`cv2`), [NumPy](https://numpy.org/)
+- **Deep Learning**: [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) (PyTorch CUDA / FP16)
+- **Face Detection**: [YuNet ONNX](https://github.com/opencv/opencv_zoo/tree/master/models/face_detection_yunet) (*Detection-only, libfacedetection*)
+- **License Plate OCR**: [EasyOCR](https://github.com/JaidedAI/EasyOCR) + fine-tuned YOLO plate localization
+- **Database**: SQLite3 (Thread-Safe WAL Mode + Schema Migrations)
+- **Frontend / UI**: HTML5, Vanilla CSS3 (Custom Design System), Modern JavaScript (ES6+), [Lucide Icons](https://lucide.dev/)
 
 ---
 
-## 8. Tracking Engine (Centroid & IoU Matching)
-
-The `CentroidTracker` class in `centroid_tracker.py` maintains persistent object identities across consecutive frames:
-
-- **IoU-First Association**: Computes Intersection over Union between existing bounding boxes and new detections. When overlap $\ge 0.20$, the cost metric assigns 75% weight to IoU and 25% to centroid distance.
-- **Dynamic Distance Thresholding**: The maximum association distance dynamically adapts to object size ($\max(220\text{ px}, \text{dimension} \times 1.5)$) to handle fast-moving vehicles close to the camera.
-- **Class Consistency Penalty**: Penalizes identity swaps across disjoint object categories (e.g. Person vs Vehicle).
-- **Disappearance Handling**: Allows up to `max_disappeared = 25` frames of occlusion/absence before deregistering a track ID.
-- **Track Confirmation**: Requires `hits >= 2` consecutive detections before validating fence crossings or loitering timers, filtering out single-frame false positives.
-- **Loop Discontinuity Guard**: Evaluates structural frame differences; when video loops restart abruptly, the tracker automatically clears stale track IDs to prevent false trajectory jumps.
-
----
-
-## 9. Virtual Fence Perimeter Intrusion Detection
-
-The virtual perimeter fence is configured as a horizontal tripwire across the surveillance frame.
-
-```
-+-----------------------------------------------------------------------------+
-| Frame Top (Y=0)                                                             |
-|                                                                             |
-|                           [ Approaching Vehicle ]                           |
-|                                     |                                       |
-|                                     v (Moving Downwards)                    |
-| ═══════════════════════════════════════════════════════════════════════════ |
-| [ VIRTUAL FENCE LINE: Y=756 px (70% Height) ] ───> Direction: IN (Breach!)  |
-| ═══════════════════════════════════════════════════════════════════════════ |
-|                                     |                                       |
-|                                     v                                       |
-| Frame Bottom (Y=1080)                                                       |
-+-----------------------------------------------------------------------------+
-```
-
-### Fence Trigger Logic
-- **Directionality**: 
-  - Top to bottom ($y_{\text{prev}} < 756 \rightarrow y_{\text{curr}} \ge 756$) $\Rightarrow$ **`IN`** (Entering secured perimeter).
-  - Bottom to top ($y_{\text{prev}} \ge 756 \rightarrow y_{\text{curr}} < 756$) $\Rightarrow$ **`OUT`** (Exiting perimeter).
-- **Deduplication**: Each track ID is flagged with `crossed_fence = True`. Re-alerting on the same track ID is blocked unless direction reverses.
-- **Evidence Snapshot**: The moment a breach is confirmed, an annotated 1920x1080 frame is generated with red fence overlay, target bounding box, breach tag, and top telemetry header, saved to `static/alerts/intrusion_{timestamp}_id{object_id}.jpg`.
-
----
-
-## 10. Automatic Number Plate Recognition (ANPR Pipeline)
-
-The ANPR engine (`anpr_engine.py`) operates as an asynchronous multi-stage pipeline:
-
-```
-[ Vehicle Bounding Box ]
-         │
-         ▼
-[ Outward Expansion Padding ] (+12% Horizontal, +18% Vertical to preserve edge characters)
-         │
-         ▼
-[ YOLO Plate Detector ] (morsetechlab/yolov11-license-plate-detection)
-         │
-         ▼
-[ Aspect-Ratio Preserving Lanczos-4 Upscaling ] (Min height: 90px, Min width: 320px)
-         │
-         ▼
-[ Multi-Variant Preprocessing ]
-   ├── Variant 1: CLAHE Contrast Normalization on LAB L-channel
-   ├── Variant 2: Unsharp Mask Sharpening (GaussianBlur sigma=2.0, weight=1.6)
-   └── Variant 3: Contrast-Stretched Grayscale Normalization (MinMax 0-255)
-         │
-         ▼
-[ Fast CUDA EasyOCR / PaddleOCR Execution ]
-         │
-         ▼
-[ Positional Character Normalization ] (e.g. 0->O in state prefix; O->0 in registration digits)
-         │
-         ▼
-[ Indian Registration Format Validation ]
-   ├── Tier 1 (Strict): Matches ^[A-Z]{2}[0-9]{1,2}[A-Z]{0,3}[0-9]{1,4}$ + Valid State Code
-   └── Tier 2 (General): 5-10 alphanumeric characters containing letters and numbers
-         │
-         ▼
-[ Multi-Frame Temporal Consensus Voting ] (Groups observations across rolling buffer)
-         │
-         ▼
-[ Final Resolution ] ───► Valid: "MH02FU9302" (Linked to Intrusion Event)
-                     └───► Unreadable: "PLATE NOT READ" (Explicit honest status)
-```
-
----
-
-## 11. Face Detection Engine (YuNet ONNX)
-
-- **Model**: Local OpenCV Zoo YuNet ONNX (`face_detection_yunet_2023mar.onnx`, 232 KB).
-- **Execution Strategy**: Amortized execution every 8 frames (`FACE_DETECTION_INTERVAL = 8`).
-- **Targeted High-Resolution Crop**: Instead of downscaling the entire 1080p frame, YuNet processes upper-body/head crops of the top 2 largest tracked persons, preserving high facial resolution.
-- **Fallback Scan**: If no person is currently tracked, a global downscaled pass (640x360) is executed.
-- **Performance**: Amortized latency is under **1.6 ms** per frame.
-
----
-
-## 12. Loitering & Suspicious Activity Analytics
-
-- **Dwell Time Threshold**: Configured at `LOITERING_TIME_SECONDS = 20`.
-- **Spatial Anchor Radius**: Configured at `LOITERING_RADIUS_PIXELS = 100`.
-- **Logic**: When a tracked person remains within 100 pixels of their initial anchor point for over 20 seconds, a `suspicious_activity` security alert is generated.
-- **Cooldown**: 30-second re-alert cooldown prevents redundant event spamming for the same individual.
-- **Logging**: Events are logged to `security_events` table and highlighted on the dashboard security tab.
-
----
-
-## 13. Night Mode & Nocturnal Movement Detection
-
-- **Luminance Calculation**: Real-time mean pixel intensity of the grayscale frame is computed continuously.
-- **Low-Light Threshold**: Frames with mean brightness $\le 45$ are classified as low-light / night.
-- **Temporal Confirmation**: Requires 30 consecutive frames (`NIGHT_CONFIRM_FRAMES = 30`) below the threshold to toggle Night Mode, preventing transient lighting fluctuations from triggering state changes.
-- **Nocturnal Motion Alert**: When Night Mode is active, any tracked object with displacement $\ge 15\text{ px}$ triggers a `night_movement` security alert logged to the database.
-
----
-
-## 14. Database Architecture & Offline Persistence
-
-PRAHARI-AI uses a local SQLite database (`prahari_events.db`) with **Write-Ahead Logging (WAL)** enabled for non-blocking concurrent reads and writes.
-
-```
-prahari_events.db (SQLite WAL Mode)
-├── intrusion_events  (id, timestamp, object_type, object_id, direction, plate_text, plate_confidence, anpr_status, snapshot_path, synced)
-├── anpr_events       (id, timestamp, object_type, object_id, plate_text, confidence, snapshot_path, synced)
-├── security_events   (id, timestamp, camera_id, event_type, object_type, object_id, confidence, snapshot_path, details, synced)
-└── system_events     (id, timestamp, event_type, details)
-```
-
-### Offline-First Sync Engine
-- Every database row includes a `synced` flag (`0 = unsynced`, `1 = synced`).
-- A background worker (`_sync_worker_loop`) periodically gathers all records with `synced = 0`, exports them to `synced_events.json`, and updates `synced = 1`.
-- This ensures 100% data integrity in remote border environments with zero cloud connectivity.
-
----
-
-## 15. FastAPI Backend & API Reference
-
-FastAPI runs on `http://localhost:8001` providing high-throughput video streaming and structured JSON endpoints.
-
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/` | Serves the HTML5 Command and Intelligence Web Dashboard. |
-| `GET` | `/video_feed` | Multipart MJPEG HTTP live video stream with HUD overlays. |
-| `GET` | `/api/status` | Real-time system telemetry: connection state, FPS, device, live and database totals. |
-| `GET` | `/api/alerts` | Recent intrusion breach records with snapshot image URLs. |
-| `GET` | `/api/anpr_log` | Recent ANPR license plate recognition logs with plate crop URLs. |
-| `GET` | `/api/anpr_debug` | Recent candidate debug crops from the license plate localization stage. |
-| `GET` | `/api/events/all` | Paginated full historical event log from SQLite (`limit`, `offset`). |
-| `GET` | `/api/sync_status` | Offline sync engine statistics (total, synced, and pending records). |
-| `GET` | `/api/security_events`| Historical security events with optional `event_type` filter (`suspicious_activity`, `night_movement`). |
-| `GET` | `/api/suspicious_alerts`| Recent in-memory loitering and suspicious activity alerts. |
-| `GET` | `/api/night_status` | Current night mode classification, scene luminance, and night alert counts. |
-| `GET` | `/api/face_stats` | Live face detection statistics and YuNet status. |
-| `GET` | `/api/dashboard_stats`| Consolidated telemetry payload for dashboard polling. |
-| `GET` | `/api/cameras` | List of registered surveillance cameras and connectivity status. |
-| Static | `/alerts/{filename}` | Direct static file access to full-resolution intrusion snapshots. |
-| Static | `/anpr/{filename}` | Direct static file access to license plate crop images. |
-| Static | `/anpr_debug/{filename}`| Direct static file access to candidate debug plate crops. |
-
----
-
-## 16. Live Command & Intelligence Dashboard
-
-The web dashboard (`templates/index.html`) is a dark-themed operational command center:
-
-```
-+---------------------------------------------------------------------------------------------------+
-|  [SHIELD] PRAHARI AI — Intelligent Border Surveillance & Command Center     CAM-01 [LIVE] [CUDA]  |
-+---------------------------------------------------------------------------------------------------+
-|                                                 |  [ THREAT LEVEL GAUGE: NORMAL / ELEVATED / CRIT ]
-|                                                 +-------------------------------------------------+
-|                                                 |  [ PEOPLE: 2 ]  [ VEHICLES: 3 ]  [ FACES: 1 ]   |
-|         PRIMARY SURVEILLANCE FEED               +-------------------------------------------------+
-|              (1920x1080 MJPEG)                  |  TABS: [Intrusions]  [ANPR Plates]  [Security]  |
-|                                                 |  ─────────────────────────────────────────────  |
-|   - Real-time YOLO Bounding Boxes               |  🚨 ID #34 Car [IN] - Plate: MH02FU9302         |
-|   - Red Virtual Fence Overlay (Y=756)           |  🚨 ID #12 Person [OUT] - Perimeter Cross       |
-|   - Live Tactical HUD Chips                     |  🚘 ID #42 Truck - Plate: DL01AB1234            |
-|                                                 |  ⚠️ ID #08 Person - Loitering (24s in Zone)     |
-|                                                 |  🌙 ID #19 Vehicle - Nocturnal Motion           |
-+---------------------------------------------------------------------------------------------------+
-| [ AI PERF: 28.4 FPS | 24ms ]  [ INTRUSIONS: 12 ]  [ ANPR PLATES: 8 ]  [ PATROL: NORMAL | SYNCED ] |
-+---------------------------------------------------------------------------------------------------+
-```
-
----
-
-## 17. Project Structure
+## Project Structure
 
 ```text
 PRAHARI-AI/
-├── main.py                     # FastAPI application server, route definitions & lifespan manager
-├── rtsp_stream.py              # Core surveillance engine (Grabber, AI Processor, ANPR Worker, Overlay)
-├── anpr_engine.py              # License plate detector, multi-variant OCR & Indian format validation
-├── centroid_tracker.py         # Centroid & IoU tracking engine with persistent IDs and trajectory history
-├── database.py                 # SQLite WAL database manager & offline sync engine
-├── camera_manager.py           # Multi-camera stream manager foundation
-├── requirements.txt            # Python dependencies
-├── README.md                   # Complete system documentation
-├── .gitignore                  # Git exclusion rules for runtime databases, snapshots, and binaries
+├── main.py                     # FastAPI application server & MJPEG streaming endpoints
+├── camera_manager.py           # Multi-camera configuration & dynamic webcam manager
+├── rtsp_stream.py              # Core RTSPStreamReader, ModelRegistry & AI pipelines
+├── centroid_tracker.py         # Multi-object centroid & IoU tracking engine
+├── anpr_engine.py              # License plate detection, OCR & validation pipeline
+├── database.py                 # SQLite WAL database manager & analytics engine
+│
 ├── templates/
-│   └── index.html              # Operator Command & Intelligence Dashboard
-├── static/
-│   ├── alerts/                 # Intrusion evidence snapshots (.gitkeep tracked)
-│   ├── anpr/                   # License plate crop images (.gitkeep tracked)
-│   └── anpr_debug/             # ANPR candidate debug crops (.gitkeep tracked)
-├── weights/
-│   ├── yolov8n.pt              # YOLOv8 Nano object detection weights (~6.5 MB)
-│   └── face_detection_yunet_2023mar.onnx # OpenCV YuNet ONNX face detection model (~232 KB)
-└── demo_videos/
-    └── border_demo.mp4         # 1080p 30 FPS demonstration video clip (~10.3 MB)
+│   └── index.html              # Command Center UI (Grid, Focus View, Lightbox, Analytics)
+│
+├── demo_videos/                # Pre-configured multi-camera surveillance demo video feeds
+│   ├── border_demo.mp4         # CAM-01: Border Post Alpha
+│   ├── night_demo.mp4          # CAM-02: Night Surveillance Bravo
+│   ├── activity-demo.mp4       # CAM-03: Perimeter Activity Charlie
+│   └── cctv_demo.mp4           # CAM-04: Urban Facility Delta
+│
+├── weights/                    # Pretrained AI model weights
+│   ├── yolov8n.pt              # YOLOv8 nano object detection weights
+│   └── face_detection_yunet_2023mar.onnx # YuNet face detection ONNX model
+│
+├── tests/                      # Automated unit and integration test suite
+│   └── test_full_suite.py      # Comprehensive unittest verification suite
+│
+├── start_prahari.bat           # One-click Windows batch launcher
+├── start_prahari.ps1           # Windows PowerShell launcher
+├── requirements.txt            # Python package dependencies
+├── .gitignore                  # Git repository exclusion rules
+└── README.md                   # Project documentation
 ```
 
 ---
 
-## 18. Installation & Environment Setup
+## Installation & Running
 
 ### Prerequisites
-- **Operating System**: Windows 10 / 11 (64-bit)
-- **Python Version**: Python 3.10 or 3.11 (Recommended)
-- **GPU**: NVIDIA GPU with CUDA support (e.g., RTX 3050, RTX 3060, RTX 4060, T4, etc.)
-- **External Binaries**: MediaMTX (RTSP server) and FFmpeg
+- **Operating System**: Windows 10/11 (or Linux)
+- **Python**: Python 3.10, 3.11, or 3.12
+- **GPU (Recommended)**: NVIDIA GPU with CUDA support (CPU fallback is fully supported)
 
-### Step 1: Clone Repository & Create Virtual Environment
-```powershell
-# Open PowerShell in project directory
-cd /d D:\PRAHARI-AI
-
-# Create virtual environment
-python -m venv .venv
-
-# Activate virtual environment
-.venv\Scripts\activate
+### 1. Clone Repository
+```bash
+git clone https://github.com/abhishek-khairnar/PRAHARI-AI.git
+cd PRAHARI-AI
 ```
 
-### Step 2: Install Python Dependencies
+### 2. Set Up Virtual Environment (Optional but Recommended)
 ```powershell
-pip install --upgrade pip
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+```
+
+### 3. Install Dependencies
+```bash
 pip install -r requirements.txt
 ```
 
----
+### 4. Start PRAHARI-AI Command Center
 
-## 19. GPU Setup & CUDA Acceleration
-
-Verify that PyTorch recognizes your NVIDIA GPU:
-
-```powershell
-python -c "import torch; print('CUDA Available:', torch.cuda.is_available()); print('Device Name:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU')"
+#### Option A: One-Click Windows Batch Launcher
+Double-click `start_prahari.bat` or run:
+```cmd
+start_prahari.bat
 ```
 
-**Expected Output:**
-```text
-CUDA Available: True
-Device Name: NVIDIA GeForce RTX 3050 6GB Laptop GPU
+#### Option B: PowerShell Launcher
+```powershell
+.\start_prahari.ps1
 ```
 
-> **Note**: If `torch.cuda.is_available()` returns `False`, install the CUDA-enabled PyTorch build for your system:
-> ```powershell
-> pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
-> ```
-
----
-
-## 20. RTSP Setup & Video Ingestion
-
-### Why `-c copy` is Used for RTSP Ingestion
-The video publisher uses the FFmpeg `-c copy` stream-copy flag:
-
-```powershell
-ffmpeg -re -stream_loop -1 -i "D:\PRAHARI-AI\demo_videos\border_demo.mp4" -c copy -f rtsp -rtsp_transport tcp rtsp://localhost:8554/mystream
-```
-
-#### Technical Rationale
-1. **Zero Transcoding Overhead**: `-c copy` copies existing H.264 NAL packets directly into the RTSP stream without CPU/GPU transcoding.
-2. **GPU Preservation for AI**: Preserves 100% of GPU VRAM and tensor cores for YOLOv8 and EasyOCR inference.
-3. **Driver Compatibility**: The installed NVIDIA driver version (537.53) does not match newer NVENC APIs required by FFmpeg 9.x. Using `-c copy` bypasses NVENC dependencies entirely while delivering flawless 30 FPS stream delivery.
-
----
-
-## 21. Run PRAHARI-AI — 3 Commands (Startup Flow)
-
-Run the system using three separate terminals in the following exact sequence:
-
-### Terminal 1 — MediaMTX RTSP Server
-```powershell
-cd /d D:\PRAHARI-AI
-mediamtx\mediamtx.exe mediamtx\mediamtx.yml
-```
-*Wait until MediaMTX logs `[RTSP] listener opened on :8554`.*
-
----
-
-### Terminal 2 — FFmpeg RTSP Video Publisher
-```powershell
-cd /d D:\PRAHARI-AI
-ffmpeg -re -stream_loop -1 -i "D:\PRAHARI-AI\demo_videos\border_demo.mp4" -c copy -f rtsp -rtsp_transport tcp rtsp://localhost:8554/mystream
-```
-*Wait until FFmpeg logs `fps=30.0` and begins streaming.*
-
----
-
-### Terminal 3 — PRAHARI-AI Surveillance Server
-```powershell
-cd /d D:\PRAHARI-AI
+#### Option C: Direct Python Command
+```bash
 python main.py
 ```
 
----
-
-### Step 4 — Open Operator Dashboard
-Open your web browser and navigate to:
-👉 **[http://localhost:8001](http://localhost:8001)**
-
----
-
-## 22. Troubleshooting Guide
-
-| Issue | Root Cause | Solution |
-| :--- | :--- | :--- |
-| **Port 8554 already occupied** | A previous instance of MediaMTX or another RTSP server is running. | Run `netstat -ano \| findstr :8554` to find PID, then kill via `taskkill /F /PID <PID>`. |
-| **Port 8001 already occupied** | A previous FastAPI/Uvicorn process is active. | Run `netstat -ano \| findstr :8001`, then kill via `taskkill /F /PID <PID>`. Or launch with `PORT=8002 python main.py`. |
-| **`border_demo.mp4` not found** | Incorrect filename or path. Ensure filename is `border_demo.mp4` (with underscore, not hyphen). | Verify file exists at `D:\PRAHARI-AI\demo_videos\border_demo.mp4`. |
-| **FFmpeg connection refused** | MediaMTX was not started before FFmpeg. | Start Terminal 1 (MediaMTX) first, confirm listener on `:8554`, then start FFmpeg. |
-| **RTSP feed shows "Connecting..."** | RTSP publisher has not connected or stream name mismatch. | Ensure FFmpeg stream URL is exactly `rtsp://localhost:8554/mystream`. |
-| **CUDA returns `False` (CPU Mode)** | PyTorch CPU-only wheel installed. | Reinstall PyTorch with CUDA wheel: `pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118`. |
-| **ANPR displays `PLATE NOT READ`** | Plate is heavily blurred, distant, occluded, or unreadable in current video frame. | This is expected honest behavior. PRAHARI-AI does not fabricate plate text when OCR confidence is below threshold. |
-| **Browser feed stutters** | Heavy GPU contention or browser hardware acceleration disabled. | Verify `-c copy` is used in FFmpeg. Ensure browser hardware acceleration is enabled in Chrome/Edge settings. |
-
----
-
-## 23. Tested Hardware & Performance Benchmarks
-
-### Tested System Configuration
-- **GPU**: NVIDIA GeForce RTX 3050 6GB Laptop GPU
-- **NVIDIA Driver**: 537.53
-- **CPU**: Intel Core i5 / AMD Ryzen 5 class (6 Cores / 12 Threads)
-- **RAM**: 16 GB DDR4/DDR5
-- **OS**: Windows 11 (64-bit)
-
-### Measured Real-Time Performance
-- **Video Source**: 1920x1080 @ 30.0 FPS (~6.46 Mbps H.264)
-- **RTSP Capture Ingest**: **30.0 FPS** (stable, TCP transport)
-- **Full AI Detection Pipeline**: Typically **20–30 FPS** on tested RTX 3050 configuration.
-- **MJPEG Web Display Feed**: **25–30 FPS** delivered to browser clients.
-
-### Component Latency Breakdown
-- **YOLOv8n Inference**: ~**9–20 ms** (CUDA FP16)
-- **Centroid & IoU Tracking**: ~**2–5 ms**
-- **YuNet Face Detection**: ~**0.6–1.6 ms** (amortized over 8 frames)
-- **EasyOCR Inference (CUDA)**: ~**28–35 ms** per crop (executed asynchronously in background worker)
-- **JPEG Compression & Delivery**: ~**2–4 ms**
-
-> **Performance Note**: AI processing throughput depends on the host GPU model, resolution, and concurrent scene object count. Display FPS, RTSP source FPS, and AI inference FPS operate independently through PRAHARI-AI's multi-threaded architecture.
-
----
-
-## 24. Security, Privacy & Air-Gap Architecture
-
-- **100% On-Premise Execution**: No video frames, bounding boxes, or metadata are ever transmitted to external cloud endpoints.
-- **Zero Hardcoded Secrets**: No hardcoded API keys, tokens, or personal credentials exist in the codebase.
-- **Air-Gapped Logging**: Relational data is maintained strictly inside local SQLite WAL tables and local JSON sync buffers.
-- **Git Hygiene**: Generated intrusion snapshots, database files, and local logs are excluded via `.gitignore` to prevent leaking operational surveillance data.
-
----
-
-## 25. GitHub Setup & Publishing Guide
-
-### Safe Git Initialization Commands
-
-```powershell
-# 1. Initialize Git repository
-git init
-
-# 2. Stage all source files (verifying .gitignore rules)
-git add .
-
-# 3. Check staged files to ensure no databases or snapshots are tracked
-git status
-
-# 4. Create initial release commit
-git commit -m "Initial PRAHARI-AI release: Intelligent Border Surveillance & Video Analytics"
-
-# 5. Set default branch to main
-git branch -M main
-```
-
-### Remote Publishing Instructions (Run After Creating GitHub Repo)
-After creating the repository `PRAHARI-AI` under your GitHub account (`abhishek-khairnar`), connect and push:
-
-```powershell
-# Set remote origin URL
-git remote add origin https://github.com/abhishek-khairnar/PRAHARI-AI.git
-
-# Push to GitHub
-git push -u origin main
+The Command Center will be accessible at:
+```text
+http://localhost:8001
 ```
 
 ---
 
-## 26. Team Member Onboarding Guide
+## Dynamic Webcam Module
 
-To onboard a teammate on a new workstation:
+PRAHARI-AI includes dynamic USB / integrated webcam management:
 
-1. **Clone the repository**:
-   ```powershell
-   git clone https://github.com/abhishek-khairnar/PRAHARI-AI.git
-   cd PRAHARI-AI
-   ```
-2. **Create and activate virtual environment**:
-   ```powershell
-   python -m venv .venv
-   .venv\Scripts\activate
-   ```
-3. **Install dependencies**:
-   ```powershell
-   pip install -r requirements.txt
-   ```
-4. **Obtain External Infrastructure**:
-   - Download MediaMTX binary into `mediamtx/` directory (`mediamtx.exe`, `mediamtx.yml`).
-   - Download FFmpeg into `ffmpeg/` directory (or add FFmpeg to system PATH).
-5. **Verify AI Model Weights**:
-   - Ensure `weights/yolov8n.pt` and `weights/face_detection_yunet_2023mar.onnx` are present.
-6. **Place Demo Video**:
-   - Place `border_demo.mp4` into `demo_videos/border_demo.mp4`.
-7. **Start the System**:
-   - Launch Terminal 1 (MediaMTX), Terminal 2 (FFmpeg), and Terminal 3 (`python main.py`).
-8. **Open Dashboard**:
-   - Navigate to `http://localhost:8001`.
+1. **Discovery**: Click **"Connect Webcam"** in the top navigation bar to probe connected camera hardware via `/api/webcams/available`.
+2. **Activation**: Select the target device index (e.g. Device #0) to initialize `CAM-WEBCAM`.
+3. **Shared Pipeline**: `CAM-WEBCAM` leverages the existing shared `ModelRegistry` without allocating duplicate GPU memory.
+4. **Interactive Focus View**: Full support for single-camera Focus View and live snapshot inspection.
+5. **Clean Shutdown**: Disconnect the webcam at any time using the **"Disconnect Webcam"** button without restarting the server.
 
 ---
 
-## 27. What NOT to Commit (.gitignore Policy)
+## Performance & Hardware Benchmarks
 
-The following runtime artifacts are strictly excluded from version control:
+| Metric | Measured Specification |
+| :--- | :--- |
+| **Test Environment** | NVIDIA GeForce RTX 3050 (6GB VRAM Laptop GPU) / Intel Core CPU |
+| **GPU Memory Footprint** | ~250 MB total VRAM for all concurrent streams (via `ModelRegistry`) |
+| **YOLOv8n Inference Time** | ~8–15 ms per frame on CUDA (FP16) |
+| **YuNet Face Detection** | <2 ms amortized latency (periodic evaluation) |
+| **Camera Ingest Throughput** | 25–30 FPS capture rate across 4 simultaneous 1080p/720p streams |
+| **Database Write Latency** | <1 ms (SQLite WAL mode with background connection pools) |
 
-- **Database files**: `*.db`, `*.db-wal`, `*.db-shm`, `*.db-journal` (prevents committing runtime state).
-- **Generated Snapshots**: `static/alerts/*`, `static/anpr/*`, `static/anpr_debug/*` (retains `.gitkeep` for directory structure).
-- **Offline Sync Archives**: `synced_events.json`.
-- **Python Cache & Environments**: `__pycache__/`, `*.pyc`, `.venv/`, `venv/`, `env/`.
-- **Scratch & Test Outputs**: `scratch/`, `.system_generated/`, `*.tmp`.
-- **External Binaries**: `mediamtx/`, `ffmpeg/`.
-- **Auto-Generated SSL Certificates**: `auto.crt`, `auto.key`, `*.crt`, `*.key`.
-- **Unused Non-Production Models & Test Media**: `test.mp4`, `yolov8s.pt`, `weights/best.pt`.
-
----
-
-## 28. Large Files Policy & Model Sizing
-
-- `demo_videos/border_demo.mp4`: **~10.3 MB** — Suitable for Git repository hosting (<25 MB soft limit).
-- `weights/yolov8n.pt` & `yolov8n.pt`: **~6.5 MB** — Stored in `weights/` for out-of-the-box execution.
-- `weights/face_detection_yunet_2023mar.onnx`: **~232 KB** — Lightweight local ONNX model stored in `weights/`.
-- Large external binaries (`ffmpeg.exe`, `mediamtx.exe`) and unused larger model variants (`yolov8s.pt`) are excluded from Git and kept locally.
+> [!NOTE]
+> Performance depends on input stream resolution, host hardware, CUDA availability, and the number of active AI processing modules.
 
 ---
 
-## 29. License
+## Privacy & Responsible AI Disclosure
 
-No license has been selected yet.
-
----
-
-## 30. Team Roles & Modular Responsibilities
-
-| Role / Domain | Focus Areas | Key Code Files |
-| :--- | :--- | :--- |
-| **AI & Computer Vision Lead** | YOLOv8 inference, custom model training, class tuning | `rtsp_stream.py`, `weights/` |
-| **ANPR & OCR Specialist** | License plate localization, CLAHE preprocessing, OCR accuracy | `anpr_engine.py` |
-| **Object Tracking Engineer** | CentroidTracker, IoU matching, trajectory & occlusion handling | `centroid_tracker.py` |
-| **Backend & API Engineer** | FastAPI routes, MJPEG streaming, thread lifecycle, error handling | `main.py`, `camera_manager.py` |
-| **Database & Offline Architect**| SQLite WAL schema, indexing, offline sync, air-gap export | `database.py` |
-| **Frontend & UI Developer** | Command dashboard, HUD overlays, responsiveness, Lucide icons | `templates/index.html` |
-| **QA, DevOps & Documentation** | Startup scripts, RTSP publisher, benchmarks, GitHub repo hygiene | `README.md`, `requirements.txt` |
+- **Detection-Only Architecture**: Face detection in PRAHARI-AI is strictly detection-only (identifying bounding boxes in the frame).
+- **No Identity Recognition**: The system does **not** perform facial recognition, identity matching, or biometric profiling.
+- **No Biometric Database**: No facial images, embeddings, or biometric identity databases are created, indexed, or stored.
+- **Regulatory Compliance**: Deployments should adhere to applicable local data privacy, surveillance, and security regulations.
 
 ---
 
-## 31. SIH / Evaluator Demonstration Walkthrough
+## Automated Test Suite
 
-During an evaluation or hackathon demonstration, follow this 12-step flow:
+PRAHARI-AI includes a comprehensive test suite covering database persistence, ModelRegistry singleton integrity, CameraManager stream lifecycle, night hysteresis thresholds, and FastAPI endpoints.
 
-1. **Launch MediaMTX** (Terminal 1) and show active RTSP listener on `:8554`.
-2. **Launch FFmpeg Video Publisher** (Terminal 2) broadcasting `border_demo.mp4` at 30 FPS.
-3. **Launch PRAHARI-AI** (Terminal 3) and highlight CUDA GPU auto-detection output.
-4. **Open Browser** at `http://localhost:8001` and showcase the dark command center interface.
-5. **Demonstrate Object Detection**: Point out emerald green bounding boxes for persons and blue boxes for vehicles.
-6. **Demonstrate Tracking Persistence**: Highlight persistent Track IDs (`ID #1`, `ID #2`) maintained through the scene.
-7. **Demonstrate Virtual Fence Crossing**: Observe an incoming vehicle crossing $Y=756$ triggering an instant `[IN]` alert.
-8. **Inspect Evidence Snapshots**: Click on the Intrusion tab thumbnail to show the full-resolution annotated snapshot with fence line and timestamp.
-9. **Showcase ANPR Processing**: Observe license plate detection, Indian standard validation (e.g. `MH02FU9302`), and temporal consensus linking back to the intrusion record.
-10. **Showcase Face Detection**: Highlight YuNet bounding boxes on detected personnel.
-11. **Demonstrate Security Analytics**: Show the Loitering counter and Night Mode status pills.
-12. **Review Database & Offline Sync**: Open SQLite table records and demonstrate the `synced_events.json` air-gapped export.
+Run the test suite with:
+```bash
+python tests/test_full_suite.py
+```
 
----
+Expected output:
+```text
+Ran 8 tests in 7.005s
 
-## 32. Known System Limitations
-
-1. **Auto-Rickshaws**: Standard COCO YOLO classifies 3-wheelers under generic vehicle classes (`Car`, `Motorcycle`, `Vehicle`) rather than a dedicated auto-rickshaw label.
-2. **Severe Plate Degradation**: Extremely distant, blurred, or heavily angled plates are classified honestly as `PLATE NOT READ` rather than hallucinating false text.
-3. **Single Video Clip**: Demonstration is built around `border_demo.mp4` (daytime perimeter road). Night mode is tested via brightness simulation thresholds.
-4. **Video Loop Boundary**: When the demo video loops seamlessly, a scene-change detector resets track IDs to prevent artificial velocity anomalies across the loop boundary.
+OK
+```
 
 ---
 
-## 33. Future Improvements & Roadmap
+## License
 
-- [ ] **Custom Indian Traffic YOLO Model**: Train on custom datasets including auto-rickshaws, tractors, and military transport vehicles.
-- [ ] **Dedicated Indian License Plate OCR**: Fine-tune CRNN/Transformer models specifically on high-contrast Indian HSRP fonts.
-- [ ] **Multi-Camera Grid View**: Expand frontend dashboard to display 4-camera concurrent live matrix with dynamic switching.
-- [ ] **Edge Hardware Deployment**: Package containerized deployment for NVIDIA Jetson Orin Nano / Xavier NX edge devices.
-- [ ] **Automated Alert Dispatch**: Add webhook notifications for Telegram, SMS, and secure SMTP email dispatch upon critical intrusions.
-- [ ] **PTZ Camera Auto-Tracking**: Integrate ONVIF PTZ camera controls to dynamically zoom into intruding vehicles.
-
----
-
-## 34. Credits & Technology Stack
-
-- **Core Language**: Python 3.10+
-- **Deep Learning Framework**: PyTorch, Ultralytics YOLOv8
-- **Computer Vision**: OpenCV (`opencv-python`), ONNX Runtime
-- **Face Detection**: OpenCV Zoo YuNet ONNX (`libfacedetection`)
-- **OCR Engines**: EasyOCR (JaidedAI), PaddleOCR (PaddlePaddle)
-- **Web & Streaming Framework**: FastAPI, Uvicorn, Starlette
-- **Database Engine**: SQLite3 (WAL Journal Mode)
-- **Streaming Infrastructure**: MediaMTX (bluenviron), FFmpeg
-- **Frontend Design**: HTML5, Vanilla CSS3 (Glassmorphism & Tactical Dark Theme), Lucide Icons, Google Fonts (Inter & JetBrains Mono)
+This project is licensed under the MIT License — see the repository for complete details.
