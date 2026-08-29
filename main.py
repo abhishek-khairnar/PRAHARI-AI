@@ -1,6 +1,6 @@
 """
 PRAHARI-AI Multi-Camera Surveillance Server
-FastAPI HTTP & MJPEG streaming server with multi-source video ingestion,
+       FastAPI HTTP & MJPEG streaming server with multi-source video ingestion,
 independent AI analytics per camera feed, and real-time command center APIs.
 """
 
@@ -43,6 +43,11 @@ anpr_debug_dir = os.path.join(os.path.dirname(__file__), "static", "anpr_debug")
 os.makedirs(anpr_debug_dir, exist_ok=True)
 app.mount("/anpr_debug", StaticFiles(directory=anpr_debug_dir), name="anpr_debug")
 
+# Mount React frontend static assets if built
+frontend_assets_dir = os.path.join(os.path.dirname(__file__), "frontend", "dist", "assets")
+if os.path.exists(frontend_assets_dir):
+    app.mount("/assets", StaticFiles(directory=frontend_assets_dir), name="frontend_assets")
+
 
 def mjpeg_generator(camera_id: str = None):
     """Generator yielding multipart JPEG frames for HTTP MJPEG streaming for a given camera."""
@@ -62,12 +67,17 @@ def mjpeg_generator(camera_id: str = None):
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
-    """Serves the live multi-camera video surveillance command center web interface."""
+    """Serves the live multi-camera video surveillance command center web interface (React + Vite)."""
+    dist_index_path = os.path.join(os.path.dirname(__file__), "frontend", "dist", "index.html")
+    if os.path.exists(dist_index_path):
+        with open(dist_index_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+
     template_path = os.path.join(os.path.dirname(__file__), "templates", "index.html")
     if os.path.exists(template_path):
         with open(template_path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
-    return HTMLResponse(content="<h1>PRAHARI-AI Command Center</h1><p>index.html template not found.</p>")
+    return HTMLResponse(content="<h1>PRAHARI-AI Command Center</h1><p>Frontend index not found.</p>")
 
 
 # ─── Live Video Streaming Endpoints ───

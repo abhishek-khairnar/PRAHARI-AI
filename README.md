@@ -151,18 +151,20 @@ flowchart TD
         LOITER["Loitering Engine (20s Dwell Timer)"]
     end
 
-    subgraph Storage["5. Persistence & Backend"]
+    subgraph Storage["5. Persistence & FastAPI Backend Layer"]
         DB[("SQLite Database (WAL Mode)\nprahari_events.db")]
         SYNC["Offline JSON Export Buffer\nsynced_events.json"]
-        FASTAPI["FastAPI Asynchronous Backend\n(Port 8001)"]
+        FASTAPI["FastAPI Asynchronous Backend & REST APIs\n(Port 8001)"]
     end
 
-    subgraph Presentation["6. Operator Command Center Dashboard"]
-        GRID["Multi-Camera Live Grid (MJPEG)"]
-        FOCUS["Single-Camera Focus View Modal"]
-        LIGHTBOX["Evidence Lightbox & Snapshot Inspector"]
-        METRICS["Live Telemetry: Objects: TOTAL (XP, YV)"]
-        ANALYTICS["Real-Time SQLite Analytics Charts"]
+    subgraph Presentation["6. React + Vite Tactical Command Center Frontend"]
+        VITE["Vite + React 18 Engine\n(frontend/)"]
+        GRID["Multi-Camera Live Grid (CameraGrid.jsx)"]
+        FOCUS["Single-Camera Focus View (FocusModal.jsx)"]
+        LIGHTBOX["Snapshot Evidence Inspector (Lightbox.jsx)"]
+        METRICS["Real Telemetry Bar (SystemStatus.jsx)"]
+        ANALYTICS["SQLite Analytics Drawer (AnalyticsDrawer.jsx)"]
+        FEED["Real-Time Security Activity Feed (ActivityFeed.jsx)"]
     end
 
     CAM1 & CAM2 & CAM3 & CAM4 & WEBCAM --> CM
@@ -175,7 +177,8 @@ flowchart TD
     FENCE & LOITER & ANPR_M --> DB
     DB --> SYNC
     DB --> FASTAPI
-    FASTAPI --> GRID & FOCUS & LIGHTBOX & METRICS & ANALYTICS
+    FASTAPI --> VITE
+    VITE --> GRID & FOCUS & LIGHTBOX & METRICS & ANALYTICS & FEED
 ```
 
 ---
@@ -494,8 +497,33 @@ PRAHARI-AI/
 ├── anpr_engine.py              # License plate detection, OCR & validation pipeline
 ├── database.py                 # SQLite WAL database manager & analytics engine
 │
+├── frontend/                   # React + Vite Tactical Command Center Frontend
+│   ├── package.json            # Node.js dependencies & build scripts
+│   ├── vite.config.js          # Vite development proxy configuration
+│   ├── index.html              # HTML entry point template
+│   └── src/
+│       ├── main.jsx            # React root application bootstrap
+│       ├── App.jsx             # Main dashboard orchestrator & state manager
+│       ├── components/
+│       │   ├── Header.jsx          # Branding, threat level & action controls
+│       │   ├── SystemStatus.jsx    # Top KPI summary cards
+│       │   ├── CameraGrid.jsx      # Multi-feed responsive grid
+│       │   ├── CameraCard.jsx      # Individual camera feed card
+│       │   ├── CameraStream.jsx    # MJPEG stream rendering component
+│       │   ├── ActivityFeed.jsx    # Live incident feed & tabs
+│       │   ├── FocusModal.jsx      # Single-camera focus view inspection modal
+│       │   ├── Lightbox.jsx        # Snapshot evidence preview modal
+│       │   └── AnalyticsDrawer.jsx # SQLite analytics drawer modal
+│       ├── hooks/
+│       │   └── usePolling.js       # Controlled request-safe polling hook
+│       ├── services/
+│       │   └── api.js              # FastAPI REST service client
+│       └── styles/
+│           └── globals.css         # Command center design system & styling
+│
 ├── templates/
-│   └── index.html              # Command Center UI (Grid, Focus View, Lightbox, Analytics)
+│   ├── index.html              # Served built React index / production fallback
+│   └── index_legacy_backup.html# Legacy HTML dashboard backup
 │
 ├── demo_videos/                # Pre-configured surveillance video feeds
 │   ├── border_demo.mp4         # CAM-01: Border Post Alpha
@@ -588,28 +616,42 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 
 ## 23. How to Run the Application
 
-Start the server using any of the 3 supported launcher methods:
+PRAHARI-AI supports both direct production execution (FastAPI static serving at `http://localhost:8001`) and Vite hot-reloading development execution.
 
-### Option A: One-Click Windows Batch Launcher (Recommended for Windows)
-```cmd
-start_prahari.bat
+### Production / Demo Launcher (Single Dashboard Endpoint)
+
+Build the React frontend static assets:
+```bash
+cd frontend
+npm install
+npm run build
+cd ..
 ```
 
-### Option B: Windows PowerShell Launcher
-```powershell
-.\start_prahari.ps1
+Then start the application backend:
+```bash
+python main.py
 ```
+Open `http://localhost:8001` in your browser. FastAPI automatically mounts `frontend/dist` and serves the production React command center.
 
-### Option C: Direct Python Execution
+Alternatively, use the automated launchers:
+- **Windows Batch**: `start_prahari.bat`
+- **PowerShell**: `.\start_prahari.ps1`
+
+### Development Setup (Hot-Reloading)
+
+**Terminal 1 — FastAPI Backend**:
 ```bash
 python main.py
 ```
 
-### Access the Interface
-Open your browser and navigate to:
-```text
-http://localhost:8001
+**Terminal 2 — React + Vite Development Server**:
+```bash
+cd frontend
+npm install
+npm run dev
 ```
+Open `http://localhost:5173`. Vite proxies `/api`, `/video_feed`, `/alerts`, and `/anpr` seamlessly to the FastAPI backend running on port 8001.
 
 ---
 
