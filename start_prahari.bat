@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 title PRAHARI-AI Multi-Camera Intelligent Surveillance Platform
 
 echo ==============================================================================
-echo  PRAHARI-AI — Multi-Camera AI Surveillance Command Center
+echo  PRAHARI-AI - Multi-Camera AI Surveillance Command Center
 echo ==============================================================================
 echo.
 
@@ -38,8 +38,8 @@ if not exist "frontend\dist\index.html" (
     echo [*] Checking Node.js environment...
     node -v >nul 2>&1
     if %ERRORLEVEL% NEQ 0 (
-        echo [ERROR] Node.js / npm is required to build the React frontend!
-        echo Please install Node.js (v18+) from https://nodejs.org/ and re-run.
+        echo [ERROR] Node.js and npm are required to build the React frontend!
+        echo Please install Node.js v18 or higher from https://nodejs.org/ and re-run.
         pause
         exit /b 1
     )
