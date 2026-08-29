@@ -57,7 +57,7 @@ export function App() {
       if (activeTab === 'anpr') {
         events = await fetchAnprLog(25);
       } else if (activeTab === 'suspicious') {
-        events = await fetchSecurityEvents(25);
+        events = await fetchSecurityEvents(25, 'suspicious_activity');
       } else {
         events = await fetchAlerts(25);
       }

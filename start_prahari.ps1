@@ -17,7 +17,7 @@ Set-Location -Path $PSScriptRoot
 $projectRoot = Get-Location
 Write-Host "[*] Project Root: $projectRoot" -ForegroundColor Gray
 
-# Check Python
+# Step 1: Check Python
 try {
     $pyVersion = python --version 2>&1
     Write-Host "[*] Python Environment: $pyVersion" -ForegroundColor Green
@@ -26,7 +26,7 @@ try {
     exit 1
 }
 
-# Check GPU CUDA
+# Step 2: Check GPU CUDA
 try {
     $gpuStatus = python -c "import torch; print(f'CUDA GPU ({torch.cuda.get_device_name(0)})' if torch.cuda.is_available() else 'CPU Fallback')" 2>&1
     Write-Host "[*] AI Acceleration: $gpuStatus" -ForegroundColor Green
@@ -34,7 +34,38 @@ try {
     Write-Host "[!] Could not probe PyTorch CUDA device." -ForegroundColor Yellow
 }
 
-# Check Video Sources
+# Step 3 & 4: Check React Frontend Build
+$distIndex = Join-Path $projectRoot "frontend\dist\index.html"
+if (-not (Test-Path $distIndex)) {
+    Write-Host "[*] Production React build not found. Probing Node.js environment..." -ForegroundColor Yellow
+    try {
+        $nodeVersion = node --version 2>&1
+        Write-Host "[*] Node.js Environment: $nodeVersion" -ForegroundColor Green
+    } catch {
+        Write-Host "[ERROR] Node.js / npm is required to build the React frontend!" -ForegroundColor Red
+        Write-Host "Please install Node.js (v18+) and re-run." -ForegroundColor Yellow
+        exit 1
+    }
+
+    Write-Host "[*] Building React + Vite production assets..." -ForegroundColor Gray
+    Set-Location -Path (Join-Path $projectRoot "frontend")
+    if (-not (Test-Path "node_modules")) {
+        Write-Host "[*] Installing npm dependencies..." -ForegroundColor Gray
+        npm install
+    }
+    npm run build
+    Set-Location -Path $projectRoot
+
+    if (-not (Test-Path $distIndex)) {
+        Write-Host "[ERROR] React production build failed!" -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "[+] React production build generated successfully." -ForegroundColor Green
+} else {
+    Write-Host "[*] Production React Frontend: Verified ($distIndex)" -ForegroundColor Green
+}
+
+# Step 5: Check Video Sources
 Write-Host "[*] Validating Multi-Camera Video Streams..." -ForegroundColor Gray
 $demoVideos = @(
     @{ Id = "CAM-01"; Path = "demo_videos\border_demo.mp4" },

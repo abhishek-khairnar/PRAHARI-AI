@@ -73,11 +73,25 @@ async def index():
         with open(dist_index_path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
 
-    template_path = os.path.join(os.path.dirname(__file__), "templates", "index.html")
-    if os.path.exists(template_path):
-        with open(template_path, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    return HTMLResponse(content="<h1>PRAHARI-AI Command Center</h1><p>Frontend index not found.</p>")
+    error_html = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PRAHARI-AI — Build Required</title>
+</head>
+<body style="font-family: system-ui, sans-serif; background: #F4F1EC; color: #20242B; padding: 3rem; text-align: center;">
+  <h1 style="color: #16B8C9; margin-bottom: 0.5rem;">PRAHARI-AI Command Center</h1>
+  <h2>React Frontend Build Required</h2>
+  <p style="color: #727782;">The production React assets are not built yet.</p>
+  <div style="background: #FFFFFF; border: 1px solid #D5CEC4; padding: 1.25rem 2rem; display: inline-block; text-align: left; border-radius: 12px; margin: 1.5rem 0; font-family: monospace; font-size: 0.95rem;">
+    cd frontend<br/>
+    npm install<br/>
+    npm run build
+  </div>
+  <p style="color: #727782;">Or simply run <code>start_prahari.bat</code> or <code>.\start_prahari.ps1</code>.</p>
+</body>
+</html>"""
+    return HTMLResponse(content=error_html)
 
 
 # ─── Live Video Streaming Endpoints ───

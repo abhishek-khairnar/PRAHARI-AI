@@ -521,10 +521,6 @@ PRAHARI-AI/
 │       └── styles/
 │           └── globals.css         # Command center design system & styling
 │
-├── templates/
-│   ├── index.html              # Served built React index / production fallback
-│   └── index_legacy_backup.html# Legacy HTML dashboard backup
-│
 ├── demo_videos/                # Pre-configured surveillance video feeds
 │   ├── border_demo.mp4         # CAM-01: Border Post Alpha
 │   ├── night_demo.mp4          # CAM-02: Night Surveillance Bravo
