@@ -10,7 +10,7 @@ import logging
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from database import db_manager
 from admin.auth import (
     hash_password,
@@ -31,12 +31,17 @@ class LoginRequest(BaseModel):
     username: str
     password: str
 
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
+
 class UserCreateRequest(BaseModel):
     username: str
     password: str
     full_name: str
     role: str = "OFFICER"
     is_active: int = 1
+    must_change_password: int = 1
 
 class UserUpdateRequest(BaseModel):
     full_name: Optional[str] = None
@@ -100,6 +105,18 @@ class IncidentUpdateRequest(BaseModel):
 # 1. AUTHENTICATION ENDPOINTS (/api/auth)
 # ═══════════════════════════════════════════════════════════
 
+@auth_router.get("/context")
+async def get_auth_context():
+    """Returns application environment status and credential accessibility."""
+    env = os.getenv("PRAHARI_ENV", "development").lower()
+    is_dev = env != "production"
+    return {
+        "is_development": is_dev,
+        "allow_demo_credentials": is_dev,
+        "requires_password_change_support": True
+    }
+
+
 @auth_router.post("/login")
 async def login(req: LoginRequest):
     """Authenticate with username and password, returning JWT bearer token."""
@@ -114,7 +131,7 @@ async def login(req: LoginRequest):
             action="LOGIN_FAILURE",
             resource_type="AUTH",
             result="FAILURE",
-            description="User does not exist"
+            description="Invalid username or credentials"
         )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -165,17 +182,83 @@ async def login(req: LoginRequest):
         actor_user_id=user["id"]
     )
 
+    must_change = bool(user.get("must_change_password", 0))
+
     safe_user = {
         "id": user["id"],
         "username": user["username"],
         "full_name": user["full_name"],
         "role": user["role"],
-        "is_active": user["is_active"]
+        "is_active": user["is_active"],
+        "must_change_password": must_change
     }
 
     return {
         "access_token": token,
         "token_type": "bearer",
+        "user": safe_user,
+        "must_change_password": must_change
+    }
+
+
+@auth_router.post("/change-password")
+async def change_password(
+    req: ChangePasswordRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Securely rotate user password and clear must_change_password flag."""
+    user = db_manager.get_admin_user_by_id(current_user["id"])
+    if not user:
+        raise HTTPException(status_code=404, detail="User account not found.")
+
+    if not verify_password(req.old_password, user.get("password_hash", "")):
+        db_manager.log_audit_event(
+            actor_username=current_user["username"],
+            role=current_user["role"],
+            action="PASSWORD_CHANGE_FAILED",
+            resource_type="USER",
+            resource_id=str(current_user["id"]),
+            result="FAILURE",
+            description="Incorrect current password provided",
+            actor_user_id=current_user["id"]
+        )
+        raise HTTPException(status_code=400, detail="Current password is incorrect.")
+
+    if len(req.new_password) < 8:
+        raise HTTPException(status_code=400, detail="New password must be at least 8 characters long.")
+
+    if req.old_password == req.new_password:
+        raise HTTPException(status_code=400, detail="New password cannot be identical to current password.")
+
+    new_hash = hash_password(req.new_password)
+    success = db_manager.change_admin_user_password(current_user["id"], new_hash)
+    if not success:
+        raise HTTPException(status_code=500, detail="Database error updating password.")
+
+    db_manager.log_audit_event(
+        actor_username=current_user["username"],
+        role=current_user["role"],
+        action="PASSWORD_CHANGED",
+        resource_type="USER",
+        resource_id=str(current_user["id"]),
+        result="SUCCESS",
+        description=f"User '{current_user['username']}' updated their account password",
+        actor_user_id=current_user["id"]
+    )
+
+    updated_user = db_manager.get_admin_user_by_id(current_user["id"])
+    safe_user = {
+        "id": updated_user["id"],
+        "username": updated_user["username"],
+        "full_name": updated_user["full_name"],
+        "role": updated_user["role"],
+        "is_active": updated_user["is_active"],
+        "must_change_password": bool(updated_user.get("must_change_password", 0))
+    }
+
+    return {
+        "status": "success",
+        "message": "Password updated successfully.",
         "user": safe_user
     }
 
@@ -201,6 +284,57 @@ async def get_me(current_user: dict = Depends(get_current_user)):
     return current_user
 
 
+def evaluate_camera_runtime_health(reader, cam_dict: dict) -> dict:
+    """
+    Authoritative single source of camera runtime telemetry.
+    Calculates dynamic health status based on real frame receipt timestamps:
+    - ONLINE: active reader, connected, and frame received within 5.0 seconds.
+    - DEGRADED: active reader, connected, but frame latency between 5.0s and 15.0s.
+    - OFFLINE: stream disconnected, reader stopped, or frame latency > 15.0s.
+    Returns separate AI inference FPS and Ingestion Capture FPS.
+    """
+    now = time.time()
+    if not reader or not getattr(reader, "running", False):
+        connected = False
+        status = "OFFLINE"
+        ai_fps = 0.0
+        capture_fps = 0.0
+        last_frame_age = None
+        last_seen = "OFFLINE"
+        last_frame_ts = 0.0
+    else:
+        connected = bool(getattr(reader, "is_connected", False))
+        last_frame_ts = float(getattr(reader, "last_frame_time", 0.0))
+        ai_fps = round(float(getattr(reader, "current_fps", 0.0)), 1)
+        capture_fps = round(float(getattr(reader, "capture_fps", 0.0)), 1)
+
+        if not connected or last_frame_ts <= 0:
+            status = "OFFLINE"
+            last_frame_age = None
+            last_seen = "NEVER"
+        else:
+            age = max(0.0, now - last_frame_ts)
+            last_frame_age = round(age, 1)
+            last_seen = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(last_frame_ts))
+            if age <= 5.0:
+                status = "ONLINE"
+            elif age <= 15.0:
+                status = "DEGRADED"
+            else:
+                status = "OFFLINE"
+
+    return {
+        "status": status,
+        "connected": connected,
+        "ai_fps": ai_fps,
+        "capture_fps": capture_fps,
+        "fps": ai_fps,  # Backward compatibility
+        "last_frame_age_seconds": last_frame_age,
+        "last_seen": last_seen,
+        "last_frame_time": last_frame_ts
+    }
+
+
 # ═══════════════════════════════════════════════════════════
 # 2. OVERVIEW TELEMETRY (/api/admin/overview)
 # ═══════════════════════════════════════════════════════════
@@ -211,12 +345,30 @@ async def get_admin_overview(current_user: dict = Depends(get_current_user)):
     from camera_manager import camera_manager
 
     cams = camera_manager.get_camera_list()
-    active_cams = sum(1 for c in cams if c.get("connected") or c.get("active"))
+    online_count = 0
+    for c in cams:
+        cid = c.get("id") or c.get("camera_id")
+        reader = camera_manager.get_reader(cid)
+        health = evaluate_camera_runtime_health(reader, c)
+        if health["status"] == "ONLINE":
+            online_count += 1
+
     incidents_summary = db_manager.count_admin_incidents_summary()
     recent_incidents = db_manager.list_admin_incidents(limit=5)
-    users_list = db_manager.list_admin_users()
+    from rtsp_stream import ModelRegistry
+    registry = ModelRegistry()
+    model_loaded = registry.yolo_model is not None
+    if model_loaded and online_count > 0:
+        ai_status = "ONLINE"
+    elif model_loaded:
+        ai_status = "READY"
+    else:
+        ai_status = "OFFLINE"
 
-    # Determine recent audit logs if authorized
+    import torch
+    compute_dev = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU Fallback"
+
+    users_list = db_manager.list_admin_users()
     recent_audits = []
     if current_user["role"] in ["SUPER_ADMIN", "ADMIN"]:
         recent_audits = db_manager.list_admin_audit_logs(limit=5)
@@ -227,9 +379,30 @@ async def get_admin_overview(current_user: dict = Depends(get_current_user)):
             "total_users": len(users_list),
             "active_users": sum(1 for u in users_list if u.get("is_active")),
             "total_cameras": len(cams),
-            "online_cameras": active_cams,
+            "online_cameras": online_count,
             "open_incidents": incidents_summary["open"],
             "total_incidents": incidents_summary["total"]
+        },
+        "ai_engine": {
+            "status": ai_status,
+            "model": "yolov8n.pt",
+            "compute": compute_dev,
+            "anpr_ready": registry.anpr_engine is not None
+        },
+        "ai_pipeline": {
+            "status": ai_status,
+            "yolo_model": "LOADED" if model_loaded else "NOT AVAILABLE",
+            "model": "yolov8n.pt",
+            "compute": compute_dev,
+            "anpr_ready": registry.anpr_engine is not None
+        },
+        "system_summary": {
+            "api": "HEALTHY",
+            "backend": "HEALTHY",
+            "database": "HEALTHY",
+            "ai": ai_status,
+            "ai_engine": ai_status,
+            "cameras": f"{online_count}/{len(cams)} ONLINE"
         },
         "incidents_by_status": incidents_summary["by_status"],
         "recent_incidents": recent_incidents,
@@ -284,7 +457,8 @@ async def create_user(
         password_hash=pw_hash,
         full_name=req.full_name.strip(),
         role=req.role,
-        is_active=req.is_active
+        is_active=req.is_active,
+        must_change_password=req.must_change_password
     )
 
     if user_id <= 0:
@@ -410,38 +584,51 @@ CAMERA_ADMIN_CONFIG = {
 
 @admin_router.get("/cameras")
 async def get_admin_cameras(current_user: dict = Depends(get_current_user)):
-    """Retrieve all cameras with real-time streaming health and admin metadata."""
+    """Retrieve all cameras with real-time streaming health and persistent admin metadata."""
     from camera_manager import camera_manager
 
     cams = camera_manager.get_camera_list()
     result = []
     for c in cams:
         cid = c.get("id") or c.get("camera_id")
-        cfg = CAMERA_ADMIN_CONFIG.get(cid, {
-            "location_zone": "Default Zone",
-            "ai_enabled": True,
-            "anpr_enabled": True,
-            "night_detection": False
-        })
+        db_cfg = db_manager.get_admin_camera_config(cid)
+        if db_cfg:
+            cfg = {
+                "name": db_cfg["name"],
+                "location_zone": db_cfg["location_zone"],
+                "ai_enabled": bool(db_cfg["ai_enabled"]),
+                "anpr_enabled": bool(db_cfg["anpr_enabled"]),
+                "night_detection": bool(db_cfg["night_detection"])
+            }
+        else:
+            cfg = CAMERA_ADMIN_CONFIG.get(cid, {
+                "name": c.get("name", cid),
+                "location_zone": "Default Zone",
+                "ai_enabled": True,
+                "anpr_enabled": True,
+                "night_detection": False
+            })
+
         reader = camera_manager.get_reader(cid)
-        fps = getattr(reader, "current_fps", 0.0) if reader else c.get("fps", 0.0)
-        connected = reader.is_connected if reader else False
-        last_seen = time.strftime("%Y-%m-%d %H:%M:%S") if connected else "OFFLINE"
+        health = evaluate_camera_runtime_health(reader, c)
 
         result.append({
             "camera_id": cid,
-            "name": c.get("name", cid),
+            "name": cfg.get("name") or c.get("name", cid),
             "source": c.get("source", "video"),
             "source_type": "DEMO_FILE" if "demo_videos" in str(c.get("source", "")) else "RTSP_STREAM",
-            "status": "ONLINE" if connected else "OFFLINE",
-            "connected": connected,
+            "status": health["status"],
+            "connected": health["connected"],
             "active": c.get("active", False),
-            "fps": round(fps, 1),
+            "fps": health["fps"],
+            "ai_fps": health["ai_fps"],
+            "capture_fps": health["capture_fps"],
+            "last_frame_age_seconds": health["last_frame_age_seconds"],
+            "last_seen": health["last_seen"],
             "location_zone": cfg["location_zone"],
             "ai_enabled": cfg["ai_enabled"],
             "anpr_enabled": cfg["anpr_enabled"],
-            "night_detection": cfg["night_detection"],
-            "last_seen": last_seen
+            "night_detection": cfg["night_detection"]
         })
     return result
 
@@ -452,31 +639,40 @@ async def update_admin_camera(
     req: CameraConfigRequest,
     current_user: dict = Depends(require_role(["SUPER_ADMIN", "ADMIN"]))
 ):
-    """Safely update camera metadata and AI processing toggles."""
+    """Safely update camera metadata and AI processing toggles persistently."""
     from camera_manager import camera_manager
     reader = camera_manager.get_reader(camera_id)
     if not reader:
         raise HTTPException(status_code=404, detail=f"Camera '{camera_id}' not found.")
 
-    if camera_id not in CAMERA_ADMIN_CONFIG:
-        CAMERA_ADMIN_CONFIG[camera_id] = {
-            "location_zone": "Default Zone",
-            "ai_enabled": True,
-            "anpr_enabled": True,
-            "night_detection": False
-        }
+    db_cfg = db_manager.get_admin_camera_config(camera_id)
+    cur_name = req.name or (db_cfg["name"] if db_cfg else getattr(reader, "name", camera_id))
+    cur_zone = req.location_zone or (db_cfg["location_zone"] if db_cfg else "Default Zone")
+    cur_ai = req.ai_enabled if req.ai_enabled is not None else (bool(db_cfg["ai_enabled"]) if db_cfg else True)
+    cur_anpr = req.anpr_enabled if req.anpr_enabled is not None else (bool(db_cfg["anpr_enabled"]) if db_cfg else True)
+    cur_night = req.night_detection if req.night_detection is not None else (bool(db_cfg["night_detection"]) if db_cfg else False)
 
-    cfg = CAMERA_ADMIN_CONFIG[camera_id]
-    if req.name is not None:
+    db_manager.update_admin_camera_config(
+        camera_id=camera_id,
+        name=cur_name,
+        location_zone=cur_zone,
+        ai_enabled=cur_ai,
+        anpr_enabled=cur_anpr,
+        night_detection=cur_night
+    )
+
+    if camera_id not in CAMERA_ADMIN_CONFIG:
+        CAMERA_ADMIN_CONFIG[camera_id] = {}
+    CAMERA_ADMIN_CONFIG[camera_id] = {
+        "name": cur_name,
+        "location_zone": cur_zone,
+        "ai_enabled": cur_ai,
+        "anpr_enabled": cur_anpr,
+        "night_detection": cur_night
+    }
+
+    if req.name is not None and reader:
         reader.name = req.name
-    if req.location_zone is not None:
-        cfg["location_zone"] = req.location_zone
-    if req.ai_enabled is not None:
-        cfg["ai_enabled"] = req.ai_enabled
-    if req.anpr_enabled is not None:
-        cfg["anpr_enabled"] = req.anpr_enabled
-    if req.night_detection is not None:
-        cfg["night_detection"] = req.night_detection
 
     db_manager.log_audit_event(
         actor_username=current_user["username"],
@@ -485,15 +681,15 @@ async def update_admin_camera(
         resource_type="CAMERA",
         resource_id=camera_id,
         result="SUCCESS",
-        description=f"Updated camera {camera_id}: zone={cfg['location_zone']}, AI={cfg['ai_enabled']}",
+        description=f"Updated camera {camera_id}: zone={cur_zone}, AI={cur_ai}, ANPR={cur_anpr}",
         actor_user_id=current_user["id"]
     )
 
     return {
         "status": "success",
         "camera_id": camera_id,
-        "name": reader.name,
-        "config": cfg
+        "name": getattr(reader, "name", cur_name),
+        "config": CAMERA_ADMIN_CONFIG[camera_id]
     }
 
 
@@ -528,6 +724,17 @@ async def create_zone(
     )
     if zone_id <= 0:
         raise HTTPException(status_code=500, detail="Database error creating zone.")
+
+    # Synchronize virtual fence ratio with active camera reader if online
+    if req.fence_ratio is not None and req.camera_id:
+        from camera_manager import camera_manager
+        reader = camera_manager.get_reader(req.camera_id)
+        if reader:
+            try:
+                reader.line_y_ratio = float(req.fence_ratio)
+                logger.info(f"[ZoneSync] Set camera {req.camera_id} live virtual fence ratio to {req.fence_ratio}")
+            except Exception as ex:
+                logger.warning(f"[ZoneSync] Failed to update reader line_y_ratio: {ex}")
 
     db_manager.log_audit_event(
         actor_username=current_user["username"],
@@ -566,6 +773,17 @@ async def update_zone(
 
     if not success:
         raise HTTPException(status_code=500, detail="Database update failed.")
+
+    # Synchronize virtual fence ratio with active camera reader if online
+    if req.fence_ratio is not None and zone.get("camera_id"):
+        from camera_manager import camera_manager
+        reader = camera_manager.get_reader(zone["camera_id"])
+        if reader:
+            try:
+                reader.line_y_ratio = float(req.fence_ratio)
+                logger.info(f"[ZoneSync] Updated camera {zone['camera_id']} live virtual fence ratio to {req.fence_ratio}")
+            except Exception as ex:
+                logger.warning(f"[ZoneSync] Failed to update reader line_y_ratio: {ex}")
 
     db_manager.log_audit_event(
         actor_username=current_user["username"],
@@ -658,23 +876,64 @@ async def update_alert_rule(
 
 VALID_INCIDENT_STATUSES = ["NEW", "ACKNOWLEDGED", "INVESTIGATING", "RESOLVED", "DISMISSED"]
 
+INCIDENT_ALLOWED_TRANSITIONS = {
+    "NEW": ["ACKNOWLEDGED", "DISMISSED"],
+    "ACKNOWLEDGED": ["INVESTIGATING", "DISMISSED"],
+    "INVESTIGATING": ["RESOLVED", "DISMISSED"],
+    "RESOLVED": ["INVESTIGATING"],
+    "DISMISSED": ["INVESTIGATING"],
+}
+
 @admin_router.get("/incidents")
 async def list_incidents(
+    response: Response,
     status: Optional[str] = None,
     severity: Optional[str] = None,
     camera_id: Optional[str] = None,
+    page: Optional[int] = Query(None, ge=1),
+    page_size: Optional[int] = Query(None, ge=1, le=200),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     current_user: dict = Depends(get_current_user)
 ):
     """List operational incidents with filters and pagination."""
-    return db_manager.list_admin_incidents(
+    if page is not None:
+        actual_page_size = page_size or limit
+        actual_offset = (page - 1) * actual_page_size
+        items = db_manager.list_admin_incidents(
+            status=status,
+            severity=severity,
+            camera_id=camera_id,
+            limit=actual_page_size,
+            offset=actual_offset
+        )
+        total = db_manager.count_admin_incidents_by_query(
+            status=status,
+            severity=severity,
+            camera_id=camera_id
+        )
+        response.headers["X-Total-Count"] = str(total)
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "page_size": actual_page_size
+        }
+
+    items = db_manager.list_admin_incidents(
         status=status,
         severity=severity,
         camera_id=camera_id,
         limit=limit,
         offset=offset
     )
+    total = db_manager.count_admin_incidents_by_query(
+        status=status,
+        severity=severity,
+        camera_id=camera_id
+    )
+    response.headers["X-Total-Count"] = str(total)
+    return items
 
 
 @admin_router.post("/incidents", status_code=status.HTTP_201_CREATED)
@@ -739,16 +998,32 @@ async def update_incident(
     if not inc:
         raise HTTPException(status_code=404, detail=f"Incident ID {incident_id} not found.")
 
-    if req.status and req.status not in VALID_INCIDENT_STATUSES:
-        raise HTTPException(status_code=400, detail=f"Invalid status. Choose from {VALID_INCIDENT_STATUSES}")
+    if req.status:
+        if req.status not in VALID_INCIDENT_STATUSES:
+            raise HTTPException(status_code=400, detail=f"Invalid status. Choose from {VALID_INCIDENT_STATUSES}")
 
-    # Role enforcement on status transitions
-    # OFFICER can only ACKNOWLEDGE or append notes; cannot resolve or dismiss
-    if req.status in ["RESOLVED", "DISMISSED"] and current_user["role"] == "OFFICER":
-        raise HTTPException(
-            status_code=403,
-            detail="Officers cannot resolve or dismiss incidents. Only Supervisors and Admins can finalize incidents."
-        )
+        current_status = inc["status"]
+        if req.status != current_status:
+            # Role enforcement: OFFICER cannot resolve or dismiss incidents
+            if req.status in ["RESOLVED", "DISMISSED"] and current_user["role"] == "OFFICER":
+                raise HTTPException(
+                    status_code=403,
+                    detail="Officers cannot resolve or dismiss incidents. Only Supervisors and Admins can finalize incidents."
+                )
+
+            # Reopening an incident from RESOLVED or DISMISSED requires SUPER_ADMIN or ADMIN
+            if current_status in ["RESOLVED", "DISMISSED"] and current_user["role"] not in ["SUPER_ADMIN", "ADMIN"]:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Only Administrators can re-open an incident from '{current_status}' status."
+                )
+
+            allowed = INCIDENT_ALLOWED_TRANSITIONS.get(current_status, [])
+            if req.status not in allowed:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid state transition from '{current_status}' to '{req.status}'. Permitted transitions: {allowed}"
+                )
 
     resolved_by = current_user["username"] if req.status in ["RESOLVED", "DISMISSED"] else None
 
@@ -764,10 +1039,13 @@ async def update_incident(
     if not success:
         raise HTTPException(status_code=500, detail="Database update failed.")
 
+    is_reopened = inc["status"] in ["RESOLVED", "DISMISSED"] and req.status and req.status not in ["RESOLVED", "DISMISSED"]
+    audit_action = "INCIDENT_REOPENED" if is_reopened else f"INCIDENT_{req.status or 'UPDATED'}"
+
     db_manager.log_audit_event(
         actor_username=current_user["username"],
         role=current_user["role"],
-        action=f"INCIDENT_{req.status or 'UPDATED'}",
+        action=audit_action,
         resource_type="INCIDENT",
         resource_id=inc["incident_code"],
         result="SUCCESS",
@@ -797,12 +1075,16 @@ async def get_system_health(current_user: dict = Depends(get_current_user)):
     for c in cams:
         cid = c.get("id") or c.get("camera_id")
         reader = camera_manager.get_reader(cid)
-        connected = reader.is_connected if reader else False
-        fps = round(getattr(reader, "current_fps", 0.0), 1) if reader else 0.0
+        health = evaluate_camera_runtime_health(reader, c)
         cam_details[cid] = {
             "name": c.get("name", cid),
-            "status": "ONLINE" if connected else "OFFLINE",
-            "fps": fps,
+            "status": health["status"],
+            "connected": health["connected"],
+            "fps": health["fps"],
+            "ai_fps": health["ai_fps"],
+            "capture_fps": health["capture_fps"],
+            "last_frame_age_seconds": health["last_frame_age_seconds"],
+            "last_seen": health["last_seen"],
             "source": c.get("source", "video")
         }
 
@@ -846,6 +1128,9 @@ async def get_system_health(current_user: dict = Depends(get_current_user)):
 
 @admin_router.get("/audit-logs")
 async def list_audit_logs(
+    response: Response,
+    page: Optional[int] = Query(None, ge=1),
+    page_size: Optional[int] = Query(None, ge=1, le=500),
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
     action: Optional[str] = None,
@@ -853,9 +1138,30 @@ async def list_audit_logs(
     current_user: dict = Depends(require_role(["SUPER_ADMIN", "ADMIN"]))
 ):
     """Retrieve immutable administrative audit log trail."""
-    return db_manager.list_admin_audit_logs(
+    if page is not None:
+        actual_page_size = page_size or limit
+        actual_offset = (page - 1) * actual_page_size
+        items = db_manager.list_admin_audit_logs(
+            limit=actual_page_size,
+            offset=actual_offset,
+            action=action,
+            actor=actor
+        )
+        total = db_manager.count_admin_audit_logs_by_query(action=action, actor=actor)
+        response.headers["X-Total-Count"] = str(total)
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "page_size": actual_page_size
+        }
+
+    items = db_manager.list_admin_audit_logs(
         limit=limit,
         offset=offset,
         action=action,
         actor=actor
     )
+    total = db_manager.count_admin_audit_logs_by_query(action=action, actor=actor)
+    response.headers["X-Total-Count"] = str(total)
+    return items

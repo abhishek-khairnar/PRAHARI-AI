@@ -70,12 +70,23 @@ class CameraManager:
                 continue
 
             try:
+                # Check if an active zone configuration exists in SQLite for this camera
+                initial_line_ratio = cam.get("line_y_ratio", 0.70)
+                try:
+                    from database import db_manager
+                    cam_zones = db_manager.list_admin_zones(camera_id=cam["id"], is_enabled=1)
+                    if cam_zones and cam_zones[0].get("fence_ratio") is not None:
+                        initial_line_ratio = float(cam_zones[0]["fence_ratio"])
+                        logger.info(f"Loaded persistent zone fence ratio for [{cam['id']}]: {initial_line_ratio}")
+                except Exception:
+                    pass
+
                 reader = RTSPStreamReader(
                     rtsp_url=cam["url"],
                     camera_id=cam["id"],
                     camera_name=cam.get("name", cam["id"]),
                     source_type=cam.get("type", "video_file"),
-                    line_y_ratio=cam.get("line_y_ratio", 0.70),
+                    line_y_ratio=initial_line_ratio,
                     fps_log_interval=4.0
                 )
                 self.readers[cam["id"]] = reader

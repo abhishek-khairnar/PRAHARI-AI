@@ -83,6 +83,16 @@ async function adminFetch(endpoint, options = {}) {
 
 // ─── Authentication APIs ───
 
+export async function fetchAuthContext() {
+  try {
+    const res = await fetch('/api/auth/context');
+    if (!res.ok) return { is_development: false, allow_demo_credentials: false };
+    return await res.json();
+  } catch {
+    return { is_development: false, allow_demo_credentials: false };
+  }
+}
+
 export async function login(username, password) {
   const res = await fetch('/api/auth/login', {
     method: 'POST',
@@ -98,6 +108,20 @@ export async function login(username, password) {
   setAuthToken(data.access_token);
   setStoredUser(data.user);
   return data;
+}
+
+export async function changePassword(oldPassword, newPassword) {
+  const result = await adminFetch('/api/auth/change-password', {
+    method: 'POST',
+    body: { old_password: oldPassword, new_password: newPassword }
+  });
+  // Update stored user to clear must_change_password flag
+  const currentUser = getStoredUser();
+  if (currentUser) {
+    currentUser.must_change_password = 0;
+    setStoredUser(currentUser);
+  }
+  return result;
 }
 
 export async function logout() {
@@ -197,8 +221,11 @@ export async function updateAdminAlertRule(ruleId, ruleData) {
   });
 }
 
-export async function fetchAdminIncidents({ status = null, severity = null, camera_id = null, limit = 50, offset = 0 } = {}) {
-  let url = `/api/admin/incidents?limit=${limit}&offset=${offset}`;
+export async function fetchAdminIncidents({ status = null, severity = null, camera_id = null, limit = 50, offset = 0, page = null, page_size = null } = {}) {
+  let url = `/api/admin/incidents?`;
+  if (page !== null) url += `page=${encodeURIComponent(page)}&`;
+  if (page_size !== null) url += `page_size=${encodeURIComponent(page_size)}&`;
+  url += `limit=${limit}&offset=${offset}`;
   if (status) url += `&status=${encodeURIComponent(status)}`;
   if (severity) url += `&severity=${encodeURIComponent(severity)}`;
   if (camera_id) url += `&camera_id=${encodeURIComponent(camera_id)}`;
@@ -227,8 +254,11 @@ export async function fetchAdminSystemHealth() {
   return await adminFetch('/api/admin/system-health');
 }
 
-export async function fetchAdminAuditLogs({ limit = 100, offset = 0, action = null, actor = null } = {}) {
-  let url = `/api/admin/audit-logs?limit=${limit}&offset=${offset}`;
+export async function fetchAdminAuditLogs({ limit = 100, offset = 0, page = null, page_size = null, action = null, actor = null } = {}) {
+  let url = `/api/admin/audit-logs?`;
+  if (page !== null) url += `page=${encodeURIComponent(page)}&`;
+  if (page_size !== null) url += `page_size=${encodeURIComponent(page_size)}&`;
+  url += `limit=${limit}&offset=${offset}`;
   if (action) url += `&action=${encodeURIComponent(action)}`;
   if (actor) url += `&actor=${encodeURIComponent(actor)}`;
   return await adminFetch(url);

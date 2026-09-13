@@ -19,6 +19,17 @@ logger = logging.getLogger("PRAHARI-AUTH")
 # Minimum 32-byte secret key for HS256 (RFC 7518 Section 3.2 compliance)
 DEFAULT_SECRET = "prahari_secure_admin_jwt_secret_token_2026_key_production_grade"
 SECRET_KEY = os.getenv("PRAHARI_SECRET_KEY", DEFAULT_SECRET)
+PRAHARI_ENV = os.getenv("PRAHARI_ENV", "development").lower()
+
+# Enforce security boundary in production
+if PRAHARI_ENV == "production":
+    if SECRET_KEY == DEFAULT_SECRET or len(SECRET_KEY) < 32:
+        raise RuntimeError(
+            "CRITICAL SECURITY CONFIGURATION ERROR: PRAHARI_ENV is set to 'production', "
+            "but PRAHARI_SECRET_KEY is using the insecure default or is under 32 characters. "
+            "You must configure a strong PRAHARI_SECRET_KEY before starting the service in production."
+        )
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 12
 
@@ -115,6 +126,7 @@ async def get_current_user(
     # Strip out password hash before returning user context
     safe_user = dict(user)
     safe_user.pop("password_hash", None)
+    safe_user["must_change_password"] = bool(user.get("must_change_password", 0))
     return safe_user
 
 

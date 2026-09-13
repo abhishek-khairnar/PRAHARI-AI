@@ -1,30 +1,58 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Cpu, Database, Video, HardDrive, RefreshCw,
-  CheckCircle2, AlertCircle, ShieldCheck, Server
+  CheckCircle2, AlertCircle, ShieldCheck, Server, AlertTriangle
 } from 'lucide-react';
 import { fetchAdminSystemHealth } from '../../services/adminApi';
 
 export function AdminSystemHealth() {
   const [health, setHealth] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [secondsAgo, setSecondsAgo] = useState(0);
 
-  const loadHealth = async () => {
+  const mountedRef = useRef(true);
+
+  const loadHealth = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
+      else setIsRefreshing(true);
       setError(null);
       const res = await fetchAdminSystemHealth();
-      setHealth(res);
+      if (mountedRef.current) {
+        setHealth(res);
+        setSecondsAgo(0);
+      }
     } catch (err) {
-      setError(err.message || 'Failed to fetch system health telemetry.');
+      if (mountedRef.current) {
+        setError(err.message || 'Failed to fetch system health telemetry.');
+      }
     } finally {
-      setLoading(false);
+      if (mountedRef.current) {
+        setLoading(false);
+        setIsRefreshing(false);
+      }
     }
   };
 
   useEffect(() => {
+    mountedRef.current = true;
     loadHealth();
+
+    const pollInterval = setInterval(() => {
+      loadHealth(true);
+    }, 5000);
+
+    const timerInterval = setInterval(() => {
+      setSecondsAgo(prev => prev + 1);
+    }, 1000);
+
+    return () => {
+      mountedRef.current = false;
+      clearInterval(pollInterval);
+      clearInterval(timerInterval);
+    };
   }, []);
 
   if (loading && !health) {
@@ -41,7 +69,7 @@ export function AdminSystemHealth() {
       <div className="admin-error-box">
         <AlertCircle style={{ width: 18, height: 18 }} />
         <span>{error}</span>
-        <button className="btn-admin-secondary" onClick={loadHealth}>Retry</button>
+        <button className="btn-admin-secondary" onClick={() => loadHealth(false)}>Retry</button>
       </div>
     );
   }
@@ -59,10 +87,15 @@ export function AdminSystemHealth() {
           <h2>System Infrastructure & Health Telemetry</h2>
           <p className="admin-subtitle">Live hardware diagnostics, process health, and AI subsystem status</p>
         </div>
-        <button className="btn-admin-secondary" onClick={loadHealth} title="Refresh Diagnostics">
-          <RefreshCw style={{ width: 14, height: 14 }} className={loading ? 'spin-icon' : ''} />
-          <span>Ping System</span>
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            {isRefreshing ? 'Pinging...' : `Pinged ${secondsAgo}s ago`}
+          </span>
+          <button className="btn-admin-secondary" onClick={() => loadHealth(false)} title="Refresh Diagnostics Now">
+            <RefreshCw style={{ width: 14, height: 14 }} className={isRefreshing ? 'spin-icon' : ''} />
+            <span>Ping System</span>
+          </button>
+        </div>
       </div>
 
       <div className="health-grid">
@@ -76,8 +109,9 @@ export function AdminSystemHealth() {
               <h3>FastAPI Application Server</h3>
               <span className="health-sub">Process & HTTP Gateway</span>
             </div>
-            <span className="status-indicator-pill active" style={{ marginLeft: 'auto' }}>
-              <CheckCircle2 style={{ width: 12, height: 12 }} /> {backend.status || 'ONLINE'}
+            <span className={`status-indicator-pill ${backend.status === 'ONLINE' ? 'active' : 'inactive'}`} style={{ marginLeft: 'auto' }}>
+              {backend.status === 'ONLINE' ? <CheckCircle2 style={{ width: 12, height: 12 }} /> : <AlertTriangle style={{ width: 12, height: 12 }} />}
+              {backend.status || 'UNKNOWN'}
             </span>
           </div>
           <div className="health-details-list">
@@ -104,10 +138,11 @@ export function AdminSystemHealth() {
             </div>
             <div>
               <h3>SQLite Persistent Storage</h3>
-              <span className="health-sub">WAL Mode High-Concurrency</span>
+              <span className="health-sub">WAL Mode Concurrency</span>
             </div>
-            <span className="status-indicator-pill active" style={{ marginLeft: 'auto' }}>
-              <CheckCircle2 style={{ width: 12, height: 12 }} /> {db.status || 'ONLINE'}
+            <span className={`status-indicator-pill ${db.status === 'HEALTHY' ? 'active' : 'inactive'}`} style={{ marginLeft: 'auto' }}>
+              {db.status === 'HEALTHY' ? <CheckCircle2 style={{ width: 12, height: 12 }} /> : <AlertTriangle style={{ width: 12, height: 12 }} />}
+              {db.status || 'UNKNOWN'}
             </span>
           </div>
           <div className="health-details-list">
@@ -121,15 +156,15 @@ export function AdminSystemHealth() {
             </div>
             <div className="health-row">
               <span>Total Intrusions Logged:</span>
-              <span className="mono-cell">{db.table_counts?.intrusion_events || 0}</span>
+              <span className="mono-cell">{db.table_counts?.intrusion_events ?? 0}</span>
             </div>
             <div className="health-row">
               <span>Total ANPR Plate Reads:</span>
-              <span className="mono-cell">{db.table_counts?.anpr_events || 0}</span>
+              <span className="mono-cell">{db.table_counts?.anpr_events ?? 0}</span>
             </div>
             <div className="health-row">
               <span>Security Events Logged:</span>
-              <span className="mono-cell">{db.table_counts?.security_events || 0}</span>
+              <span className="mono-cell">{db.table_counts?.security_events ?? 0}</span>
             </div>
           </div>
         </div>
@@ -144,18 +179,23 @@ export function AdminSystemHealth() {
               <h3>AI Detection & Neural Pipeline</h3>
               <span className="health-sub">YOLOv8 + OCR + YuNet</span>
             </div>
-            <span className="status-indicator-pill active" style={{ marginLeft: 'auto' }}>
-              <CheckCircle2 style={{ width: 12, height: 12 }} /> {ai.yolo_model || 'LOADED'}
+            <span className={`status-indicator-pill ${ai.yolo_model === 'LOADED' ? 'active' : 'inactive'}`} style={{ marginLeft: 'auto' }}>
+              {ai.yolo_model === 'LOADED' ? <CheckCircle2 style={{ width: 12, height: 12 }} /> : <AlertTriangle style={{ width: 12, height: 12 }} />}
+              {ai.yolo_model || 'NOT LOADED'}
             </span>
           </div>
           <div className="health-details-list">
             <div className="health-row">
               <span>YOLO Object Detector:</span>
-              <strong style={{ color: 'var(--status-live)' }}>{ai.yolo_model || 'LOADED'} (weights/yolov8n.pt)</strong>
+              <strong style={{ color: ai.yolo_model === 'LOADED' ? 'var(--status-live)' : 'var(--status-danger)' }}>
+                {ai.yolo_model || 'UNAVAILABLE'} (weights/yolov8n.pt)
+              </strong>
             </div>
             <div className="health-row">
               <span>ANPR Optical OCR Engine:</span>
-              <strong style={{ color: 'var(--status-live)' }}>{ai.anpr_engine || 'READY'}</strong>
+              <strong style={{ color: ai.anpr_engine === 'READY' ? 'var(--status-live)' : 'var(--status-warn)' }}>
+                {ai.anpr_engine || 'UNAVAILABLE'}
+              </strong>
             </div>
             <div className="health-row">
               <span>Compute Hardware Device:</span>
@@ -178,7 +218,7 @@ export function AdminSystemHealth() {
               <h3>Evidentiary Storage Volume</h3>
               <span className="health-sub">Alerts & ANPR Snapshots</span>
             </div>
-            <span className="status-indicator-pill active" style={{ marginLeft: 'auto' }}>
+            <span className={`status-indicator-pill ${storage.status === 'HEALTHY' ? 'active' : 'inactive'}`} style={{ marginLeft: 'auto' }}>
               <CheckCircle2 style={{ width: 12, height: 12 }} /> {storage.status || 'HEALTHY'}
             </span>
           </div>
@@ -189,7 +229,7 @@ export function AdminSystemHealth() {
             </div>
             <div className="health-row">
               <span>Captured Evidentiary Frames:</span>
-              <strong className="mono-cell">{storage.snapshot_count || 0} Files</strong>
+              <strong className="mono-cell">{storage.snapshot_count ?? 0} Files</strong>
             </div>
             <div className="health-row">
               <span>Filesystem Status:</span>
@@ -203,29 +243,35 @@ export function AdminSystemHealth() {
       <div className="admin-card-section" style={{ marginTop: '1.25rem' }}>
         <h3 className="section-title">Active Surveillance Camera Subsystems</h3>
         <div className="camera-health-grid">
-          {Object.entries(cameras).map(([camId, cam]) => (
-            <div key={camId} className="cam-health-card">
-              <div className="cam-health-header">
-                <span className="cam-badge">{camId}</span>
-                <span className="cam-health-name">{cam.name}</span>
-                <span className={`status-pill status-${cam.status === 'ONLINE' ? 'res' : 'dism'}`} style={{ marginLeft: 'auto' }}>
-                  {cam.status}
-                </span>
-              </div>
-              <div className="cam-health-details">
-                <div className="health-row">
-                  <span>Throughput:</span>
-                  <strong className="mono-cell">{cam.fps || 0} AI FPS</strong>
-                </div>
-                <div className="health-row">
-                  <span>Source:</span>
-                  <span className="mono-cell" style={{ fontSize: '0.75rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {cam.source}
+          {Object.entries(cameras).map(([camId, cam]) => {
+            const isOnline = cam.status === 'ONLINE';
+            return (
+              <div key={camId} className="cam-health-card">
+                <div className="cam-health-header">
+                  <span className="cam-badge">{camId}</span>
+                  <span className="cam-health-name">{cam.name}</span>
+                  <span
+                    className={`status-pill ${isOnline ? 'status-res' : 'status-dism'}`}
+                    style={{ marginLeft: 'auto' }}
+                  >
+                    {cam.status}
                   </span>
                 </div>
+                <div className="cam-health-details">
+                  <div className="health-row">
+                    <span>Throughput:</span>
+                    <strong className="mono-cell">{cam.fps || 0} AI FPS</strong>
+                  </div>
+                  <div className="health-row">
+                    <span>Source:</span>
+                    <span className="mono-cell" style={{ fontSize: '0.75rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {cam.source}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

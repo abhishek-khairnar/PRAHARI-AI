@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   AlertTriangle, CheckCircle2, Search, Filter, Eye,
-  RefreshCw, Clock, UserCheck, MessageSquare, X, Camera, Shield
+  RefreshCw, Clock, UserCheck, MessageSquare, X, Camera, Shield, RotateCcw
 } from 'lucide-react';
 import { fetchAdminIncidents, updateAdminIncident } from '../../services/adminApi';
 
@@ -14,6 +14,11 @@ export function AdminIncidents({ currentUser }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [actionSuccess, setActionSuccess] = useState(null);
+
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(15);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Filters
   const [statusFilter, setStatusFilter] = useState('');
@@ -38,9 +43,20 @@ export function AdminIncidents({ currentUser }) {
         status: statusFilter || null,
         severity: severityFilter || null,
         camera_id: cameraFilter || null,
-        limit: 100
+        page: page,
+        page_size: pageSize
       });
-      setIncidents(res);
+
+      if (res && res.items) {
+        setIncidents(res.items);
+        setTotalCount(res.total ?? res.items.length);
+      } else if (Array.isArray(res)) {
+        setIncidents(res);
+        setTotalCount(res.length);
+      } else {
+        setIncidents([]);
+        setTotalCount(0);
+      }
     } catch (err) {
       setError(err.message || 'Failed to load incidents.');
     } finally {
@@ -50,7 +66,7 @@ export function AdminIncidents({ currentUser }) {
 
   useEffect(() => {
     loadIncidents();
-  }, [statusFilter, severityFilter, cameraFilter]);
+  }, [statusFilter, severityFilter, cameraFilter, page]);
 
   const handleOpenDetail = (inc) => {
     setSelectedIncident(inc);
@@ -105,16 +121,21 @@ export function AdminIncidents({ currentUser }) {
 
   const isOfficer = currentUser?.role === 'OFFICER';
   const canResolve = ['SUPER_ADMIN', 'ADMIN', 'SUPERVISOR'].includes(currentUser?.role);
+  const canReopen = ['SUPER_ADMIN', 'ADMIN'].includes(currentUser?.role);
 
   const filtered = incidents.filter((i) => {
     const q = searchTerm.toLowerCase();
     return (
-      i.incident_code.toLowerCase().includes(q) ||
-      i.camera_id.toLowerCase().includes(q) ||
-      i.event_type.toLowerCase().includes(q) ||
+      (i.incident_code || '').toLowerCase().includes(q) ||
+      (i.camera_id || '').toLowerCase().includes(q) ||
+      (i.event_type || '').toLowerCase().includes(q) ||
       (i.assigned_officer_name && i.assigned_officer_name.toLowerCase().includes(q))
     );
   });
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const startItem = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endItem = Math.min(page * pageSize, totalCount);
 
   return (
     <div className="admin-page-content">
@@ -157,25 +178,19 @@ export function AdminIncidents({ currentUser }) {
         </div>
 
         <div className="filter-select-group">
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}>
             <option value="">All Statuses</option>
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
+            {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
 
-          <select value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)}>
+          <select value={severityFilter} onChange={(e) => { setSeverityFilter(e.target.value); setPage(1); }}>
             <option value="">All Severities</option>
-            {SEVERITIES.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
+            {SEVERITIES.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
 
-          <select value={cameraFilter} onChange={(e) => setCameraFilter(e.target.value)}>
+          <select value={cameraFilter} onChange={(e) => { setCameraFilter(e.target.value); setPage(1); }}>
             <option value="">All Cameras</option>
-            {CAMERAS.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
+            {CAMERAS.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
       </div>
@@ -186,52 +201,48 @@ export function AdminIncidents({ currentUser }) {
           <thead>
             <tr>
               <th>Incident Code</th>
+              <th>Detected Time</th>
               <th>Camera</th>
-              <th>Event Type</th>
-              <th>Sector / Zone</th>
+              <th>Event Category</th>
               <th>Severity</th>
+              <th>Assigned Operator</th>
               <th>Status</th>
-              <th>Assigned Officer</th>
-              <th>Logged At</th>
               <th style={{ textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={9} className="admin-empty-cell">
-                  {loading ? 'Loading incidents...' : 'No matching incidents found.'}
+                <td colSpan={8} className="admin-empty-cell">
+                  {loading ? 'Loading incidents from database...' : 'No active incidents recorded. Surveillance system operational.'}
                 </td>
               </tr>
             ) : (
               filtered.map((inc) => (
-                <tr key={inc.id} onClick={() => handleOpenDetail(inc)} style={{ cursor: 'pointer' }}>
+                <tr key={inc.id}>
                   <td className="mono-cell"><strong>{inc.incident_code}</strong></td>
+                  <td className="mono-cell" style={{ fontSize: '0.8rem' }}>{inc.detected_at || inc.created_at}</td>
                   <td><span className="cam-badge">{inc.camera_id}</span></td>
-                  <td style={{ textTransform: 'capitalize' }}>{inc.event_type.replace('_', ' ')}</td>
-                  <td>{inc.zone_name || 'General Sector'}</td>
+                  <td style={{ textTransform: 'capitalize' }}>{(inc.event_type || '').replace('_', ' ')}</td>
                   <td>
-                    <span className={`severity-tag sev-${inc.severity.toLowerCase()}`}>
+                    <span className={`severity-tag sev-${(inc.severity || 'info').toLowerCase()}`}>
                       {inc.severity}
                     </span>
                   </td>
+                  <td>{inc.assigned_officer_name || <span style={{ color: 'var(--text-muted)' }}>Unassigned</span>}</td>
                   <td>
-                    <span className={`status-pill status-${inc.status.toLowerCase()}`}>
+                    <span className={`status-pill status-${(inc.status || 'new').toLowerCase()}`}>
                       {inc.status}
                     </span>
                   </td>
-                  <td>{inc.assigned_officer_name || <span style={{ color: 'var(--text-subtle)' }}>Unassigned</span>}</td>
-                  <td className="mono-cell" style={{ fontSize: '0.8rem' }}>{inc.created_at}</td>
                   <td style={{ textAlign: 'right' }}>
                     <button
-                      className="btn-action-icon"
-                      title="Review Incident"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenDetail(inc);
-                      }}
+                      className="btn-table-action"
+                      onClick={() => handleOpenDetail(inc)}
+                      title="Inspect & Process"
                     >
                       <Eye style={{ width: 14, height: 14 }} />
+                      <span>Inspect</span>
                     </button>
                   </td>
                 </tr>
@@ -239,19 +250,43 @@ export function AdminIncidents({ currentUser }) {
             )}
           </tbody>
         </table>
+
+        {/* Backend Pagination Footer */}
+        <div className="admin-pagination">
+          <div>
+            Showing <strong>{startItem}</strong> to <strong>{endItem}</strong> of <strong>{totalCount}</strong> incidents
+          </div>
+          <div className="admin-pagination-actions">
+            <button
+              className="btn-page"
+              disabled={page <= 1}
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+            >
+              Previous
+            </button>
+            <span>Page {page} of {totalPages}</span>
+            <button
+              className="btn-page"
+              disabled={page >= totalPages}
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* ─── INCIDENT DETAIL MODAL ─── */}
+      {/* Incident Detail & Investigation Modal */}
       {selectedIncident && (
-        <div className="admin-modal-backdrop">
-          <div className="admin-modal-box admin-modal-wide">
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-card incident-detail-modal">
             <div className="admin-modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <h3>Incident Details: {selectedIncident.incident_code}</h3>
-                <span className={`status-pill status-${selectedIncident.status.toLowerCase()}`}>
+                <span className={`status-pill status-${(selectedIncident.status || 'new').toLowerCase()}`}>
                   {selectedIncident.status}
                 </span>
-                <span className={`severity-tag sev-${selectedIncident.severity.toLowerCase()}`}>
+                <span className={`severity-tag sev-${(selectedIncident.severity || 'info').toLowerCase()}`}>
                   {selectedIncident.severity}
                 </span>
               </div>
@@ -278,7 +313,7 @@ export function AdminIncidents({ currentUser }) {
                   </div>
                   <div className="meta-row">
                     <span className="meta-label">Event Category:</span>
-                    <strong style={{ textTransform: 'capitalize' }}>{selectedIncident.event_type.replace('_', ' ')}</strong>
+                    <strong style={{ textTransform: 'capitalize' }}>{(selectedIncident.event_type || '').replace('_', ' ')}</strong>
                   </div>
                   <div className="meta-row">
                     <span className="meta-label">Protected Zone:</span>
@@ -331,12 +366,13 @@ export function AdminIncidents({ currentUser }) {
               {/* Right Column: Workflow Controls & Notes */}
               <div className="incident-workflow-col">
                 <div className="meta-card">
-                  <h4>Workflow Progression</h4>
+                  <h4>State Transition Workflow</h4>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
                     Current State: <strong>{selectedIncident.status}</strong>
                   </p>
 
                   <div className="incident-workflow-buttons">
+                    {/* NEW -> ACKNOWLEDGED */}
                     {selectedIncident.status === 'NEW' && (
                       <button
                         className="btn-status-action btn-ack"
@@ -347,7 +383,8 @@ export function AdminIncidents({ currentUser }) {
                       </button>
                     )}
 
-                    {['NEW', 'ACKNOWLEDGED'].includes(selectedIncident.status) && (
+                    {/* ACKNOWLEDGED -> INVESTIGATING */}
+                    {selectedIncident.status === 'ACKNOWLEDGED' && (
                       <button
                         className="btn-status-action btn-inv"
                         onClick={() => handleStatusTransition('INVESTIGATING')}
@@ -357,6 +394,7 @@ export function AdminIncidents({ currentUser }) {
                       </button>
                     )}
 
+                    {/* INVESTIGATING -> RESOLVED (Supervisors/Admins only) */}
                     {selectedIncident.status === 'INVESTIGATING' && canResolve && (
                       <button
                         className="btn-status-action btn-res"
@@ -367,7 +405,8 @@ export function AdminIncidents({ currentUser }) {
                       </button>
                     )}
 
-                    {canResolve && selectedIncident.status !== 'DISMISSED' && selectedIncident.status !== 'RESOLVED' && (
+                    {/* NEW, ACKNOWLEDGED, INVESTIGATING -> DISMISSED (Supervisors/Admins only) */}
+                    {canResolve && ['NEW', 'ACKNOWLEDGED', 'INVESTIGATING'].includes(selectedIncident.status) && (
                       <button
                         className="btn-status-action btn-dism"
                         onClick={() => handleStatusTransition('DISMISSED')}
@@ -377,10 +416,22 @@ export function AdminIncidents({ currentUser }) {
                       </button>
                     )}
 
-                    {selectedIncident.status === 'RESOLVED' && (
+                    {/* RE-OPENING from RESOLVED or DISMISSED (Admins only) */}
+                    {canReopen && ['RESOLVED', 'DISMISSED'].includes(selectedIncident.status) && (
+                      <button
+                        className="btn-status-action btn-inv"
+                        onClick={() => handleStatusTransition('INVESTIGATING')}
+                        disabled={modalLoading}
+                      >
+                        <RotateCcw style={{ width: 14, height: 14, display: 'inline', marginRight: 4 }} />
+                        [Re-open for Investigation]
+                      </button>
+                    )}
+
+                    {selectedIncident.status === 'RESOLVED' && !canReopen && (
                       <div className="alert-resolved-badge">
                         <CheckCircle2 style={{ width: 16, height: 16 }} />
-                        <span>This incident has been formally investigated and closed.</span>
+                        <span>This incident has been formally resolved and archived.</span>
                       </div>
                     )}
                   </div>
@@ -388,12 +439,12 @@ export function AdminIncidents({ currentUser }) {
 
                 {/* Notes & Activity History */}
                 <div className="meta-card" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <h4>Investigator Notes & Audit Log</h4>
+                  <h4>Investigator Notes & Audit Trail</h4>
                   <div className="incident-notes-history">
                     {selectedIncident.notes ? (
                       <pre className="notes-text-area">{selectedIncident.notes}</pre>
                     ) : (
-                      <div className="admin-empty-state" style={{ padding: '1rem' }}>No notes added yet.</div>
+                      <div className="admin-empty-state" style={{ padding: '1rem' }}>No investigation notes logged.</div>
                     )}
                   </div>
 

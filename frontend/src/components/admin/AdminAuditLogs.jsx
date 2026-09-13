@@ -9,6 +9,11 @@ export function AdminAuditLogs({ currentUser }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(25);
+  const [totalCount, setTotalCount] = useState(0);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [actionFilter, setActionFilter] = useState('');
 
@@ -18,9 +23,20 @@ export function AdminAuditLogs({ currentUser }) {
       setError(null);
       const res = await fetchAdminAuditLogs({
         action: actionFilter || null,
-        limit: 150
+        page: page,
+        page_size: pageSize
       });
-      setLogs(res);
+
+      if (res && res.items) {
+        setLogs(res.items);
+        setTotalCount(res.total ?? res.items.length);
+      } else if (Array.isArray(res)) {
+        setLogs(res);
+        setTotalCount(res.length);
+      } else {
+        setLogs([]);
+        setTotalCount(0);
+      }
     } catch (err) {
       setError(err.message || 'Failed to load audit logs.');
     } finally {
@@ -30,16 +46,20 @@ export function AdminAuditLogs({ currentUser }) {
 
   useEffect(() => {
     loadLogs();
-  }, [actionFilter]);
+  }, [actionFilter, page]);
 
   const filtered = logs.filter((l) => {
     const q = searchTerm.toLowerCase();
     return (
-      l.actor_username.toLowerCase().includes(q) ||
-      l.action.toLowerCase().includes(q) ||
+      (l.actor_username || '').toLowerCase().includes(q) ||
+      (l.action || '').toLowerCase().includes(q) ||
       (l.description && l.description.toLowerCase().includes(q))
     );
   });
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const startItem = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endItem = Math.min(page * pageSize, totalCount);
 
   return (
     <div className="admin-page-content">
@@ -75,14 +95,14 @@ export function AdminAuditLogs({ currentUser }) {
         </div>
 
         <div className="filter-select-group">
-          <select value={actionFilter} onChange={(e) => setActionFilter(e.target.value)}>
+          <select value={actionFilter} onChange={(e) => { setActionFilter(e.target.value); setPage(1); }}>
             <option value="">All Actions</option>
-            <option value="USER">User Actions</option>
+            <option value="USER">User Management Actions</option>
             <option value="CAMERA">Camera Actions</option>
-            <option value="ZONE">Zone Actions</option>
+            <option value="ZONE">Zone / Fence Actions</option>
             <option value="ALERT_RULE">Rule Actions</option>
             <option value="INCIDENT">Incident Actions</option>
-            <option value="LOGIN">Authentication Actions</option>
+            <option value="LOGIN">Authentication Events</option>
           </select>
         </div>
       </div>
@@ -105,7 +125,7 @@ export function AdminAuditLogs({ currentUser }) {
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={7} className="admin-empty-cell">
-                  {loading ? 'Loading audit trail...' : 'No audit records found.'}
+                  {loading ? 'Loading audit trail from database...' : 'No audit activity recorded yet.'}
                 </td>
               </tr>
             ) : (
@@ -116,7 +136,7 @@ export function AdminAuditLogs({ currentUser }) {
                   </td>
                   <td><strong>{log.actor_username}</strong></td>
                   <td>
-                    <span className={`role-badge role-${log.role.toLowerCase()}`}>
+                    <span className={`role-badge role-${(log.role || 'officer').toLowerCase()}`}>
                       {log.role}
                     </span>
                   </td>
@@ -125,7 +145,7 @@ export function AdminAuditLogs({ currentUser }) {
                     {log.resource_type} {log.resource_id ? `#${log.resource_id}` : ''}
                   </td>
                   <td>
-                    <span className={`result-tag res-${log.result.toLowerCase()}`}>
+                    <span className={`result-tag res-${(log.result || 'success').toLowerCase()}`}>
                       {log.result}
                     </span>
                   </td>
@@ -135,6 +155,30 @@ export function AdminAuditLogs({ currentUser }) {
             )}
           </tbody>
         </table>
+
+        {/* Backend Pagination Footer */}
+        <div className="admin-pagination">
+          <div>
+            Showing <strong>{startItem}</strong> to <strong>{endItem}</strong> of <strong>{totalCount}</strong> audit records
+          </div>
+          <div className="admin-pagination-actions">
+            <button
+              className="btn-page"
+              disabled={page <= 1}
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+            >
+              Previous
+            </button>
+            <span>Page {page} of {totalPages}</span>
+            <button
+              className="btn-page"
+              disabled={page >= totalPages}
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

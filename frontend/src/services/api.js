@@ -46,11 +46,31 @@ export async function fetchSecurityEvents(limit = 25, eventType = null, cameraId
   return await res.json();
 }
 
+export async function fetchAllEvents(limit = 25, cameraId = null) {
+  const [alerts, anpr, security] = await Promise.all([
+    fetchAlerts(limit, cameraId).catch(() => []),
+    fetchAnprLog(limit, cameraId).catch(() => []),
+    fetchSecurityEvents(limit, null, cameraId).catch(() => [])
+  ]);
+
+  const combined = [
+    ...alerts.map(e => ({ ...e, id: e.id ? `alert-${e.id}` : undefined })),
+    ...anpr.map(e => ({ ...e, id: e.id ? `anpr-${e.id}` : undefined })),
+    ...security.map(e => ({ ...e, id: e.id ? `sec-${e.id}` : undefined }))
+  ];
+
+  combined.sort((a, b) => {
+    const timeA = a.timestamp || '';
+    const timeB = b.timestamp || '';
+    return timeB.localeCompare(timeA);
+  });
+
+  return combined.slice(0, limit);
+}
+
 export async function startWebcam(deviceIndex = 0) {
-  const res = await fetch('/api/webcam/start', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ device_index: deviceIndex })
+  const res = await fetch(`/api/webcam/start?device_index=${encodeURIComponent(deviceIndex)}`, {
+    method: 'POST'
   });
   if (!res.ok) throw new Error(`Start webcam error: ${res.statusText}`);
   return await res.json();

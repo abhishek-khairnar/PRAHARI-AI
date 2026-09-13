@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Video, Edit2, CheckCircle2, XCircle, RefreshCw,
-  AlertCircle, ShieldCheck, Moon, Car, X
+  AlertCircle, AlertTriangle, ShieldCheck, Moon, Car, X
 } from 'lucide-react';
 import { fetchAdminCameras, updateAdminCamera } from '../../services/adminApi';
 
@@ -30,14 +30,18 @@ export function AdminCameras({ currentUser }) {
 
   useEffect(() => {
     loadCameras();
+    const interval = setInterval(loadCameras, 5000);
+    return () => clearInterval(interval);
   }, []);
 
-  const handleUpdateCamera = async (e) => {
+  const handleSaveCamera = async (e) => {
     e.preventDefault();
     if (!editingCamera) return;
-    setModalLoading(true);
-    setModalError(null);
+
     try {
+      setModalLoading(true);
+      setModalError(null);
+
       await updateAdminCamera(editingCamera.camera_id, {
         name: editingCamera.name,
         location_zone: editingCamera.location_zone,
@@ -45,25 +49,26 @@ export function AdminCameras({ currentUser }) {
         anpr_enabled: editingCamera.anpr_enabled,
         night_detection: editingCamera.night_detection
       });
+
+      setActionSuccess(`Camera ${editingCamera.camera_id} updated successfully.`);
+      setTimeout(() => setActionSuccess(null), 3500);
       setEditingCamera(null);
-      setActionSuccess(`Camera ${editingCamera.camera_id} configuration saved.`);
-      setTimeout(() => setActionSuccess(null), 4000);
       loadCameras();
     } catch (err) {
-      setModalError(err.message);
+      setModalError(err.message || 'Failed to update camera.');
     } finally {
       setModalLoading(false);
     }
   };
 
-  const canEdit = ['SUPER_ADMIN', 'ADMIN'].includes(currentUser?.role);
+  const canEdit = currentUser && ['SUPER_ADMIN', 'ADMIN'].includes(currentUser.role);
 
   return (
     <div className="admin-page-content">
       <div className="admin-page-header">
         <div>
-          <h2>Surveillance Camera Management</h2>
-          <p className="admin-subtitle">Live multi-camera streams, zone mapping, and AI detection pipeline settings</p>
+          <h2>Surveillance Camera Infrastructure</h2>
+          <p className="admin-subtitle">Live stream health, AI pipeline orchestration, and location metadata</p>
         </div>
         <button className="btn-admin-secondary" onClick={loadCameras} title="Refresh Cameras">
           <RefreshCw style={{ width: 14, height: 14 }} className={loading ? 'spin-icon' : ''} />
@@ -95,7 +100,7 @@ export function AdminCameras({ currentUser }) {
               <th>Location / Zone</th>
               <th>Source Type</th>
               <th>Status</th>
-              <th>FPS</th>
+              <th>Telemetry / FPS</th>
               <th>AI Detection</th>
               <th>ANPR</th>
               <th>Night Mode</th>
@@ -121,13 +126,32 @@ export function AdminCameras({ currentUser }) {
                       <span className="status-indicator-pill active">
                         <CheckCircle2 style={{ width: 12, height: 12 }} /> ONLINE
                       </span>
+                    ) : c.status === 'DEGRADED' ? (
+                      <span className="status-indicator-pill warning" style={{ background: 'rgba(234, 179, 8, 0.15)', color: '#eab308' }}>
+                        <AlertTriangle style={{ width: 12, height: 12 }} /> DEGRADED
+                      </span>
                     ) : (
                       <span className="status-indicator-pill disabled">
                         <XCircle style={{ width: 12, height: 12 }} /> OFFLINE
                       </span>
                     )}
+                    {c.last_frame_age_seconds !== null && c.last_frame_age_seconds !== undefined && (
+                      <div style={{ fontSize: '0.70rem', color: '#94a3b8', marginTop: 2 }}>
+                        {c.last_frame_age_seconds < 1.0 ? 'Live (<1s)' : `${c.last_frame_age_seconds}s ago`}
+                      </div>
+                    )}
                   </td>
-                  <td className="mono-cell">{c.fps} fps</td>
+                  <td className="mono-cell" style={{ whiteSpace: 'nowrap' }}>
+                    <div>
+                      <span style={{ color: '#06b6d4', fontWeight: 600 }}>{c.ai_fps !== undefined ? c.ai_fps : c.fps}</span>{' '}
+                      <span style={{ fontSize: '0.70rem', color: '#94a3b8' }}>AI FPS</span>
+                    </div>
+                    {c.capture_fps !== undefined && c.capture_fps > 0 && (
+                      <div style={{ fontSize: '0.70rem', color: '#64748b' }}>
+                        <span>{c.capture_fps}</span> Cap FPS
+                      </div>
+                    )}
+                  </td>
                   <td>
                     {c.ai_enabled ? (
                       <span className="tag-pill tag-teal"><ShieldCheck style={{ width: 11, height: 11 }} /> Active</span>
