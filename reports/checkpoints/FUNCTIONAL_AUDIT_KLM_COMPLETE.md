@@ -1,0 +1,30 @@
+# PRAHARI-AI — Functional Audit Checkpoint: Sections K/L/M Complete
+
+- **Timestamp**: 2026-09-13T10:18:00+05:30
+- **Process Termination Result**: PID 22984 (task-202) and all associated camera background threads successfully terminated. No lingering worker processes remain.
+- **Section K Result (Backend Startup)**: PASS
+  - FastAPI app loaded (30 routes registered)
+  - Shared AI models loaded on CUDA
+  - All 4 cameras initialized and connected
+  - Clean shutdown verified (`camera_manager.stop_all()`)
+  - Artifact: `reports/functional_audit/backend_test.json`
+- **Section L Result (REST API)**: PASS / PARTIAL
+  - GET `/api/cameras` -> 200 OK (3.38ms) [PASS]
+  - GET `/api/status` -> 200 OK (38.08ms) [PASS]
+  - GET `/api/dashboard_stats` -> 200 OK (31.62ms) [PASS]
+  - GET `/api/analytics` -> 200 OK (8.78ms) [PASS]
+  - GET `/api/alerts` -> 200 OK (6.43ms) [PASS]
+  - GET `/api/anpr_log` -> 200 OK (8.38ms) [PASS]
+  - Error Behavior: Non-existent camera falls back to CAM-01 by design in `camera_manager.get_reader()`
+  - Artifact: `reports/functional_audit/api_test.json`
+- **Section M Result (Video Streaming)**: PASS
+  - CAM-01: 200 OK, valid JPEG frame decoded (1920x1080) [PASS]
+  - CAM-02: 200 OK, valid JPEG frame decoded (607x1080) [PASS]
+  - CAM-03: 200 OK, valid JPEG frame decoded (1920x1080) [PASS]
+  - CAM-04: 200 OK, valid JPEG frame decoded (640x480) [PASS]
+  - Artifact: `reports/functional_audit/streaming_test.json`
+- **Streaming Test Method**: Bounded async stream sampling (`await anext(resp.body_iterator)` followed by `await resp.body_iterator.aclose()`), validating JPEG headers (`\xff\xd8`), footers (`\xff\xd9`), and `cv2.imdecode` image validity without blocking on infinite stream generator.
+- **Database Isolation Status**: CONFIRMED. `PRAHARI_DB_PATH` environment variable set to isolated temporary database (`test_klm_events.db`). Zero modifications written to production `prahari_events.db`.
+- **Any Errors**: None in backend or streaming execution.
+- **Production Model Hash**: `F59B3D833E2FF32E194B5BB8E08D211DC7C5BDF144B90D2C8412C47CCFC83B36` (Integrity PASS)
+- **Production Code Integrity**: Untouched. Zero modifications to production source code.

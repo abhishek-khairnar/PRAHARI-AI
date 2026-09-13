@@ -1,0 +1,58 @@
+{
+  "method": "Bounded Async Stream Sampling (single frame extraction & validation per camera)",
+  "cameras": {
+    "CAM-01": {
+      "camera_id": "CAM-01",
+      "url": "/video_feed/CAM-01",
+      "status_code": 200,
+      "media_type": "multipart/x-mixed-replace; boundary=frame",
+      "frame_bytes_len": 326957,
+      "jpeg_delimiters_valid": true,
+      "decoded_image_valid": true,
+      "image_width": 1920,
+      "image_height": 1080,
+      "latency_ms": 1.98,
+      "status": "PASS"
+    },
+    "CAM-02": {
+      "camera_id": "CAM-02",
+      "url": "/video_feed/CAM-02",
+      "status_code": 200,
+      "media_type": "multipart/x-mixed-replace; boundary=frame",
+      "frame_bytes_len": 66599,
+      "jpeg_delimiters_valid": true,
+      "decoded_image_valid": true,
+      "image_width": 607,
+      "image_height": 1080,
+      "latency_ms": 0.86,
+      "status": "PASS"
+    },
+    "CAM-03": {
+      "camera_id": "CAM-03",
+      "url": "/video_feed/CAM-03",
+      "status_code": 200,
+      "media_type": "multipart/x-mixed-replace; boundary=frame",
+      "frame_bytes_len": 83043,
+      "jpeg_delimiters_valid": true,
+      "decoded_image_valid": true,
+      "image_width": 1920,
+      "image_height": 1080,
+      "latency_ms": 0.93,
+      "status": "PASS"
+    },
+    "CAM-04": {
+      "camera_id": "CAM-04",
+      "url": "/video_feed/CAM-04",
+      "status_code": 200,
+      "media_type": "multipart/x-mixed-replace; boundary=frame",
+      "frame_bytes_len": 19241,
+      "jpeg_delimiters_valid": true,
+      "decoded_image_valid": true,
+      "image_width": 640,
+      "image_height": 480,
+      "latency_ms": 0.93,
+      "status": "PASS"
+    }
+  },
+  "overall_status": "PASS"
+}

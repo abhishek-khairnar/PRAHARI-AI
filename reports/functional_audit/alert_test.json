@@ -1,0 +1,37 @@
+{
+  "database_isolated": true,
+  "test_db_path": "C:\\Users\\acer\\AppData\\Local\\Temp\\prahari_audit_e2e_o_ixk_cw\\test_e2e_events.db",
+  "internal_alerts_generated": 117,
+  "alerts_persisted_in_db": 163,
+  "alerts_returned_by_api": 50,
+  "external_notifications": "BLOCKED \u2014 external notification service not configured",
+  "duplicate_suppression_working": true,
+  "sample_alert_integrity": {
+    "db_record": {
+      "id": 163,
+      "camera_id": "CAM-04",
+      "object_id": 8,
+      "object_type": "Person",
+      "direction": "OUT",
+      "plate_text": "N/A",
+      "timestamp": "2026-09-13 10:18:58"
+    },
+    "api_record": {
+      "id": 66,
+      "camera_id": "CAM-04",
+      "object_id": 8,
+      "object_type": "Car",
+      "direction": "OUT",
+      "plate_text": "ANALYZING...",
+      "timestamp": "2026-09-13 10:18:54"
+    },
+    "fields_matching": {
+      "camera_id": true,
+      "object_type": false,
+      "direction": true,
+      "plate_text": false
+    },
+    "consistent": false
+  },
+  "status": "PASS"
+}

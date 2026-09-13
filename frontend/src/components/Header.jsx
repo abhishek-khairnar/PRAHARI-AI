@@ -10,7 +10,8 @@ export function Header({
   isWebcamRunning = false,
   isWebcamTransitioning = false,
   onToggleWebcam,
-  onOpenAnalytics
+  onOpenAnalytics,
+  onNavigateToAdmin
 }) {
   const gpuAvailable = gpuInfo.available;
   const gpuName = gpuInfo.device_name || gpuInfo.name || (gpuAvailable ? "CUDA GPU" : "CPU Fallback");
@@ -86,6 +87,20 @@ export function Header({
         <button className="btn-header btn-primary" onClick={onOpenAnalytics}>
           <BarChart3 style={{ width: 15, height: 15 }} />
           <span>Analytics</span>
+        </button>
+        <button
+          className="btn-header"
+          onClick={onNavigateToAdmin}
+          title="Open System Administration & Configuration"
+          style={{
+            borderColor: 'var(--accent-teal)',
+            color: 'var(--accent-teal)',
+            fontWeight: 600,
+            background: 'var(--accent-teal-subtle)'
+          }}
+        >
+          <ShieldAlert style={{ width: 15, height: 15 }} />
+          <span>Admin Panel</span>
         </button>
       </div>
     </header>

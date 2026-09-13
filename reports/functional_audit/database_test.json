@@ -1,0 +1,338 @@
+{
+  "db_path": "D:\\PRAHARI-AI\\prahari_events.db",
+  "exists": true,
+  "file_size_bytes": 7491584,
+  "connection_test": "PASS",
+  "journal_mode": "WAL",
+  "tables_found": [
+    "intrusion_events",
+    "sqlite_sequence",
+    "anpr_events",
+    "system_events",
+    "security_events"
+  ],
+  "expected_tables": [
+    "intrusion_events",
+    "anpr_events",
+    "system_events",
+    "security_events"
+  ],
+  "tables_verified": true,
+  "schema_details": {
+    "intrusion_events": [
+      {
+        "cid": 0,
+        "name": "id",
+        "type": "INTEGER",
+        "notnull": 0,
+        "dflt_value": null,
+        "pk": 1
+      },
+      {
+        "cid": 1,
+        "name": "timestamp",
+        "type": "TEXT",
+        "notnull": 1,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 2,
+        "name": "object_type",
+        "type": "TEXT",
+        "notnull": 1,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 3,
+        "name": "object_id",
+        "type": "INTEGER",
+        "notnull": 1,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 4,
+        "name": "snapshot_path",
+        "type": "TEXT",
+        "notnull": 0,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 5,
+        "name": "synced",
+        "type": "INTEGER",
+        "notnull": 0,
+        "dflt_value": "0",
+        "pk": 0
+      },
+      {
+        "cid": 6,
+        "name": "direction",
+        "type": "TEXT",
+        "notnull": 0,
+        "dflt_value": "'IN'",
+        "pk": 0
+      },
+      {
+        "cid": 7,
+        "name": "plate_text",
+        "type": "TEXT",
+        "notnull": 0,
+        "dflt_value": "'PENDING'",
+        "pk": 0
+      },
+      {
+        "cid": 8,
+        "name": "plate_confidence",
+        "type": "REAL",
+        "notnull": 0,
+        "dflt_value": "0.0",
+        "pk": 0
+      },
+      {
+        "cid": 9,
+        "name": "anpr_status",
+        "type": "TEXT",
+        "notnull": 0,
+        "dflt_value": "'PENDING'",
+        "pk": 0
+      },
+      {
+        "cid": 10,
+        "name": "camera_id",
+        "type": "TEXT",
+        "notnull": 0,
+        "dflt_value": "'CAM-01'",
+        "pk": 0
+      },
+      {
+        "cid": 11,
+        "name": "validation_status",
+        "type": "TEXT",
+        "notnull": 0,
+        "dflt_value": "'DETECTED'",
+        "pk": 0
+      }
+    ],
+    "anpr_events": [
+      {
+        "cid": 0,
+        "name": "id",
+        "type": "INTEGER",
+        "notnull": 0,
+        "dflt_value": null,
+        "pk": 1
+      },
+      {
+        "cid": 1,
+        "name": "timestamp",
+        "type": "TEXT",
+        "notnull": 1,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 2,
+        "name": "object_type",
+        "type": "TEXT",
+        "notnull": 1,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 3,
+        "name": "object_id",
+        "type": "INTEGER",
+        "notnull": 1,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 4,
+        "name": "plate_text",
+        "type": "TEXT",
+        "notnull": 1,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 5,
+        "name": "confidence",
+        "type": "REAL",
+        "notnull": 1,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 6,
+        "name": "snapshot_path",
+        "type": "TEXT",
+        "notnull": 0,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 7,
+        "name": "synced",
+        "type": "INTEGER",
+        "notnull": 0,
+        "dflt_value": "0",
+        "pk": 0
+      },
+      {
+        "cid": 8,
+        "name": "camera_id",
+        "type": "TEXT",
+        "notnull": 0,
+        "dflt_value": "'CAM-01'",
+        "pk": 0
+      },
+      {
+        "cid": 9,
+        "name": "validation_status",
+        "type": "TEXT",
+        "notnull": 0,
+        "dflt_value": "'DETECTED'",
+        "pk": 0
+      }
+    ],
+    "system_events": [
+      {
+        "cid": 0,
+        "name": "id",
+        "type": "INTEGER",
+        "notnull": 0,
+        "dflt_value": null,
+        "pk": 1
+      },
+      {
+        "cid": 1,
+        "name": "timestamp",
+        "type": "TEXT",
+        "notnull": 1,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 2,
+        "name": "event_type",
+        "type": "TEXT",
+        "notnull": 1,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 3,
+        "name": "details",
+        "type": "TEXT",
+        "notnull": 0,
+        "dflt_value": null,
+        "pk": 0
+      }
+    ],
+    "security_events": [
+      {
+        "cid": 0,
+        "name": "id",
+        "type": "INTEGER",
+        "notnull": 0,
+        "dflt_value": null,
+        "pk": 1
+      },
+      {
+        "cid": 1,
+        "name": "timestamp",
+        "type": "TEXT",
+        "notnull": 1,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 2,
+        "name": "camera_id",
+        "type": "TEXT",
+        "notnull": 0,
+        "dflt_value": "'CAM-01'",
+        "pk": 0
+      },
+      {
+        "cid": 3,
+        "name": "event_type",
+        "type": "TEXT",
+        "notnull": 1,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 4,
+        "name": "object_type",
+        "type": "TEXT",
+        "notnull": 0,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 5,
+        "name": "object_id",
+        "type": "INTEGER",
+        "notnull": 0,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 6,
+        "name": "confidence",
+        "type": "REAL",
+        "notnull": 0,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 7,
+        "name": "snapshot_path",
+        "type": "TEXT",
+        "notnull": 0,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 8,
+        "name": "details",
+        "type": "TEXT",
+        "notnull": 0,
+        "dflt_value": null,
+        "pk": 0
+      },
+      {
+        "cid": 9,
+        "name": "synced",
+        "type": "INTEGER",
+        "notnull": 0,
+        "dflt_value": "0",
+        "pk": 0
+      },
+      {
+        "cid": 10,
+        "name": "validation_status",
+        "type": "TEXT",
+        "notnull": 0,
+        "dflt_value": "'DETECTED'",
+        "pk": 0
+      }
+    ]
+  },
+  "production_record_counts": {
+    "intrusion_events": 25598,
+    "anpr_events": 4115,
+    "system_events": 284,
+    "security_events": 5869
+  },
+  "insert_test": "PASS",
+  "read_test": "PASS",
+  "integrity_test": "PASS",
+  "cleanup_test": "PASS",
+  "overall_status": "PASS"
+}

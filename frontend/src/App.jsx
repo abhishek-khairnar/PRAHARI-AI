@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Header } from './components/Header';
 import { SystemStatus } from './components/SystemStatus';
 import { CameraGrid } from './components/CameraGrid';
@@ -7,17 +7,44 @@ import { FocusModal } from './components/FocusModal';
 import { AnalyticsDrawer } from './components/AnalyticsDrawer';
 import { Lightbox } from './components/Lightbox';
 import { usePolling } from './hooks/usePolling';
+
+import { AdminLayout } from './components/admin/AdminLayout';
+import { AdminLogin } from './components/admin/AdminLogin';
+import {
+  getStoredUser,
+  fetchCurrentUser,
+  logout,
+  getAuthToken
+} from './services/adminApi';
+
 import {
   fetchDashboardStats,
   fetchAnalytics,
   fetchAlerts,
+  fetchAllEvents,
   fetchAnprLog,
   fetchSecurityEvents,
   startWebcam,
   stopWebcam
 } from './services/api';
 
+const parseRoute = () => {
+  const path = window.location.pathname;
+  if (path === '/login') {
+    return { view: 'login', tab: 'overview' };
+  }
+  if (path.startsWith('/admin')) {
+    const parts = path.split('/').filter(Boolean);
+    const tab = parts[1] || 'overview';
+    return { view: 'admin', tab };
+  }
+  return { view: 'dashboard', tab: 'overview' };
+};
+
 export function App() {
+  const [currentRoute, setCurrentRoute] = useState(parseRoute);
+  const [currentUser, setCurrentUser] = useState(getStoredUser);
+
   const [dashboardData, setDashboardData] = useState({});
   const [verifiedAnprCount, setVerifiedAnprCount] = useState(0);
   const [eventsFeed, setEventsFeed] = useState([]);
@@ -30,7 +57,41 @@ export function App() {
   const [analyticsModal, setAnalyticsModal] = useState({ isOpen: false, data: {} });
   const [lightboxModal, setLightboxModal] = useState({ isOpen: false, imgUrl: '', caption: '' });
 
-  // 1. Telemetry Polling (1000ms)
+  // URL Navigation & Session Listeners
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentRoute(parseRoute());
+    };
+    const handleUnauthorized = () => {
+      setCurrentUser(null);
+      navigateTo('login');
+    };
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('prahari:unauthorized', handleUnauthorized);
+
+    if (getAuthToken()) {
+      fetchCurrentUser()
+        .then(u => setCurrentUser(u))
+        .catch(() => setCurrentUser(null));
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('prahari:unauthorized', handleUnauthorized);
+    };
+  }, []);
+
+  const navigateTo = (view, tab = 'overview') => {
+    let path = '/dashboard';
+    if (view === 'login') path = '/login';
+    else if (view === 'admin') path = tab === 'overview' ? '/admin' : `/admin/${tab}`;
+    window.history.pushState({}, '', path);
+    setCurrentRoute({ view, tab });
+  };
+
+  const isDashboardView = currentRoute.view === 'dashboard';
+
+  // 1. Telemetry Polling (1000ms) - active when in dashboard view
   const pollTelemetry = useCallback(async () => {
     try {
       const data = await fetchDashboardStats();
@@ -48,9 +109,9 @@ export function App() {
     }
   }, [isWebcamRunning, isWebcamTransitioning]);
 
-  usePolling(pollTelemetry, 1000, true);
+  usePolling(pollTelemetry, 1000, isDashboardView);
 
-  // 2. Events Feed Polling (1500ms)
+  // 2. Events Feed Polling (1500ms) - active when in dashboard view
   const pollEvents = useCallback(async () => {
     try {
       let events = [];
@@ -58,8 +119,10 @@ export function App() {
         events = await fetchAnprLog(25);
       } else if (activeTab === 'suspicious') {
         events = await fetchSecurityEvents(25, 'suspicious_activity');
-      } else {
+      } else if (activeTab === 'intrusions') {
         events = await fetchAlerts(25);
+      } else {
+        events = await fetchAllEvents(25);
       }
       setEventsFeed(events);
     } catch (err) {
@@ -67,7 +130,7 @@ export function App() {
     }
   }, [activeTab]);
 
-  usePolling(pollEvents, 1500, true);
+  usePolling(pollEvents, 1500, isDashboardView);
 
   // 3. Analytics Summary KPI Polling (5000ms)
   const pollAnalyticsKpi = useCallback(async () => {
@@ -79,7 +142,7 @@ export function App() {
     }
   }, []);
 
-  usePolling(pollAnalyticsKpi, 5000, true);
+  usePolling(pollAnalyticsKpi, 5000, isDashboardView);
 
   // Handlers
   const handleToggleWebcam = async () => {
@@ -95,8 +158,8 @@ export function App() {
           alert("Could not start webcam: " + (res.error || "Device unavailable"));
           setIsWebcamRunning(false);
         }
-      } catch (e) {
-        alert("Webcam connection error.");
+      } catch (err) {
+        alert("Webcam error: " + err.message);
         setIsWebcamRunning(false);
       } finally {
         setIsWebcamTransitioning(false);
@@ -105,11 +168,8 @@ export function App() {
       try {
         await stopWebcam();
         setIsWebcamRunning(false);
-        if (focusModal.cameraId === 'CAM-WEBCAM') {
-          setFocusModal({ isOpen: false, cameraId: null, cameraTitle: '' });
-        }
-      } catch (e) {
-        setIsWebcamRunning(false);
+      } catch (err) {
+        console.error("Error stopping webcam:", err);
       } finally {
         setIsWebcamTransitioning(false);
       }
@@ -117,12 +177,11 @@ export function App() {
   };
 
   const handleOpenAnalytics = async () => {
-    setAnalyticsModal({ isOpen: true, data: {} });
     try {
-      const stats = await fetchAnalytics();
-      setAnalyticsModal({ isOpen: true, data: stats });
+      const data = await fetchAnalytics();
+      setAnalyticsModal({ isOpen: true, data });
     } catch (err) {
-      console.error("Failed to load analytics modal data:", err);
+      console.error("Failed to open analytics:", err);
     }
   };
 
@@ -131,39 +190,78 @@ export function App() {
   };
 
   const handleOpenLightbox = (imgUrl, caption) => {
-    if (!imgUrl) return;
     setLightboxModal({ isOpen: true, imgUrl, caption });
   };
 
-  // Telemetry mappings
-  const agg = dashboardData.aggregate || {};
-  const gpuInfo = agg.gpu || {};
-  const activeCamsList = dashboardData.cameras || [];
-  
-  const telemetryMap = {};
-  activeCamsList.forEach(c => {
-    telemetryMap[c.camera_id] = c;
-  });
+  // ─── RENDER ADMIN LOGIN VIEW ───
+  if (currentRoute.view === 'login') {
+    return (
+      <AdminLogin
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
+          navigateTo('admin', 'overview');
+        }}
+        onBackToDashboard={() => navigateTo('dashboard')}
+      />
+    );
+  }
 
-  const threatScore = ((agg.total_session_alerts || 0) * 1) + ((agg.total_session_suspicious || 0) * 3);
+  // ─── RENDER ADMIN PANEL VIEW ───
+  if (currentRoute.view === 'admin') {
+    if (!currentUser) {
+      return (
+        <AdminLogin
+          onLoginSuccess={(user) => {
+            setCurrentUser(user);
+            navigateTo('admin', currentRoute.tab || 'overview');
+          }}
+          onBackToDashboard={() => navigateTo('dashboard')}
+        />
+      );
+    }
+
+    return (
+      <AdminLayout
+        currentUser={currentUser}
+        activeTab={currentRoute.tab || 'overview'}
+        onTabChange={(tab) => navigateTo('admin', tab)}
+        onLogout={async () => {
+          await logout();
+          setCurrentUser(null);
+          navigateTo('dashboard');
+        }}
+        onBackToDashboard={() => navigateTo('dashboard')}
+      />
+    );
+  }
+
+  // ─── RENDER OPERATIONS DASHBOARD VIEW ───
+  const agg = dashboardData.aggregate || {};
+  const camerasList = dashboardData.cameras || [];
+  const telemetryMap = {};
+  camerasList.forEach(c => {
+    if (c.camera_id) telemetryMap[c.camera_id] = c;
+  });
 
   return (
     <>
       <Header
-        gpuInfo={gpuInfo}
+        gpuInfo={agg.gpu || {}}
         aggregateAiFps={agg.aggregate_ai_fps || 0.0}
         activeCameras={agg.active_cameras || 0}
         totalCameras={agg.total_cameras || 4}
-        threatScore={threatScore}
+        threatScore={agg.threat_score || 0}
         isWebcamRunning={isWebcamRunning}
         isWebcamTransitioning={isWebcamTransitioning}
         onToggleWebcam={handleToggleWebcam}
         onOpenAnalytics={handleOpenAnalytics}
+        onNavigateToAdmin={() => navigateTo(currentUser ? 'admin' : 'login', 'overview')}
       />
 
       <SystemStatus
-        activeFeeds={agg.active_cameras || 0}
-        totalFeeds={agg.total_cameras || 4}
+        totalPeopleCount={agg.total_people_count || 0}
+        totalVehicleCount={agg.total_vehicle_count || 0}
+        aggregateAiFps={agg.aggregate_ai_fps || 0.0}
         captureFps={agg.aggregate_capture_fps || 0.0}
         totalLiveFaces={agg.total_live_faces || 0}
         verifiedAnprCount={verifiedAnprCount}

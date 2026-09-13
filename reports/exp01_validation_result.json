@@ -1,0 +1,133 @@
+{
+  "candidate": "D:\\PRAHARI-AI\\runs\\detect\\prahari_a4_exp01\\weights\\best.pt",
+  "sha256": "bf7be2a8fa3e7aa5a96d6b022b15038d6ee3c42945c4bc61afa9383ae7478754",
+  "epochs_completed": 32,
+  "best_epoch": 17,
+  "duration_sec": 221.46,
+  "ultralytics_metrics": {
+    "precision": 0.3455,
+    "recall": 0.06293,
+    "map50": 0.05422,
+    "map50_95": 0.01469
+  },
+  "validation_eval": {
+    "overall": {
+      "precision": 0.032,
+      "recall": 0.0127,
+      "f1": 0.0182,
+      "tp": 4,
+      "fp": 121,
+      "fn": 311
+    },
+    "per_class": {
+      "person": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 99,
+        "fn": 115
+      },
+      "car": {
+        "precision": 0.6667,
+        "recall": 0.0265,
+        "f1": 0.051,
+        "tp": 4,
+        "fp": 2,
+        "fn": 147
+      },
+      "motorcycle": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 31
+      },
+      "truck": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 20,
+        "fn": 18
+      }
+    },
+    "per_camera": {
+      "CAM-01": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 50,
+        "fn": 136
+      },
+      "CAM-02": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 35
+      },
+      "CAM-03": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 69,
+        "fn": 20
+      },
+      "CAM-04": {
+        "precision": 0.6667,
+        "recall": 0.0323,
+        "f1": 0.0615,
+        "tp": 4,
+        "fp": 2,
+        "fn": 120
+      }
+    },
+    "per_size": {
+      "small": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fn": 93
+      },
+      "medium": {
+        "precision": 1.0,
+        "recall": 0.028,
+        "f1": 0.0544,
+        "tp": 4,
+        "fn": 139
+      },
+      "large": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fn": 79
+      }
+    },
+    "hard_negatives": {
+      "audited_images": 28,
+      "false_positives": 1,
+      "fp_per_image": 0.0357,
+      "details": [
+        {
+          "file": "cam01_hardneg_val_highsky_06.jpg",
+          "class": "person",
+          "conf": 0.43419408798217773,
+          "box": [
+            2,
+            0,
+            163,
+            156
+          ]
+        }
+      ]
+    }
+  },
+  "decision": "REJECTED"
+}

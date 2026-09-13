@@ -1,0 +1,128 @@
+{
+  "candidate": "D:\\PRAHARI-AI\\runs\\detect\\prahari_a4_exp03\\weights\\best.pt",
+  "sha256": "34e1e73bdb7995023300d78460d8e7af34b60a3288f1b82c52a41d517385d87f",
+  "epochs_completed": 41,
+  "best_epoch": 21,
+  "duration_sec": 362.47,
+  "hyperparameters": {
+    "lr0": 0.001,
+    "freeze": 5,
+    "batch": 16,
+    "epochs": 50,
+    "imgsz": 640
+  },
+  "ultralytics_metrics": {
+    "precision": 0.09288,
+    "recall": 0.08333,
+    "map50": 0.06496,
+    "map50_95": 0.02862
+  },
+  "validation_eval": {
+    "overall": {
+      "precision": 0.1117,
+      "recall": 0.0635,
+      "f1": 0.081,
+      "tp": 20,
+      "fp": 159,
+      "fn": 295
+    },
+    "per_class": {
+      "person": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 107,
+        "fn": 115
+      },
+      "car": {
+        "precision": 0.4255,
+        "recall": 0.1325,
+        "f1": 0.202,
+        "tp": 20,
+        "fp": 27,
+        "fn": 131
+      },
+      "motorcycle": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 13,
+        "fn": 31
+      },
+      "truck": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 12,
+        "fn": 18
+      }
+    },
+    "per_camera": {
+      "CAM-01": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 81,
+        "fn": 136
+      },
+      "CAM-02": {
+        "precision": 0.5385,
+        "recall": 0.4,
+        "f1": 0.459,
+        "tp": 14,
+        "fp": 12,
+        "fn": 21
+      },
+      "CAM-03": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 18,
+        "fn": 20
+      },
+      "CAM-04": {
+        "precision": 0.1111,
+        "recall": 0.0484,
+        "f1": 0.0674,
+        "tp": 6,
+        "fp": 48,
+        "fn": 118
+      }
+    },
+    "per_size": {
+      "small": {
+        "precision": 1.0,
+        "recall": 0.0645,
+        "f1": 0.1212,
+        "tp": 6,
+        "fn": 87
+      },
+      "medium": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fn": 143
+      },
+      "large": {
+        "precision": 1.0,
+        "recall": 0.1772,
+        "f1": 0.3011,
+        "tp": 14,
+        "fn": 65
+      }
+    },
+    "hard_negatives": {
+      "audited_images": 28,
+      "false_positives": 0,
+      "fp_per_image": 0.0,
+      "details": []
+    }
+  },
+  "decision": "REJECTED"
+}

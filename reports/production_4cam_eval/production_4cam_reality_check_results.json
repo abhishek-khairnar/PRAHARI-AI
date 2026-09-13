@@ -1,0 +1,1049 @@
+{
+  "CAM-01": {
+    "camera_id": "CAM-01",
+    "camera_name": "Border Post Alpha",
+    "video_path": "demo_videos/border_demo.mp4",
+    "resolution": "1920x1080",
+    "fps": 30.0,
+    "total_frames": 401,
+    "processed_frames": 401,
+    "frames_with_detections": 401,
+    "frames_zero_detections": 0,
+    "detection_coverage_pct": 100.0,
+    "total_detections": 4963,
+    "avg_detections_per_frame": 12.38,
+    "max_detections_in_frame": 19,
+    "class_distribution": {
+      "Person": 2479,
+      "Car": 1495,
+      "Motorcycle": 134,
+      "Truck": 143,
+      "Bus": 199,
+      "Vehicle": 513
+    },
+    "confidence": {
+      "min": 0.35,
+      "mean": 0.59,
+      "max": 0.947
+    },
+    "avg_inference_latency_ms": 14.04,
+    "effective_fps": 71.2,
+    "tracking": {
+      "total_unique_tracks": 48,
+      "avg_track_lifetime_frames": 164.1,
+      "max_track_lifetime_frames": 401
+    },
+    "intrusions": {
+      "total_events": 24,
+      "events": [
+        {
+          "frame": 12,
+          "object_id": 9,
+          "class": "Person",
+          "confidence": 0.459,
+          "direction": "IN",
+          "centroid": [
+            1654,
+            777
+          ],
+          "snapshot": "cam-01_int_9_f12.jpg"
+        },
+        {
+          "frame": 27,
+          "object_id": 1,
+          "class": "Car",
+          "confidence": 0.747,
+          "direction": "IN",
+          "centroid": [
+            37,
+            788
+          ],
+          "snapshot": "cam-01_int_1_f27.jpg"
+        },
+        {
+          "frame": 46,
+          "object_id": 5,
+          "class": "Person",
+          "confidence": 0.378,
+          "direction": "OUT",
+          "centroid": [
+            1682,
+            609
+          ],
+          "snapshot": "cam-01_int_5_f46.jpg"
+        },
+        {
+          "frame": 54,
+          "object_id": 16,
+          "class": "Person",
+          "confidence": 0.874,
+          "direction": "IN",
+          "centroid": [
+            1781,
+            766
+          ],
+          "snapshot": "cam-01_int_16_f54.jpg"
+        },
+        {
+          "frame": 64,
+          "object_id": 8,
+          "class": "Person",
+          "confidence": 0.81,
+          "direction": "OUT",
+          "centroid": [
+            1540,
+            754
+          ],
+          "snapshot": "cam-01_int_8_f64.jpg"
+        },
+        {
+          "frame": 67,
+          "object_id": 3,
+          "class": "Car",
+          "confidence": 0.546,
+          "direction": "IN",
+          "centroid": [
+            30,
+            763
+          ],
+          "snapshot": "cam-01_int_3_f67.jpg"
+        },
+        {
+          "frame": 77,
+          "object_id": 2,
+          "class": "Car",
+          "confidence": 0.931,
+          "direction": "IN",
+          "centroid": [
+            691,
+            761
+          ],
+          "snapshot": "cam-01_int_2_f77.jpg"
+        },
+        {
+          "frame": 109,
+          "object_id": 23,
+          "class": "Person",
+          "confidence": 0.418,
+          "direction": "IN",
+          "centroid": [
+            1658,
+            914
+          ],
+          "snapshot": "cam-01_int_23_f109.jpg"
+        },
+        {
+          "frame": 112,
+          "object_id": 11,
+          "class": "Motorcycle",
+          "confidence": 0.537,
+          "direction": "IN",
+          "centroid": [
+            899,
+            772
+          ],
+          "snapshot": "cam-01_int_11_f112.jpg"
+        },
+        {
+          "frame": 115,
+          "object_id": 12,
+          "class": "Vehicle",
+          "confidence": 0.372,
+          "direction": "IN",
+          "centroid": [
+            909,
+            768
+          ],
+          "snapshot": "cam-01_int_12_f115.jpg"
+        },
+        {
+          "frame": 130,
+          "object_id": 10,
+          "class": "Person",
+          "confidence": 0.819,
+          "direction": "IN",
+          "centroid": [
+            823,
+            767
+          ],
+          "snapshot": "cam-01_int_10_f130.jpg"
+        },
+        {
+          "frame": 138,
+          "object_id": 31,
+          "class": "Vehicle",
+          "confidence": 0.385,
+          "direction": "IN",
+          "centroid": [
+            387,
+            761
+          ],
+          "snapshot": "cam-01_int_31_f138.jpg"
+        },
+        {
+          "frame": 138,
+          "object_id": 32,
+          "class": "Car",
+          "confidence": 0.412,
+          "direction": "OUT",
+          "centroid": [
+            1153,
+            451
+          ],
+          "snapshot": "cam-01_int_32_f138.jpg"
+        },
+        {
+          "frame": 144,
+          "object_id": 33,
+          "class": "Person",
+          "confidence": 0.45,
+          "direction": "IN",
+          "centroid": [
+            486,
+            757
+          ],
+          "snapshot": "cam-01_int_33_f144.jpg"
+        },
+        {
+          "frame": 151,
+          "object_id": 6,
+          "class": "Person",
+          "confidence": 0.551,
+          "direction": "IN",
+          "centroid": [
+            743,
+            822
+          ],
+          "snapshot": "cam-01_int_6_f151.jpg"
+        },
+        {
+          "frame": 152,
+          "object_id": 34,
+          "class": "Person",
+          "confidence": 0.355,
+          "direction": "OUT",
+          "centroid": [
+            379,
+            707
+          ],
+          "snapshot": "cam-01_int_34_f152.jpg"
+        },
+        {
+          "frame": 154,
+          "object_id": 25,
+          "class": "Car",
+          "confidence": 0.486,
+          "direction": "IN",
+          "centroid": [
+            911,
+            759
+          ],
+          "snapshot": "cam-01_int_25_f154.jpg"
+        },
+        {
+          "frame": 218,
+          "object_id": 37,
+          "class": "Person",
+          "confidence": 0.606,
+          "direction": "OUT",
+          "centroid": [
+            659,
+            703
+          ],
+          "snapshot": "cam-01_int_37_f218.jpg"
+        },
+        {
+          "frame": 236,
+          "object_id": 22,
+          "class": "Person",
+          "confidence": 0.459,
+          "direction": "IN",
+          "centroid": [
+            1560,
+            767
+          ],
+          "snapshot": "cam-01_int_22_f236.jpg"
+        },
+        {
+          "frame": 271,
+          "object_id": 41,
+          "class": "Bus",
+          "confidence": 0.484,
+          "direction": "OUT",
+          "centroid": [
+            701,
+            428
+          ],
+          "snapshot": "cam-01_int_41_f271.jpg"
+        },
+        {
+          "frame": 274,
+          "object_id": 40,
+          "class": "Car",
+          "confidence": 0.433,
+          "direction": "IN",
+          "centroid": [
+            373,
+            796
+          ],
+          "snapshot": "cam-01_int_40_f274.jpg"
+        },
+        {
+          "frame": 304,
+          "object_id": 43,
+          "class": "Car",
+          "confidence": 0.406,
+          "direction": "OUT",
+          "centroid": [
+            588,
+            511
+          ],
+          "snapshot": "cam-01_int_43_f304.jpg"
+        },
+        {
+          "frame": 306,
+          "object_id": 36,
+          "class": "Car",
+          "confidence": 0.51,
+          "direction": "OUT",
+          "centroid": [
+            318,
+            634
+          ],
+          "snapshot": "cam-01_int_36_f306.jpg"
+        },
+        {
+          "frame": 390,
+          "object_id": 47,
+          "class": "Person",
+          "confidence": 0.447,
+          "direction": "OUT",
+          "centroid": [
+            388,
+            643
+          ],
+          "snapshot": "cam-01_int_47_f390.jpg"
+        }
+      ]
+    },
+    "loitering": {
+      "total_events": 3,
+      "events": [
+        {
+          "frame": 150,
+          "object_id": 8,
+          "dwell_seconds": 5.0,
+          "centroid": [
+            1530,
+            799
+          ]
+        },
+        {
+          "frame": 240,
+          "object_id": 9,
+          "dwell_seconds": 5.0,
+          "centroid": [
+            1528,
+            489
+          ]
+        },
+        {
+          "frame": 378,
+          "object_id": 13,
+          "dwell_seconds": 5.0,
+          "centroid": [
+            1669,
+            647
+          ]
+        }
+      ]
+    },
+    "night_mode": {
+      "detected_as_night": false,
+      "avg_brightness": 108.5
+    },
+    "anpr": {
+      "total_reads": 3,
+      "reads": [
+        {
+          "frame": 27,
+          "object_id": 1,
+          "plate_text": "46AU120C",
+          "raw_text": "46 AU 120c",
+          "confidence": 0.69,
+          "is_valid": true,
+          "tier": 2,
+          "snapshot": "cam-01_plate_1_f27.jpg"
+        },
+        {
+          "frame": 67,
+          "object_id": 3,
+          "plate_text": "NH02FX6786",
+          "raw_text": "NHOzf X6786",
+          "confidence": 0.59,
+          "is_valid": false,
+          "tier": 0,
+          "snapshot": "cam-01_plate_3_f67.jpg"
+        },
+        {
+          "frame": 77,
+          "object_id": 2,
+          "plate_text": "NH02FU930L",
+          "raw_text": "NHOZFU930L",
+          "confidence": 0.76,
+          "is_valid": false,
+          "tier": 0,
+          "snapshot": "cam-01_plate_2_f77.jpg"
+        }
+      ]
+    }
+  },
+  "CAM-02": {
+    "camera_id": "CAM-02",
+    "camera_name": "Night Surveillance Bravo",
+    "video_path": "demo_videos/night_demo.mp4",
+    "resolution": "720x1280",
+    "fps": 30.0,
+    "total_frames": 300,
+    "processed_frames": 300,
+    "frames_with_detections": 294,
+    "frames_zero_detections": 6,
+    "detection_coverage_pct": 98.0,
+    "total_detections": 437,
+    "avg_detections_per_frame": 1.46,
+    "max_detections_in_frame": 6,
+    "class_distribution": {
+      "Person": 13,
+      "Car": 361,
+      "Motorcycle": 0,
+      "Truck": 51,
+      "Bus": 2,
+      "Vehicle": 10
+    },
+    "confidence": {
+      "min": 0.354,
+      "mean": 0.764,
+      "max": 0.958
+    },
+    "avg_inference_latency_ms": 8.43,
+    "effective_fps": 118.6,
+    "tracking": {
+      "total_unique_tracks": 9,
+      "avg_track_lifetime_frames": 78.9,
+      "max_track_lifetime_frames": 300
+    },
+    "intrusions": {
+      "total_events": 4,
+      "events": [
+        {
+          "frame": 71,
+          "object_id": 1,
+          "class": "Car",
+          "confidence": 0.88,
+          "direction": "IN",
+          "centroid": [
+            331,
+            833
+          ],
+          "snapshot": "cam-02_int_1_f71.jpg"
+        },
+        {
+          "frame": 79,
+          "object_id": 3,
+          "class": "Truck",
+          "confidence": 0.542,
+          "direction": "IN",
+          "centroid": [
+            47,
+            840
+          ],
+          "snapshot": "cam-02_int_3_f79.jpg"
+        },
+        {
+          "frame": 159,
+          "object_id": 4,
+          "class": "Car",
+          "confidence": 0.45,
+          "direction": "OUT",
+          "centroid": [
+            615,
+            665
+          ],
+          "snapshot": "cam-02_int_4_f159.jpg"
+        },
+        {
+          "frame": 170,
+          "object_id": 6,
+          "class": "Vehicle",
+          "confidence": 0.385,
+          "direction": "IN",
+          "centroid": [
+            463,
+            854
+          ],
+          "snapshot": "cam-02_int_6_f170.jpg"
+        }
+      ]
+    },
+    "loitering": {
+      "total_events": 0,
+      "events": []
+    },
+    "night_mode": {
+      "detected_as_night": true,
+      "avg_brightness": 83.1
+    },
+    "anpr": {
+      "total_reads": 0,
+      "reads": []
+    }
+  },
+  "CAM-03": {
+    "camera_id": "CAM-03",
+    "camera_name": "Perimeter Activity Charlie",
+    "video_path": "demo_videos/activity-demo.mp4",
+    "resolution": "1920x1080",
+    "fps": 24.0,
+    "total_frames": 515,
+    "processed_frames": 515,
+    "frames_with_detections": 324,
+    "frames_zero_detections": 191,
+    "detection_coverage_pct": 62.91,
+    "total_detections": 399,
+    "avg_detections_per_frame": 0.77,
+    "max_detections_in_frame": 3,
+    "class_distribution": {
+      "Person": 399,
+      "Car": 0,
+      "Motorcycle": 0,
+      "Truck": 0,
+      "Bus": 0,
+      "Vehicle": 0
+    },
+    "confidence": {
+      "min": 0.353,
+      "mean": 0.648,
+      "max": 0.924
+    },
+    "avg_inference_latency_ms": 9.29,
+    "effective_fps": 107.7,
+    "tracking": {
+      "total_unique_tracks": 11,
+      "avg_track_lifetime_frames": 78.9,
+      "max_track_lifetime_frames": 162
+    },
+    "intrusions": {
+      "total_events": 3,
+      "events": [
+        {
+          "frame": 18,
+          "object_id": 2,
+          "class": "Person",
+          "confidence": 0.703,
+          "direction": "OUT",
+          "centroid": [
+            475,
+            640
+          ],
+          "snapshot": "cam-03_int_2_f18.jpg"
+        },
+        {
+          "frame": 384,
+          "object_id": 8,
+          "class": "Person",
+          "confidence": 0.774,
+          "direction": "IN",
+          "centroid": [
+            662,
+            672
+          ],
+          "snapshot": "cam-03_int_8_f384.jpg"
+        },
+        {
+          "frame": 504,
+          "object_id": 11,
+          "class": "Person",
+          "confidence": 0.715,
+          "direction": "IN",
+          "centroid": [
+            514,
+            802
+          ],
+          "snapshot": "cam-03_int_11_f504.jpg"
+        }
+      ]
+    },
+    "loitering": {
+      "total_events": 0,
+      "events": []
+    },
+    "night_mode": {
+      "detected_as_night": true,
+      "avg_brightness": 52.3
+    },
+    "anpr": {
+      "total_reads": 0,
+      "reads": []
+    }
+  },
+  "CAM-04": {
+    "camera_id": "CAM-04",
+    "camera_name": "Urban Facility Delta",
+    "video_path": "demo_videos/cctv_demo.mp4",
+    "resolution": "1280x720",
+    "fps": 29.97002997002997,
+    "total_frames": 271,
+    "processed_frames": 271,
+    "frames_with_detections": 271,
+    "frames_zero_detections": 0,
+    "detection_coverage_pct": 100.0,
+    "total_detections": 3248,
+    "avg_detections_per_frame": 11.99,
+    "max_detections_in_frame": 24,
+    "class_distribution": {
+      "Person": 883,
+      "Car": 1267,
+      "Motorcycle": 754,
+      "Truck": 79,
+      "Bus": 0,
+      "Vehicle": 265
+    },
+    "confidence": {
+      "min": 0.35,
+      "mean": 0.568,
+      "max": 0.925
+    },
+    "avg_inference_latency_ms": 8.11,
+    "effective_fps": 123.2,
+    "tracking": {
+      "total_unique_tracks": 44,
+      "avg_track_lifetime_frames": 121.9,
+      "max_track_lifetime_frames": 271
+    },
+    "intrusions": {
+      "total_events": 34,
+      "events": [
+        {
+          "frame": 3,
+          "object_id": 5,
+          "class": "Car",
+          "confidence": 0.594,
+          "direction": "IN",
+          "centroid": [
+            21,
+            503
+          ],
+          "snapshot": "cam-04_int_5_f3.jpg"
+        },
+        {
+          "frame": 3,
+          "object_id": 14,
+          "class": "Vehicle",
+          "confidence": 0.5,
+          "direction": "IN",
+          "centroid": [
+            727,
+            510
+          ],
+          "snapshot": "cam-04_int_14_f3.jpg"
+        },
+        {
+          "frame": 11,
+          "object_id": 1,
+          "class": "Person",
+          "confidence": 0.357,
+          "direction": "OUT",
+          "centroid": [
+            1268,
+            502
+          ],
+          "snapshot": "cam-04_int_1_f11.jpg"
+        },
+        {
+          "frame": 11,
+          "object_id": 8,
+          "class": "Person",
+          "confidence": 0.455,
+          "direction": "OUT",
+          "centroid": [
+            340,
+            496
+          ],
+          "snapshot": "cam-04_int_8_f11.jpg"
+        },
+        {
+          "frame": 12,
+          "object_id": 9,
+          "class": "Person",
+          "confidence": 0.452,
+          "direction": "IN",
+          "centroid": [
+            713,
+            503
+          ],
+          "snapshot": "cam-04_int_9_f12.jpg"
+        },
+        {
+          "frame": 12,
+          "object_id": 15,
+          "class": "Motorcycle",
+          "confidence": 0.422,
+          "direction": "IN",
+          "centroid": [
+            782,
+            512
+          ],
+          "snapshot": "cam-04_int_15_f12.jpg"
+        },
+        {
+          "frame": 23,
+          "object_id": 10,
+          "class": "Person",
+          "confidence": 0.396,
+          "direction": "IN",
+          "centroid": [
+            182,
+            509
+          ],
+          "snapshot": "cam-04_int_10_f23.jpg"
+        },
+        {
+          "frame": 23,
+          "object_id": 20,
+          "class": "Vehicle",
+          "confidence": 0.377,
+          "direction": "IN",
+          "centroid": [
+            1162,
+            511
+          ],
+          "snapshot": "cam-04_int_20_f23.jpg"
+        },
+        {
+          "frame": 24,
+          "object_id": 16,
+          "class": "Person",
+          "confidence": 0.497,
+          "direction": "OUT",
+          "centroid": [
+            189,
+            494
+          ],
+          "snapshot": "cam-04_int_16_f24.jpg"
+        },
+        {
+          "frame": 25,
+          "object_id": 2,
+          "class": "Motorcycle",
+          "confidence": 0.471,
+          "direction": "IN",
+          "centroid": [
+            677,
+            513
+          ],
+          "snapshot": "cam-04_int_2_f25.jpg"
+        },
+        {
+          "frame": 29,
+          "object_id": 21,
+          "class": "Person",
+          "confidence": 0.42,
+          "direction": "OUT",
+          "centroid": [
+            740,
+            491
+          ],
+          "snapshot": "cam-04_int_21_f29.jpg"
+        },
+        {
+          "frame": 44,
+          "object_id": 18,
+          "class": "Motorcycle",
+          "confidence": 0.513,
+          "direction": "IN",
+          "centroid": [
+            818,
+            504
+          ],
+          "snapshot": "cam-04_int_18_f44.jpg"
+        },
+        {
+          "frame": 52,
+          "object_id": 12,
+          "class": "Motorcycle",
+          "confidence": 0.431,
+          "direction": "IN",
+          "centroid": [
+            648,
+            513
+          ],
+          "snapshot": "cam-04_int_12_f52.jpg"
+        },
+        {
+          "frame": 55,
+          "object_id": 23,
+          "class": "Person",
+          "confidence": 0.432,
+          "direction": "IN",
+          "centroid": [
+            648,
+            506
+          ],
+          "snapshot": "cam-04_int_23_f55.jpg"
+        },
+        {
+          "frame": 56,
+          "object_id": 17,
+          "class": "Vehicle",
+          "confidence": 0.382,
+          "direction": "IN",
+          "centroid": [
+            797,
+            513
+          ],
+          "snapshot": "cam-04_int_17_f56.jpg"
+        },
+        {
+          "frame": 65,
+          "object_id": 27,
+          "class": "Person",
+          "confidence": 0.392,
+          "direction": "OUT",
+          "centroid": [
+            363,
+            481
+          ],
+          "snapshot": "cam-04_int_27_f65.jpg"
+        },
+        {
+          "frame": 71,
+          "object_id": 6,
+          "class": "Person",
+          "confidence": 0.356,
+          "direction": "OUT",
+          "centroid": [
+            1106,
+            496
+          ],
+          "snapshot": "cam-04_int_6_f71.jpg"
+        },
+        {
+          "frame": 73,
+          "object_id": 7,
+          "class": "Vehicle",
+          "confidence": 0.375,
+          "direction": "IN",
+          "centroid": [
+            1022,
+            508
+          ],
+          "snapshot": "cam-04_int_7_f73.jpg"
+        },
+        {
+          "frame": 82,
+          "object_id": 19,
+          "class": "Car",
+          "confidence": 0.77,
+          "direction": "IN",
+          "centroid": [
+            930,
+            504
+          ],
+          "snapshot": "cam-04_int_19_f82.jpg"
+        },
+        {
+          "frame": 84,
+          "object_id": 24,
+          "class": "Car",
+          "confidence": 0.518,
+          "direction": "IN",
+          "centroid": [
+            750,
+            503
+          ],
+          "snapshot": "cam-04_int_24_f84.jpg"
+        },
+        {
+          "frame": 86,
+          "object_id": 22,
+          "class": "Motorcycle",
+          "confidence": 0.422,
+          "direction": "IN",
+          "centroid": [
+            1056,
+            511
+          ],
+          "snapshot": "cam-04_int_22_f86.jpg"
+        },
+        {
+          "frame": 100,
+          "object_id": 11,
+          "class": "Person",
+          "confidence": 0.352,
+          "direction": "OUT",
+          "centroid": [
+            1097,
+            497
+          ],
+          "snapshot": "cam-04_int_11_f100.jpg"
+        },
+        {
+          "frame": 139,
+          "object_id": 30,
+          "class": "Vehicle",
+          "confidence": 0.366,
+          "direction": "OUT",
+          "centroid": [
+            980,
+            488
+          ],
+          "snapshot": "cam-04_int_30_f139.jpg"
+        },
+        {
+          "frame": 141,
+          "object_id": 31,
+          "class": "Vehicle",
+          "confidence": 0.352,
+          "direction": "IN",
+          "centroid": [
+            893,
+            507
+          ],
+          "snapshot": "cam-04_int_31_f141.jpg"
+        },
+        {
+          "frame": 158,
+          "object_id": 33,
+          "class": "Person",
+          "confidence": 0.364,
+          "direction": "OUT",
+          "centroid": [
+            884,
+            494
+          ],
+          "snapshot": "cam-04_int_33_f158.jpg"
+        },
+        {
+          "frame": 175,
+          "object_id": 32,
+          "class": "Motorcycle",
+          "confidence": 0.511,
+          "direction": "IN",
+          "centroid": [
+            945,
+            508
+          ],
+          "snapshot": "cam-04_int_32_f175.jpg"
+        },
+        {
+          "frame": 178,
+          "object_id": 37,
+          "class": "Person",
+          "confidence": 0.358,
+          "direction": "OUT",
+          "centroid": [
+            629,
+            500
+          ],
+          "snapshot": "cam-04_int_37_f178.jpg"
+        },
+        {
+          "frame": 197,
+          "object_id": 36,
+          "class": "Person",
+          "confidence": 0.416,
+          "direction": "IN",
+          "centroid": [
+            439,
+            519
+          ],
+          "snapshot": "cam-04_int_36_f197.jpg"
+        },
+        {
+          "frame": 205,
+          "object_id": 3,
+          "class": "Person",
+          "confidence": 0.463,
+          "direction": "IN",
+          "centroid": [
+            872,
+            513
+          ],
+          "snapshot": "cam-04_int_3_f205.jpg"
+        },
+        {
+          "frame": 224,
+          "object_id": 39,
+          "class": "Person",
+          "confidence": 0.472,
+          "direction": "OUT",
+          "centroid": [
+            562,
+            502
+          ],
+          "snapshot": "cam-04_int_39_f224.jpg"
+        },
+        {
+          "frame": 244,
+          "object_id": 42,
+          "class": "Car",
+          "confidence": 0.447,
+          "direction": "IN",
+          "centroid": [
+            1093,
+            510
+          ],
+          "snapshot": "cam-04_int_42_f244.jpg"
+        },
+        {
+          "frame": 256,
+          "object_id": 41,
+          "class": "Person",
+          "confidence": 0.413,
+          "direction": "OUT",
+          "centroid": [
+            1001,
+            497
+          ],
+          "snapshot": "cam-04_int_41_f256.jpg"
+        },
+        {
+          "frame": 257,
+          "object_id": 44,
+          "class": "Person",
+          "confidence": 0.404,
+          "direction": "IN",
+          "centroid": [
+            942,
+            514
+          ],
+          "snapshot": "cam-04_int_44_f257.jpg"
+        },
+        {
+          "frame": 258,
+          "object_id": 43,
+          "class": "Person",
+          "confidence": 0.386,
+          "direction": "OUT",
+          "centroid": [
+            1034,
+            498
+          ],
+          "snapshot": "cam-04_int_43_f258.jpg"
+        }
+      ]
+    },
+    "loitering": {
+      "total_events": 0,
+      "events": []
+    },
+    "night_mode": {
+      "detected_as_night": false,
+      "avg_brightness": 120.2
+    },
+    "anpr": {
+      "total_reads": 0,
+      "reads": []
+    }
+  }
+}

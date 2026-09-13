@@ -13,6 +13,7 @@ from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from camera_manager import camera_manager
 from database import db_manager
+from admin.admin_routes import auth_router, admin_router
 
 
 @asynccontextmanager
@@ -29,6 +30,10 @@ app = FastAPI(
     description="Multi-Camera Real-Time AI Surveillance with Virtual Fence, ANPR, YuNet Face, Loitering, and Night Detection",
     lifespan=lifespan
 )
+
+# Mount Admin Panel and Authentication Routers
+app.include_router(auth_router)
+app.include_router(admin_router)
 
 # Mount static snapshot directories
 alerts_dir = os.path.join(os.path.dirname(__file__), "static", "alerts")
@@ -92,6 +97,15 @@ async def index():
 </body>
 </html>"""
     return HTMLResponse(content=error_html)
+
+
+@app.get("/login", response_class=HTMLResponse)
+@app.get("/dashboard", response_class=HTMLResponse)
+@app.get("/admin", response_class=HTMLResponse)
+@app.get("/admin/{subpath:path}", response_class=HTMLResponse)
+async def spa_page_fallback(subpath: Optional[str] = None):
+    """Fallback handler to allow SPA direct navigation and browser page refreshes."""
+    return await index()
 
 
 # ─── Live Video Streaming Endpoints ───

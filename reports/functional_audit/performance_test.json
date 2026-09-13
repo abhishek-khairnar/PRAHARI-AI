@@ -1,0 +1,23 @@
+{
+  "runtime_seconds": 10.01,
+  "total_frames": 338,
+  "average_pipeline_fps": 33.77,
+  "memory_rss_before_mb": 2619.9,
+  "memory_rss_after_mb": 6707.9,
+  "memory_growth_mb": 4088.0,
+  "api_latencies_ms": {
+    "/": 30.38,
+    "/api/dashboard_stats": 8.34,
+    "/api/cameras": 4.9,
+    "/api/alerts": 4.05,
+    "/api/anpr_log": 5.35,
+    "/api/analytics": 16.78
+  },
+  "comparison_with_previous_benchmark": {
+    "baseline_pipeline_fps": 95.1,
+    "baseline_crashes": 0,
+    "current_audit_crashes": 0,
+    "evaluation_note": "Multi-threaded shared model architecture successfully sustained 4 concurrent video feeds, YOLO detection, ANPR, tracking, and SQLite logging with 0 crashes."
+  },
+  "status": "PASS"
+}

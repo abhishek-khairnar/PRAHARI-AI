@@ -1,0 +1,29 @@
+{
+  "unit_test_status": "PASS",
+  "camera_runs": {
+    "CAM-01": {
+      "frames_processed": 120,
+      "unique_tracks": 32,
+      "average_track_lifespan_frames": 82.03,
+      "max_track_lifespan_frames": 120,
+      "class_switches": 9,
+      "tracks_persisted_over_10_frames": 31
+    },
+    "CAM-04": {
+      "frames_processed": 120,
+      "unique_tracks": 34,
+      "average_track_lifespan_frames": 92.38,
+      "max_track_lifespan_frames": 120,
+      "class_switches": 12,
+      "tracks_persisted_over_10_frames": 34
+    }
+  },
+  "metrics": {
+    "total_unique_tracks_observed": 66,
+    "total_detections_tracked": 3746,
+    "overall_average_track_lifespan_frames": 87.36,
+    "tracks_with_persistence_gt_10_frames": 65
+  },
+  "issues": [],
+  "overall_status": "PASS"
+}

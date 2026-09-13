@@ -1,0 +1,33 @@
+{
+  "database_isolated": true,
+  "database_record_counts": {
+    "intrusion_events": 163,
+    "anpr_events": 3,
+    "security_events": 5
+  },
+  "api_analytics_payload": {
+    "events_per_camera": {
+      "CAM-01": 40,
+      "CAM-02": 7,
+      "CAM-03": 3,
+      "CAM-04": 74
+    },
+    "event_breakdown": {
+      "intrusion": 118,
+      "anpr": 3,
+      "suspicious_activity": 0,
+      "night_movement": 3
+    },
+    "verified_plates_count": 3,
+    "total_anpr_reads": 3,
+    "hourly_distribution": {
+      "10": 124
+    }
+  },
+  "consistency_with_database": {
+    "verified_plates_matches": true,
+    "events_per_camera_present": true,
+    "event_breakdown_present": true
+  },
+  "status": "PASS"
+}

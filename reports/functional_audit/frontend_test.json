@@ -1,0 +1,17 @@
+{
+  "frontend_directory": "D:\\PRAHARI-AI\\frontend",
+  "dependencies_installed": true,
+  "package_json_valid": true,
+  "build_tool": "Vite v6.4.3",
+  "build_command": "npm run build --prefix frontend",
+  "build_exit_code": 0,
+  "build_duration_sec": 12.91,
+  "modules_transformed": 1599,
+  "bundle_artifacts": {
+    "dist_index_html": "dist/index.html (0.80 kB)",
+    "css_bundle": "dist/assets/index-C9JgsWG8.css (15.22 kB)",
+    "js_bundle": "dist/assets/index-Ct9WkK0w.js (172.59 kB)"
+  },
+  "compilation_errors": [],
+  "status": "PASS"
+}

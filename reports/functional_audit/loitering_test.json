@@ -1,0 +1,21 @@
+{
+  "module_loaded": true,
+  "configuration": {
+    "LOITERING_ENABLED": true,
+    "LOITERING_TIME_SECONDS": 20,
+    "LOITERING_RADIUS_PIXELS": 100,
+    "LOITERING_ALERT_COOLDOWN_SECONDS": 30,
+    "LOITERING_MIN_HITS": 10
+  },
+  "dwell_calculation_verified": true,
+  "demo_video_evaluation": {
+    "border_demo_duration_sec": 13.37,
+    "night_demo_duration_sec": 10.0,
+    "cctv_demo_duration_sec": 9.04,
+    "activity_demo_duration_sec": 21.46,
+    "ground_truth_scenario_available": false,
+    "observation": "Demo videos contain transient movement across frames (duration 9-21s) without stationary dwell > 20s in camera field of view."
+  },
+  "status": "PARTIAL",
+  "status_reason": "PARTIAL \u2014 functional execution verified, scenario accuracy not independently verifiable from available demo data."
+}

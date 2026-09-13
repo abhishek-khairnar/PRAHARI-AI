@@ -1,0 +1,104 @@
+{
+  "endpoints": {
+    "/api/cameras": {
+      "name": "Camera Registry API",
+      "url": "/api/cameras",
+      "status_code": 200,
+      "response_time_ms": 3.38,
+      "content_type": "application/json",
+      "schema_valid": true,
+      "sample_data": "List of 4 dicts; sample keys: ['id', 'name', 'url', 'type', 'enabled']"
+    },
+    "/api/status": {
+      "name": "System & Aggregate Status API",
+      "url": "/api/status",
+      "status_code": 200,
+      "response_time_ms": 38.08,
+      "content_type": "application/json",
+      "schema_valid": true,
+      "sample_data": "Dict with keys: ['camera_id', 'camera_name', 'source_type', 'status', 'connected', 'fps']"
+    },
+    "/api/dashboard_stats": {
+      "name": "Dashboard Aggregated Stats API",
+      "url": "/api/dashboard_stats",
+      "status_code": 200,
+      "response_time_ms": 31.62,
+      "content_type": "application/json",
+      "schema_valid": true,
+      "sample_data": "Dict with keys: ['aggregate', 'cameras', 'suspicious_activity_count', 'night_mode', 'face', 'night_alert_count']"
+    },
+    "/api/analytics": {
+      "name": "Database Analytics API",
+      "url": "/api/analytics",
+      "status_code": 200,
+      "response_time_ms": 8.78,
+      "content_type": "application/json",
+      "schema_valid": false,
+      "sample_data": "Dict with keys: ['events_per_camera', 'event_breakdown', 'verified_plates_count', 'total_anpr_reads', 'hourly_distribution']"
+    },
+    "/api/alerts": {
+      "name": "Recent Intrusion Alerts API",
+      "url": "/api/alerts",
+      "status_code": 200,
+      "response_time_ms": 6.43,
+      "content_type": "application/json",
+      "schema_valid": true,
+      "sample_data": "List containing 0 items"
+    },
+    "/api/anpr_log": {
+      "name": "Recent ANPR Logs API",
+      "url": "/api/anpr_log",
+      "status_code": 200,
+      "response_time_ms": 8.38,
+      "content_type": "application/json",
+      "schema_valid": true,
+      "sample_data": "List containing 0 items"
+    }
+  },
+  "error_handling": {
+    "/api/status/INVALID_CAM_999": {
+      "status_code": 200,
+      "response_time_ms": 3.86,
+      "expected_404": false,
+      "error_body": {
+        "camera_id": "CAM-01",
+        "camera_name": "Border Post Alpha",
+        "source_type": "video_file",
+        "status": "ONLINE",
+        "connected": true,
+        "fps": 0.0,
+        "capture_fps": 22.6,
+        "total_frames": 0,
+        "rtsp_url": "demo_videos/border_demo.mp4",
+        "device": "cuda",
+        "error_state": null,
+        "last_frame_time": 1789274821.5950377,
+        "total_alerts": 0,
+        "session_alerts": 0,
+        "session_anpr": 0,
+        "session_suspicious": 0,
+        "session_night": 0,
+        "db_total_alerts": 0,
+        "db_total_anpr": 0,
+        "db_total_security": 0,
+        "suspicious_activity_count": 0,
+        "night_mode": false,
+        "is_night_mode": false,
+        "night_state": "DAY",
+        "night_alert_count": 0,
+        "brightness": 116.5,
+        "face_count": 0,
+        "anpr_queue_size": 0,
+        "people_count": 0,
+        "vehicle_count": 0,
+        "total_objects": 0,
+        "detected_objects": {
+          "people_count": 0,
+          "vehicle_count": 0,
+          "total_objects": 0
+        }
+      }
+    }
+  },
+  "overall_status": "PARTIAL"
+}

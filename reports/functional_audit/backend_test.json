@@ -1,0 +1,78 @@
+{
+  "database_isolated": true,
+  "test_db_path": "C:\\Users\\acer\\AppData\\Local\\Temp\\prahari_audit_klm_k4bj55cs\\test_klm_events.db",
+  "fastapi_app_loaded": true,
+  "routes_registered_count": 30,
+  "routes_registered": [
+    "/openapi.json",
+    "/docs",
+    "/docs/oauth2-redirect",
+    "/redoc",
+    "/alerts",
+    "/anpr",
+    "/anpr_debug",
+    "/assets",
+    "/",
+    "/video_feed",
+    "/video_feed/{camera_id}",
+    "/api/cameras",
+    "/api/status",
+    "/api/status/{camera_id}",
+    "/api/dashboard_stats",
+    "/api/analytics",
+    "/api/alerts",
+    "/api/anpr_log",
+    "/api/anpr_debug",
+    "/api/security_events",
+    "/api/suspicious_alerts",
+    "/api/night_status",
+    "/api/face_stats",
+    "/api/events/all",
+    "/api/sync_status",
+    "/api/webcams/available",
+    "/api/webcam/start",
+    "/api/webcam/start",
+    "/api/webcam/stop",
+    "/api/webcam/stop"
+  ],
+  "models_initialized": true,
+  "device": "cuda",
+  "camera_configs_loaded": 4,
+  "cameras": {
+    "CAM-01": {
+      "name": "Border Post Alpha",
+      "source": "demo_videos/border_demo.mp4",
+      "source_type": "video_file",
+      "is_connected": true,
+      "status": "ONLINE",
+      "frame_count": 0
+    },
+    "CAM-02": {
+      "name": "Night Surveillance Bravo",
+      "source": "demo_videos/night_demo.mp4",
+      "source_type": "video_file",
+      "is_connected": true,
+      "status": "ONLINE",
+      "frame_count": 0
+    },
+    "CAM-03": {
+      "name": "Perimeter Activity Charlie",
+      "source": "demo_videos/activity-demo.mp4",
+      "source_type": "video_file",
+      "is_connected": true,
+      "status": "ONLINE",
+      "frame_count": 0
+    },
+    "CAM-04": {
+      "name": "Urban Facility Delta",
+      "source": "demo_videos/cctv_demo.mp4",
+      "source_type": "video_file",
+      "is_connected": true,
+      "status": "ONLINE",
+      "frame_count": 0
+    }
+  },
+  "startup_exceptions": null,
+  "shutdown_clean": true,
+  "status": "PASS"
+}

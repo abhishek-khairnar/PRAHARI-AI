@@ -1,0 +1,59 @@
+{
+  "fence_configuration": {
+    "status": "PASS",
+    "cameras": {
+      "CAM-01": {
+        "name": "Border Post Alpha",
+        "line_y_ratio": 0.7,
+        "valid_ratio": true
+      },
+      "CAM-02": {
+        "name": "Night Surveillance Bravo",
+        "line_y_ratio": 0.65,
+        "valid_ratio": true
+      },
+      "CAM-03": {
+        "name": "Perimeter Activity Charlie",
+        "line_y_ratio": 0.6,
+        "valid_ratio": true
+      },
+      "CAM-04": {
+        "name": "Urban Facility Delta",
+        "line_y_ratio": 0.7,
+        "valid_ratio": true
+      }
+    }
+  },
+  "crossing_logic": {
+    "in_crossing": {
+      "status": "PASS",
+      "direction": "IN"
+    },
+    "out_crossing": {
+      "status": "PASS",
+      "direction": "OUT"
+    },
+    "duplicate_suppression": {
+      "status": "PASS"
+    }
+  },
+  "event_integrity": {
+    "status": "PASS",
+    "sample_event": {
+      "id": 1,
+      "event_type": "intrusion",
+      "camera_id": "CAM-01",
+      "object_type": "Person",
+      "object_id": 1,
+      "direction": "IN",
+      "plate_text": "N/A",
+      "plate_confidence": 0.0,
+      "anpr_status": "NOT_APPLICABLE",
+      "validation_status": "DETECTED",
+      "timestamp": "2026-09-13 10:00:00",
+      "snapshot_url": "/alerts/test_snapshot.jpg",
+      "snapshot_filename": "test_snapshot.jpg"
+    }
+  },
+  "overall_status": "PASS"
+}

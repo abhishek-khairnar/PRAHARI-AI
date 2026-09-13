@@ -1,0 +1,32 @@
+=== PRAHARI-AI ENVIRONMENT AUDIT ===
+OS: Windows 10 (10.0.22631) - Architecture: AMD64
+Python: 3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]
+FastAPI (fastapi): PASS - version 0.141.1
+Uvicorn (uvicorn): PASS - version 0.22.0
+NumPy (numpy): PASS - version 2.3.5
+OpenCV (cv2): PASS - version 5.0.0
+PyTorch (torch): PASS - version 2.5.1+cu121
+Torchvision (torchvision): PASS - version 0.20.1+cu121
+Ultralytics (ultralytics): PASS - version 8.4.126
+HuggingFace Hub (huggingface_hub): PASS - version 0.24.7
+EasyOCR (easyocr): PASS - version 1.7.2
+Psutil (psutil): PASS - version 7.2.2
+Requests (requests): PASS - version 2.32.3
+HTTPX (httpx): PASS - version 0.28.1
+SQLite3 (sqlite3): PASS - version Built-in / Available
+CUDA Available: True
+CUDA Device Count: 1
+CUDA Device Name: NVIDIA GeForce RTX 3050 6GB Laptop GPU
+CUDA Version (PyTorch): 12.1
+CUDA: PASS
+Node.js: PASS - v22.14.0
+NPM: PASS - 11.3.0
+Frontend Dependencies:
+  - lucide-react: ^0.475.0
+  - react: ^18.3.1
+  - react-dom: ^18.3.1
+  - (dev) @types/react: ^18.3.18
+  - (dev) @types/react-dom: ^18.3.5
+  - (dev) @vitejs/plugin-react: ^4.3.4
+  - (dev) vite: ^6.1.0
+Frontend Packages: PASS

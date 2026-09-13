@@ -1,0 +1,30 @@
+{
+  "index_html_served": true,
+  "index_response_time_ms": 30.38,
+  "cameras_section": {
+    "all_four_cameras_present": true,
+    "cameras_online": true,
+    "camera_ids": [
+      "CAM-01",
+      "CAM-02",
+      "CAM-03",
+      "CAM-04"
+    ]
+  },
+  "detection_section": {
+    "people_and_vehicles_tracked": true
+  },
+  "alerts_section": {
+    "endpoint_status": 200,
+    "alerts_count": 50
+  },
+  "anpr_section": {
+    "endpoint_status": 200,
+    "anpr_records_count": 3
+  },
+  "analytics_section": {
+    "endpoint_status": 200,
+    "data_present": true
+  },
+  "status": "PASS"
+}

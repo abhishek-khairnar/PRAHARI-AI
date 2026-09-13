@@ -1,0 +1,64 @@
+{
+  "configuration": {
+    "NIGHT_DETECTION_ENABLED": true,
+    "NIGHT_ENTER_THRESHOLD": 85.0,
+    "NIGHT_EXIT_THRESHOLD": 98.0,
+    "NIGHT_CONFIRM_FRAMES": 25
+  },
+  "camera_measurements": {
+    "CAM-01": {
+      "name": "Border Post Alpha (Day)",
+      "frames_measured": 401,
+      "average_brightness": 108.55,
+      "min_brightness": 99.8,
+      "max_brightness": 116.6,
+      "night_frames_count": 0,
+      "entered_night_transitions": 0,
+      "exited_day_transitions": 0,
+      "final_night_mode": false,
+      "expected_activation": false,
+      "activated_night_mode": false,
+      "state_match": true
+    },
+    "CAM-02": {
+      "name": "Night Surveillance Bravo (Night)",
+      "frames_measured": 300,
+      "average_brightness": 83.13,
+      "min_brightness": 0.0,
+      "max_brightness": 109.1,
+      "night_frames_count": 169,
+      "entered_night_transitions": 2,
+      "exited_day_transitions": 1,
+      "final_night_mode": true,
+      "expected_activation": true,
+      "activated_night_mode": true,
+      "state_match": true
+    }
+  },
+  "hysteresis_test": {
+    "verified": true,
+    "trace": [
+      {
+        "phase": "Initial Day",
+        "night_mode_active": false,
+        "effective_avg_luminance": 120.0
+      },
+      {
+        "phase": "Darkness Entered",
+        "night_mode_active": true,
+        "effective_avg_luminance": 40.0
+      },
+      {
+        "phase": "Twilight Hysteresis Hold",
+        "night_mode_active": true,
+        "effective_avg_luminance": 90.0
+      },
+      {
+        "phase": "Full Day Restored",
+        "night_mode_active": false,
+        "effective_avg_luminance": 130.0
+      }
+    ]
+  },
+  "overall_status": "PASS"
+}

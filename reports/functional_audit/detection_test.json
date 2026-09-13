@@ -1,0 +1,112 @@
+{
+  "classes_tested": {
+    "person": {
+      "class_id": 0,
+      "detected_count": 1419,
+      "max_confidence": 0.942,
+      "sample_bbox": [
+        1014.8,
+        568.5,
+        1515.7,
+        1073.5
+      ],
+      "sample_camera": "CAM-01",
+      "status": "PASS"
+    },
+    "car": {
+      "class_id": 2,
+      "detected_count": 1349,
+      "max_confidence": 0.958,
+      "sample_bbox": [
+        31.3,
+        578.7,
+        719.7,
+        985.6
+      ],
+      "sample_camera": "CAM-02",
+      "status": "PASS"
+    },
+    "motorcycle": {
+      "class_id": 3,
+      "detected_count": 425,
+      "max_confidence": 0.909,
+      "sample_bbox": [
+        992.8,
+        482.2,
+        1078.6,
+        551.0
+      ],
+      "sample_camera": "CAM-04",
+      "status": "PASS"
+    },
+    "truck": {
+      "class_id": 7,
+      "detected_count": 185,
+      "max_confidence": 0.807,
+      "sample_bbox": [
+        167.9,
+        441.1,
+        762.1,
+        684.8
+      ],
+      "sample_camera": "CAM-04",
+      "status": "PASS"
+    },
+    "bus": {
+      "class_id": 5,
+      "detected_count": 136,
+      "max_confidence": 0.634,
+      "sample_bbox": [
+        1466.1,
+        306.0,
+        1596.1,
+        451.4
+      ],
+      "sample_camera": "CAM-01",
+      "status": "PASS"
+    }
+  },
+  "per_camera_summary": {
+    "CAM-01": {
+      "frames_tested": 100,
+      "detections": {
+        "person": 789,
+        "car": 663,
+        "motorcycle": 27,
+        "truck": 132,
+        "bus": 132
+      }
+    },
+    "CAM-02": {
+      "frames_tested": 100,
+      "detections": {
+        "person": 4,
+        "car": 125,
+        "motorcycle": 2,
+        "truck": 19,
+        "bus": 2
+      }
+    },
+    "CAM-03": {
+      "frames_tested": 100,
+      "detections": {
+        "person": 90,
+        "car": 0,
+        "motorcycle": 0,
+        "truck": 0,
+        "bus": 0
+      }
+    },
+    "CAM-04": {
+      "frames_tested": 91,
+      "detections": {
+        "person": 536,
+        "car": 561,
+        "motorcycle": 396,
+        "truck": 34,
+        "bus": 2
+      }
+    }
+  },
+  "overall_status": "PASS"
+}

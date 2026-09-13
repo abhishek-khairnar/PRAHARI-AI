@@ -7,8 +7,9 @@ from datetime import datetime
 
 logger = logging.getLogger("PRAHARI-DB")
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "prahari_events.db")
-SYNC_EXPORT_PATH = os.path.join(os.path.dirname(__file__), "synced_events.json")
+DEFAULT_DB_PATH = os.path.join(os.path.dirname(__file__), "prahari_events.db")
+DB_PATH = os.getenv("PRAHARI_DB_PATH", DEFAULT_DB_PATH)
+SYNC_EXPORT_PATH = os.getenv("PRAHARI_SYNC_PATH", os.path.join(os.path.dirname(__file__), "synced_events.json"))
 
 
 class DatabaseManager:
@@ -18,10 +19,16 @@ class DatabaseManager:
     with an offline-first sync engine.
     """
 
-    def __init__(self, db_path: str = DB_PATH):
-        self.db_path = db_path
+    def __init__(self, db_path: str = None):
+        self.db_path = db_path or os.getenv("PRAHARI_DB_PATH", DEFAULT_DB_PATH)
         self._lock = threading.Lock()
         self._last_sync_timestamp = None
+        self._init_db()
+
+    def set_db_path(self, db_path: str):
+        """Allows dynamically redirecting the database path (e.g. for isolated test suites)."""
+        with self._lock:
+            self.db_path = db_path
         self._init_db()
 
     def _get_connection(self) -> sqlite3.Connection:
@@ -146,6 +153,166 @@ class DatabaseManager:
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_security_cam ON security_events (camera_id, timestamp DESC)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_security_type ON security_events (event_type)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_security_synced ON security_events (synced)")
+
+            # 5. Admin Users Table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS admin_users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    full_name TEXT NOT NULL,
+                    role TEXT NOT NULL CHECK(role IN ('SUPER_ADMIN', 'ADMIN', 'SUPERVISOR', 'OFFICER')),
+                    is_active INTEGER DEFAULT 1,
+                    created_at TEXT NOT NULL,
+                    last_login TEXT
+                )
+            """)
+
+            # 6. Admin Zones Table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS admin_zones (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    zone_name TEXT NOT NULL,
+                    camera_id TEXT NOT NULL,
+                    zone_type TEXT NOT NULL,
+                    severity TEXT NOT NULL CHECK(severity IN ('CRITICAL', 'HIGH', 'MEDIUM', 'INFO')),
+                    is_enabled INTEGER DEFAULT 1,
+                    fence_direction TEXT DEFAULT 'BOTH',
+                    fence_ratio REAL DEFAULT 0.5,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )
+            """)
+
+            # 7. Admin Alert Rules Table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS admin_alert_rules (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    event_type TEXT UNIQUE NOT NULL,
+                    severity TEXT NOT NULL CHECK(severity IN ('CRITICAL', 'HIGH', 'MEDIUM', 'INFO')),
+                    cooldown_seconds INTEGER DEFAULT 10,
+                    requires_ack INTEGER DEFAULT 1,
+                    is_enabled INTEGER DEFAULT 1,
+                    description TEXT,
+                    updated_at TEXT NOT NULL
+                )
+            """)
+
+            # 8. Admin Incidents Table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS admin_incidents (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    incident_code TEXT UNIQUE NOT NULL,
+                    event_id INTEGER,
+                    event_table TEXT DEFAULT 'security_events',
+                    camera_id TEXT NOT NULL,
+                    zone_name TEXT,
+                    event_type TEXT NOT NULL,
+                    severity TEXT NOT NULL,
+                    status TEXT NOT NULL CHECK(status IN ('NEW', 'ACKNOWLEDGED', 'INVESTIGATING', 'RESOLVED', 'DISMISSED')),
+                    assigned_officer_id INTEGER,
+                    assigned_officer_name TEXT,
+                    evidence_snapshot TEXT,
+                    notes TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    resolved_by TEXT,
+                    resolved_at TEXT
+                )
+            """)
+
+            # 9. Admin Audit Logs Table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS admin_audit_logs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TEXT NOT NULL,
+                    actor_user_id INTEGER,
+                    actor_username TEXT NOT NULL,
+                    role TEXT NOT NULL,
+                    action TEXT NOT NULL,
+                    resource_type TEXT NOT NULL,
+                    resource_id TEXT,
+                    result TEXT NOT NULL CHECK(result IN ('SUCCESS', 'FAILURE', 'DENIED')),
+                    description TEXT
+                )
+            """)
+
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_admin_users_user ON admin_users (username)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_admin_incidents_status ON admin_incidents (status)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_admin_incidents_cam ON admin_incidents (camera_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_admin_audit_ts ON admin_audit_logs (timestamp DESC)")
+
+            # Seed default Alert Rules if empty
+            cursor.execute("SELECT COUNT(*) FROM admin_alert_rules")
+            if cursor.fetchone()[0] == 0:
+                now_seed = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                default_rules = [
+                    ("border_intrusion", "CRITICAL", 10, 1, 1, "Perimeter virtual fence intrusion detected", now_seed),
+                    ("repeated_intrusion", "CRITICAL", 5, 1, 1, "Multiple consecutive boundary violations", now_seed),
+                    ("suspicious_activity", "HIGH", 15, 1, 1, "Irregular dwell or suspicious movement detected", now_seed),
+                    ("loitering", "HIGH", 20, 1, 1, "Extended stationary dwell in protected zone", now_seed),
+                    ("night_movement", "HIGH", 15, 1, 1, "Unauthorized night luminance movement alert", now_seed),
+                    ("anpr_detection", "MEDIUM", 5, 0, 1, "License plate recognized by ANPR pipeline", now_seed),
+                    ("face_detected", "INFO", 5, 0, 1, "Facial entity isolated by YuNet detector", now_seed)
+                ]
+                cursor.executemany("""
+                    INSERT INTO admin_alert_rules (event_type, severity, cooldown_seconds, requires_ack, is_enabled, description, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, default_rules)
+
+            # Seed default Zones if empty
+            cursor.execute("SELECT COUNT(*) FROM admin_zones")
+            if cursor.fetchone()[0] == 0:
+                now_seed = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                default_zones = [
+                    ("Border Restricted Zone", "CAM-01", "RESTRICTED", "CRITICAL", 1, "IN", 0.70, now_seed, now_seed),
+                    ("Night Checkpoint Bravo", "CAM-02", "CHECKPOINT", "HIGH", 1, "BOTH", 0.65, now_seed, now_seed),
+                    ("Perimeter Patrol Area", "CAM-03", "PATROL", "HIGH", 1, "BOTH", 0.60, now_seed, now_seed),
+                    ("Facility Observation Delta", "CAM-04", "OBSERVATION", "MEDIUM", 1, "BOTH", 0.70, now_seed, now_seed)
+                ]
+                cursor.executemany("""
+                    INSERT INTO admin_zones (zone_name, camera_id, zone_type, severity, is_enabled, fence_direction, fence_ratio, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, default_zones)
+
+            # Seed bootstrap superadmin user if empty
+            cursor.execute("SELECT COUNT(*) FROM admin_users")
+            if cursor.fetchone()[0] == 0:
+                try:
+                    import bcrypt
+                    admin_user = os.getenv("PRAHARI_ADMIN_USERNAME", "superadmin")
+                    admin_pass = os.getenv("PRAHARI_ADMIN_PASSWORD", "Admin@Prahari2026!")
+                    pw_hash = bcrypt.hashpw(admin_pass.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+                    now_seed = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    cursor.execute("""
+                        INSERT INTO admin_users (username, password_hash, full_name, role, is_active, created_at)
+                        VALUES (?, ?, ?, 'SUPER_ADMIN', 1, ?)
+                    """, (admin_user, pw_hash, "System Super Administrator", now_seed))
+                    logger.info(f"[AdminAuth] Bootstrapped initial SUPER_ADMIN account: '{admin_user}'")
+                except Exception as ex:
+                    logger.warning(f"[AdminAuth] Failed to bootstrap superadmin user: {ex}")
+
+            # Seed initial incidents from recent events if empty
+            cursor.execute("SELECT COUNT(*) FROM admin_incidents")
+            if cursor.fetchone()[0] == 0:
+                now_seed = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                cursor.execute("""
+                    SELECT id, timestamp, camera_id, event_type, validation_status, snapshot_path, details
+                    FROM security_events
+                    ORDER BY id DESC LIMIT 4
+                """)
+                sec_rows = cursor.fetchall()
+                code_idx = 101
+                for s_row in sec_rows:
+                    inc_code = f"INC-{code_idx}"
+                    status = "NEW" if code_idx % 2 == 1 else "ACKNOWLEDGED"
+                    severity = "CRITICAL" if "intrusion" in s_row["event_type"].lower() else "HIGH"
+                    cursor.execute("""
+                        INSERT INTO admin_incidents (
+                            incident_code, event_id, event_table, camera_id, zone_name, event_type, severity, status, evidence_snapshot, notes, created_at, updated_at
+                        ) VALUES (?, ?, 'security_events', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (inc_code, s_row["id"], s_row["camera_id"], "Restricted Perimeter", s_row["event_type"], severity, status, s_row["snapshot_path"], "Auto-linked from security event pipeline", s_row["timestamp"], now_seed))
+                    code_idx += 1
 
             conn.commit()
             conn.close()
@@ -760,7 +927,536 @@ class DatabaseManager:
                     "hourly_distribution": {}
                 }
 
+    # ─── Admin Users API ───
+
+    def get_admin_user_by_username(self, username: str):
+        """Fetch user by unique username."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM admin_users WHERE username = ?", (username,))
+                row = cursor.fetchone()
+                conn.close()
+                return dict(row) if row else None
+            except Exception as e:
+                logger.error(f"Error fetching admin user '{username}': {e}")
+                return None
+
+    def get_admin_user_by_id(self, user_id: int):
+        """Fetch user by id."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM admin_users WHERE id = ?", (user_id,))
+                row = cursor.fetchone()
+                conn.close()
+                return dict(row) if row else None
+            except Exception as e:
+                logger.error(f"Error fetching admin user by ID {user_id}: {e}")
+                return None
+
+    def list_admin_users(self, role=None, is_active=None):
+        """List all admin users, optionally filtered by role and active status (passwords omitted)."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                query = "SELECT id, username, full_name, role, is_active, created_at, last_login FROM admin_users WHERE 1=1"
+                params = []
+                if role:
+                    query += " AND role = ?"
+                    params.append(role)
+                if is_active is not None:
+                    query += " AND is_active = ?"
+                    params.append(int(is_active))
+                query += " ORDER BY id ASC"
+                cursor.execute(query, params)
+                rows = cursor.fetchall()
+                conn.close()
+                return [dict(r) for r in rows]
+            except Exception as e:
+                logger.error(f"Error listing admin users: {e}")
+                return []
+
+    def create_admin_user(self, username: str, password_hash: str, full_name: str, role: str = "OFFICER", is_active: int = 1) -> int:
+        """Insert a new user account."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                cursor.execute("""
+                    INSERT INTO admin_users (username, password_hash, full_name, role, is_active, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (username, password_hash, full_name, role, is_active, now_str))
+                conn.commit()
+                new_id = cursor.lastrowid
+                conn.close()
+                return new_id
+            except Exception as e:
+                logger.error(f"Error creating admin user '{username}': {e}")
+                return -1
+
+    def update_admin_user(self, user_id: int, full_name=None, role=None, is_active=None, password_hash=None) -> bool:
+        """Update existing user properties."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                updates = []
+                params = []
+                if full_name is not None:
+                    updates.append("full_name = ?")
+                    params.append(full_name)
+                if role is not None:
+                    updates.append("role = ?")
+                    params.append(role)
+                if is_active is not None:
+                    updates.append("is_active = ?")
+                    params.append(int(is_active))
+                if password_hash is not None:
+                    updates.append("password_hash = ?")
+                    params.append(password_hash)
+                if not updates:
+                    conn.close()
+                    return True
+                params.append(user_id)
+                query = f"UPDATE admin_users SET {', '.join(updates)} WHERE id = ?"
+                cursor.execute(query, params)
+                conn.commit()
+                conn.close()
+                return True
+            except Exception as e:
+                logger.error(f"Error updating admin user {user_id}: {e}")
+                return False
+
+    def update_admin_user_last_login(self, user_id: int):
+        """Record login timestamp for user."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                cursor.execute("UPDATE admin_users SET last_login = ? WHERE id = ?", (now_str, user_id))
+                conn.commit()
+                conn.close()
+            except Exception as e:
+                logger.error(f"Error updating last login for user {user_id}: {e}")
+
+    def count_active_superadmins(self) -> int:
+        """Count active users with SUPER_ADMIN role (used to protect against lockout)."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM admin_users WHERE role = 'SUPER_ADMIN' AND is_active = 1")
+                cnt = cursor.fetchone()[0]
+                conn.close()
+                return cnt
+            except Exception as e:
+                logger.error(f"Error counting superadmins: {e}")
+                return 0
+
+    # ─── Admin Zones & Virtual Fences API ───
+
+    def list_admin_zones(self, camera_id=None, is_enabled=None):
+        """List configured zones and virtual fences."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                query = "SELECT * FROM admin_zones WHERE 1=1"
+                params = []
+                if camera_id:
+                    query += " AND camera_id = ?"
+                    params.append(camera_id)
+                if is_enabled is not None:
+                    query += " AND is_enabled = ?"
+                    params.append(int(is_enabled))
+                query += " ORDER BY camera_id ASC, id ASC"
+                cursor.execute(query, params)
+                rows = cursor.fetchall()
+                conn.close()
+                return [dict(r) for r in rows]
+            except Exception as e:
+                logger.error(f"Error listing zones: {e}")
+                return []
+
+    def get_admin_zone_by_id(self, zone_id: int):
+        """Retrieve zone by id."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM admin_zones WHERE id = ?", (zone_id,))
+                row = cursor.fetchone()
+                conn.close()
+                return dict(row) if row else None
+            except Exception as e:
+                logger.error(f"Error fetching zone {zone_id}: {e}")
+                return None
+
+    def create_admin_zone(self, zone_name: str, camera_id: str, zone_type: str, severity: str = "MEDIUM", is_enabled: int = 1, fence_direction: str = "BOTH", fence_ratio: float = 0.5) -> int:
+        """Create a new zone or virtual fence configuration."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                cursor.execute("""
+                    INSERT INTO admin_zones (zone_name, camera_id, zone_type, severity, is_enabled, fence_direction, fence_ratio, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (zone_name, camera_id, zone_type, severity, is_enabled, fence_direction, fence_ratio, now_str, now_str))
+                conn.commit()
+                new_id = cursor.lastrowid
+                conn.close()
+                return new_id
+            except Exception as e:
+                logger.error(f"Error creating zone: {e}")
+                return -1
+
+    def update_admin_zone(self, zone_id: int, zone_name=None, zone_type=None, severity=None, is_enabled=None, fence_direction=None, fence_ratio=None) -> bool:
+        """Update zone properties."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                updates = ["updated_at = ?"]
+                now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                params = [now_str]
+                if zone_name is not None:
+                    updates.append("zone_name = ?")
+                    params.append(zone_name)
+                if zone_type is not None:
+                    updates.append("zone_type = ?")
+                    params.append(zone_type)
+                if severity is not None:
+                    updates.append("severity = ?")
+                    params.append(severity)
+                if is_enabled is not None:
+                    updates.append("is_enabled = ?")
+                    params.append(int(is_enabled))
+                if fence_direction is not None:
+                    updates.append("fence_direction = ?")
+                    params.append(fence_direction)
+                if fence_ratio is not None:
+                    updates.append("fence_ratio = ?")
+                    params.append(float(fence_ratio))
+                params.append(zone_id)
+                query = f"UPDATE admin_zones SET {', '.join(updates)} WHERE id = ?"
+                cursor.execute(query, params)
+                conn.commit()
+                conn.close()
+                return True
+            except Exception as e:
+                logger.error(f"Error updating zone {zone_id}: {e}")
+                return False
+
+    def delete_admin_zone(self, zone_id: int) -> bool:
+        """Delete a zone."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM admin_zones WHERE id = ?", (zone_id,))
+                conn.commit()
+                conn.close()
+                return True
+            except Exception as e:
+                logger.error(f"Error deleting zone {zone_id}: {e}")
+                return False
+
+    # ─── Admin Alert Rules API ───
+
+    def list_admin_alert_rules(self):
+        """List all configured alert rules."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM admin_alert_rules ORDER BY id ASC")
+                rows = cursor.fetchall()
+                conn.close()
+                return [dict(r) for r in rows]
+            except Exception as e:
+                logger.error(f"Error listing alert rules: {e}")
+                return []
+
+    def get_admin_alert_rule(self, rule_id_or_type):
+        """Retrieve alert rule by id or event_type."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                if isinstance(rule_id_or_type, int) or (isinstance(rule_id_or_type, str) and rule_id_or_type.isdigit()):
+                    cursor.execute("SELECT * FROM admin_alert_rules WHERE id = ?", (int(rule_id_or_type),))
+                else:
+                    cursor.execute("SELECT * FROM admin_alert_rules WHERE event_type = ?", (str(rule_id_or_type),))
+                row = cursor.fetchone()
+                conn.close()
+                return dict(row) if row else None
+            except Exception as e:
+                logger.error(f"Error fetching alert rule {rule_id_or_type}: {e}")
+                return None
+
+    def update_admin_alert_rule(self, rule_id: int, severity=None, cooldown_seconds=None, requires_ack=None, is_enabled=None, description=None) -> bool:
+        """Update an alert rule's policy attributes."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                updates = ["updated_at = ?"]
+                now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                params = [now_str]
+                if severity is not None:
+                    updates.append("severity = ?")
+                    params.append(severity)
+                if cooldown_seconds is not None:
+                    updates.append("cooldown_seconds = ?")
+                    params.append(int(cooldown_seconds))
+                if requires_ack is not None:
+                    updates.append("requires_ack = ?")
+                    params.append(int(requires_ack))
+                if is_enabled is not None:
+                    updates.append("is_enabled = ?")
+                    params.append(int(is_enabled))
+                if description is not None:
+                    updates.append("description = ?")
+                    params.append(description)
+                params.append(rule_id)
+                query = f"UPDATE admin_alert_rules SET {', '.join(updates)} WHERE id = ?"
+                cursor.execute(query, params)
+                conn.commit()
+                conn.close()
+                return True
+            except Exception as e:
+                logger.error(f"Error updating alert rule {rule_id}: {e}")
+                return False
+
+    # ─── Admin Incident Management API ───
+
+    def list_admin_incidents(self, status=None, severity=None, camera_id=None, limit: int = 50, offset: int = 0):
+        """List incidents with filtering and pagination."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                query = "SELECT * FROM admin_incidents WHERE 1=1"
+                params = []
+                if status:
+                    query += " AND status = ?"
+                    params.append(status)
+                if severity:
+                    query += " AND severity = ?"
+                    params.append(severity)
+                if camera_id:
+                    query += " AND camera_id = ?"
+                    params.append(camera_id)
+                query += " ORDER BY id DESC LIMIT ? OFFSET ?"
+                params.extend([limit, offset])
+                cursor.execute(query, params)
+                rows = cursor.fetchall()
+                conn.close()
+                return [dict(r) for r in rows]
+            except Exception as e:
+                logger.error(f"Error listing incidents: {e}")
+                return []
+
+    def get_admin_incident_by_id(self, incident_id: int):
+        """Retrieve single incident details."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM admin_incidents WHERE id = ?", (incident_id,))
+                row = cursor.fetchone()
+                conn.close()
+                return dict(row) if row else None
+            except Exception as e:
+                logger.error(f"Error fetching incident {incident_id}: {e}")
+                return None
+
+    def create_admin_incident(self, incident_code: str, camera_id: str, event_type: str, severity: str, status: str = "NEW", event_id=None, event_table: str = "security_events", zone_name=None, assigned_officer_id=None, assigned_officer_name=None, evidence_snapshot=None, notes=None) -> int:
+        """Create a new operational incident from an event or manual entry."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                cursor.execute("""
+                    INSERT INTO admin_incidents (
+                        incident_code, event_id, event_table, camera_id, zone_name, event_type, severity, status, assigned_officer_id, assigned_officer_name, evidence_snapshot, notes, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (incident_code, event_id, event_table, camera_id, zone_name, event_type, severity, status, assigned_officer_id, assigned_officer_name, evidence_snapshot, notes, now_str, now_str))
+                conn.commit()
+                new_id = cursor.lastrowid
+                conn.close()
+                return new_id
+            except Exception as e:
+                logger.error(f"Error creating incident: {e}")
+                return -1
+
+    def update_admin_incident(self, incident_id: int, status=None, assigned_officer_id=None, assigned_officer_name=None, notes=None, resolved_by=None) -> bool:
+        """Update incident lifecycle state, officer assignment, or append investigator notes."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                updates = ["updated_at = ?"]
+                params = [now_str]
+                if status is not None:
+                    updates.append("status = ?")
+                    params.append(status)
+                    if status == "RESOLVED":
+                        updates.append("resolved_at = ?")
+                        params.append(now_str)
+                        if resolved_by:
+                            updates.append("resolved_by = ?")
+                            params.append(resolved_by)
+                if assigned_officer_id is not None:
+                    updates.append("assigned_officer_id = ?")
+                    params.append(assigned_officer_id)
+                if assigned_officer_name is not None:
+                    updates.append("assigned_officer_name = ?")
+                    params.append(assigned_officer_name)
+                if notes is not None:
+                    # Append timestamped notes
+                    cursor.execute("SELECT notes FROM admin_incidents WHERE id = ?", (incident_id,))
+                    existing_row = cursor.fetchone()
+                    prev = existing_row["notes"] if existing_row and existing_row["notes"] else ""
+                    appended_note = f"[{now_str}] {notes}" if not prev else f"{prev}\n[{now_str}] {notes}"
+                    updates.append("notes = ?")
+                    params.append(appended_note)
+                params.append(incident_id)
+                query = f"UPDATE admin_incidents SET {', '.join(updates)} WHERE id = ?"
+                cursor.execute(query, params)
+                conn.commit()
+                conn.close()
+                return True
+            except Exception as e:
+                logger.error(f"Error updating incident {incident_id}: {e}")
+                return False
+
+    def count_admin_incidents_summary(self) -> dict:
+        """Retrieve count of incidents grouped by status and severity."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT status, COUNT(*) as cnt FROM admin_incidents GROUP BY status")
+                status_counts = {r["status"]: r["cnt"] for r in cursor.fetchall()}
+                cursor.execute("SELECT COUNT(*) FROM admin_incidents WHERE status IN ('NEW', 'ACKNOWLEDGED', 'INVESTIGATING')")
+                open_count = cursor.fetchone()[0]
+                conn.close()
+                return {
+                    "total": sum(status_counts.values()),
+                    "open": open_count,
+                    "by_status": status_counts
+                }
+            except Exception as e:
+                logger.error(f"Error summarizing incidents: {e}")
+                return {"total": 0, "open": 0, "by_status": {}}
+
+    # ─── Admin Audit Logs API ───
+
+    def log_audit_event(self, actor_username: str, role: str, action: str, resource_type: str, resource_id=None, result: str = "SUCCESS", description=None, actor_user_id=None) -> int:
+        """Append an immutable audit entry to admin_audit_logs."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                cursor.execute("""
+                    INSERT INTO admin_audit_logs (timestamp, actor_user_id, actor_username, role, action, resource_type, resource_id, result, description)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (now_str, actor_user_id, actor_username, role, action, resource_type, str(resource_id) if resource_id is not None else None, result, description))
+                conn.commit()
+                log_id = cursor.lastrowid
+                conn.close()
+                return log_id
+            except Exception as e:
+                logger.error(f"Error logging audit event: {e}")
+                return -1
+
+    def list_admin_audit_logs(self, limit: int = 100, offset: int = 0, action=None, actor=None):
+        """Fetch audit log records with filtering and pagination."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                query = "SELECT * FROM admin_audit_logs WHERE 1=1"
+                params = []
+                if action:
+                    query += " AND action LIKE ?"
+                    params.append(f"%{action}%")
+                if actor:
+                    query += " AND actor_username LIKE ?"
+                    params.append(f"%{actor}%")
+                query += " ORDER BY id DESC LIMIT ? OFFSET ?"
+                params.extend([limit, offset])
+                cursor.execute(query, params)
+                rows = cursor.fetchall()
+                conn.close()
+                return [dict(r) for r in rows]
+            except Exception as e:
+                logger.error(f"Error listing audit logs: {e}")
+                return []
+
+    # ─── System & Database Health Telemetry ───
+
+    def get_database_health(self) -> dict:
+        """Fetch real-time SQLite database health telemetry."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA journal_mode;")
+                journal = cursor.fetchone()[0]
+                cursor.execute("SELECT COUNT(*) FROM intrusion_events")
+                intrusions = cursor.fetchone()[0]
+                cursor.execute("SELECT COUNT(*) FROM anpr_events")
+                anprs = cursor.fetchone()[0]
+                cursor.execute("SELECT COUNT(*) FROM security_events")
+                secs = cursor.fetchone()[0]
+                cursor.execute("SELECT COUNT(*) FROM admin_users")
+                users = cursor.fetchone()[0]
+                cursor.execute("SELECT COUNT(*) FROM admin_incidents")
+                incidents = cursor.fetchone()[0]
+                cursor.execute("SELECT COUNT(*) FROM admin_audit_logs")
+                audits = cursor.fetchone()[0]
+                conn.close()
+
+                db_size_mb = 0.0
+                if os.path.exists(self.db_path):
+                    db_size_mb = round(os.path.getsize(self.db_path) / (1024 * 1024), 2)
+
+                return {
+                    "status": "ONLINE",
+                    "mode": journal.upper(),
+                    "path": self.db_path,
+                    "size_mb": db_size_mb,
+                    "table_counts": {
+                        "intrusion_events": intrusions,
+                        "anpr_events": anprs,
+                        "security_events": secs,
+                        "admin_users": users,
+                        "admin_incidents": incidents,
+                        "admin_audit_logs": audits
+                    }
+                }
+            except Exception as e:
+                logger.error(f"Database health check error: {e}")
+                return {
+                    "status": "ERROR",
+                    "error": str(e),
+                    "path": self.db_path
+                }
+
 
 
 # Global singleton database manager instance
 db_manager = DatabaseManager()
+

@@ -1,0 +1,35 @@
+{
+  "engine_type": "EasyOCR",
+  "detector_model_name": "Local (license-plate-finetune-v1n.pt)",
+  "device": "cuda",
+  "plate_detector_loaded": true,
+  "ocr_engine_loaded": true,
+  "plate_detection_test": {
+    "vehicle_crops_tested": 8,
+    "plates_detected_in_cctv": 3,
+    "sample_detection_confidence": 0.481,
+    "sample_plate_shape": [
+      46,
+      111,
+      3
+    ],
+    "status": "PASS"
+  },
+  "ocr_test": {
+    "synthetic_test_input": "MH12AB1234",
+    "ocr_output_cleaned": "MH12AB1234",
+    "ocr_output_raw": "MH1ZAB1234",
+    "ocr_confidence": 0.95,
+    "is_valid_format": true,
+    "tier": 1,
+    "ocr_execution_success": true,
+    "format_validation_executed": true,
+    "status": "PASS"
+  },
+  "known_confusions_and_observations": [
+    "EasyOCR may confuse 'O' and '0', or 'I' and '1' in low-resolution video crops; anpr_engine applies tier-based heuristic cleaning to disambiguate digits vs letters based on Indian plate position schema.",
+    "Plate resolution in CCTV stream depends on vehicle distance; small crops (<35px wide) or high-motion blur crops are correctly rejected by the Laplacian blur filter to avoid garbage OCR readings.",
+    "Validation-aware temporal consensus resolves multi-frame readings into a consistent published plate record."
+  ],
+  "overall_status": "PASS"
+}

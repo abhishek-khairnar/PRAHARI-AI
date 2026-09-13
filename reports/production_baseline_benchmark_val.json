@@ -1,0 +1,754 @@
+{
+  "model": "weights/yolov8n.pt (Production Frozen Baseline)",
+  "inference_params": {
+    "conf": 0.35,
+    "imgsz": 640,
+    "classes": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      7
+    ]
+  },
+  "overall": {
+    "precision": 0.219,
+    "recall": 0.5333,
+    "f1": 0.3105,
+    "tp": 168,
+    "fp": 599,
+    "fn": 147
+  },
+  "per_class": {
+    "person": {
+      "precision": 0.205,
+      "recall": 0.4957,
+      "f1": 0.2901,
+      "tp": 57,
+      "fp": 221,
+      "fn": 58
+    },
+    "car": {
+      "precision": 0.2476,
+      "recall": 0.6755,
+      "f1": 0.3623,
+      "tp": 102,
+      "fp": 310,
+      "fn": 49
+    },
+    "motorcycle": {
+      "precision": 0.0741,
+      "recall": 0.129,
+      "f1": 0.0941,
+      "tp": 4,
+      "fp": 50,
+      "fn": 27
+    },
+    "truck": {
+      "precision": 0.2174,
+      "recall": 0.2778,
+      "f1": 0.2439,
+      "tp": 5,
+      "fp": 18,
+      "fn": 13
+    }
+  },
+  "per_camera": {
+    "CAM-01": {
+      "precision": 0.2387,
+      "recall": 0.5809,
+      "f1": 0.3383,
+      "tp": 79,
+      "fp": 252,
+      "fn": 57
+    },
+    "CAM-02": {
+      "precision": 0.4211,
+      "recall": 0.4571,
+      "f1": 0.4384,
+      "tp": 16,
+      "fp": 22,
+      "fn": 19
+    },
+    "CAM-03": {
+      "precision": 0.0172,
+      "recall": 0.05,
+      "f1": 0.0256,
+      "tp": 1,
+      "fp": 57,
+      "fn": 19
+    },
+    "CAM-04": {
+      "precision": 0.2118,
+      "recall": 0.5806,
+      "f1": 0.3103,
+      "tp": 72,
+      "fp": 268,
+      "fn": 52
+    }
+  },
+  "per_size": {
+    "small": {
+      "precision": 1.0,
+      "recall": 0.5054,
+      "f1": 0.6714,
+      "tp": 47,
+      "fp": 0,
+      "fn": 46
+    },
+    "medium": {
+      "precision": 1.0,
+      "recall": 0.5944,
+      "f1": 0.7456,
+      "tp": 85,
+      "fp": 0,
+      "fn": 58
+    },
+    "large": {
+      "precision": 1.0,
+      "recall": 0.4557,
+      "f1": 0.6261,
+      "tp": 36,
+      "fp": 0,
+      "fn": 43
+    }
+  },
+  "hard_negatives": {
+    "audited_images": 28,
+    "false_positives": 0,
+    "fp_per_image": 0.0,
+    "details": []
+  },
+  "failure_analysis_summary": {
+    "total_false_positives": 599,
+    "total_false_negatives": 147,
+    "total_confusion_cases": 35,
+    "confusion_samples": [
+      {
+        "file": "cam01_seqB_val_f0240.jpg",
+        "camera": "CAM-01",
+        "gt_class": "truck",
+        "pred_class": "car",
+        "confidence": 0.505,
+        "iou": 0.454
+      },
+      {
+        "file": "cam01_seqB_val_f0246.jpg",
+        "camera": "CAM-01",
+        "gt_class": "truck",
+        "pred_class": "car",
+        "confidence": 0.402,
+        "iou": 0.415
+      },
+      {
+        "file": "cam01_seqB_val_f0250.jpg",
+        "camera": "CAM-01",
+        "gt_class": "truck",
+        "pred_class": "car",
+        "confidence": 0.414,
+        "iou": 0.408
+      },
+      {
+        "file": "cam01_seqB_val_f0252.jpg",
+        "camera": "CAM-01",
+        "gt_class": "truck",
+        "pred_class": "car",
+        "confidence": 0.505,
+        "iou": 0.362
+      },
+      {
+        "file": "cam01_seqB_val_f0254.jpg",
+        "camera": "CAM-01",
+        "gt_class": "truck",
+        "pred_class": "car",
+        "confidence": 0.566,
+        "iou": 0.373
+      },
+      {
+        "file": "cam01_seqB_val_f0288.jpg",
+        "camera": "CAM-01",
+        "gt_class": "car",
+        "pred_class": "truck",
+        "confidence": 0.425,
+        "iou": 0.701
+      },
+      {
+        "file": "cam02_seqB_val_f0169.jpg",
+        "camera": "CAM-02",
+        "gt_class": "truck",
+        "pred_class": "car",
+        "confidence": 0.714,
+        "iou": 0.386
+      },
+      {
+        "file": "cam04_seqB_val_f0136.jpg",
+        "camera": "CAM-04",
+        "gt_class": "motorcycle",
+        "pred_class": "person",
+        "confidence": 0.599,
+        "iou": 0.55
+      },
+      {
+        "file": "cam04_seqB_val_f0138.jpg",
+        "camera": "CAM-04",
+        "gt_class": "motorcycle",
+        "pred_class": "person",
+        "confidence": 0.563,
+        "iou": 0.692
+      },
+      {
+        "file": "cam04_seqB_val_f0140.jpg",
+        "camera": "CAM-04",
+        "gt_class": "motorcycle",
+        "pred_class": "person",
+        "confidence": 0.55,
+        "iou": 0.443
+      },
+      {
+        "file": "cam04_seqB_val_f0140.jpg",
+        "camera": "CAM-04",
+        "gt_class": "person",
+        "pred_class": "motorcycle",
+        "confidence": 0.352,
+        "iou": 0.726
+      },
+      {
+        "file": "cam04_seqB_val_f0146.jpg",
+        "camera": "CAM-04",
+        "gt_class": "person",
+        "pred_class": "motorcycle",
+        "confidence": 0.354,
+        "iou": 0.607
+      },
+      {
+        "file": "cam04_seqB_val_f0148.jpg",
+        "camera": "CAM-04",
+        "gt_class": "person",
+        "pred_class": "motorcycle",
+        "confidence": 0.533,
+        "iou": 0.553
+      },
+      {
+        "file": "cam04_seqB_val_f0150.jpg",
+        "camera": "CAM-04",
+        "gt_class": "person",
+        "pred_class": "motorcycle",
+        "confidence": 0.424,
+        "iou": 0.399
+      },
+      {
+        "file": "cam04_seqB_val_f0152.jpg",
+        "camera": "CAM-04",
+        "gt_class": "motorcycle",
+        "pred_class": "person",
+        "confidence": 0.394,
+        "iou": 0.358
+      }
+    ],
+    "false_negative_samples": [
+      {
+        "file": "cam01_seqB_val_f0240.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "box": [
+          1075,
+          438,
+          1302,
+          634
+        ],
+        "size_category": "medium"
+      },
+      {
+        "file": "cam01_seqB_val_f0240.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "box": [
+          727,
+          455,
+          981,
+          745
+        ],
+        "size_category": "medium"
+      },
+      {
+        "file": "cam01_seqB_val_f0240.jpg",
+        "camera": "CAM-01",
+        "class": "truck",
+        "box": [
+          300,
+          489,
+          967,
+          1069
+        ],
+        "size_category": "large"
+      },
+      {
+        "file": "cam01_seqB_val_f0242.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "box": [
+          1068,
+          439,
+          1299,
+          637
+        ],
+        "size_category": "medium"
+      },
+      {
+        "file": "cam01_seqB_val_f0242.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "box": [
+          722,
+          455,
+          977,
+          745
+        ],
+        "size_category": "medium"
+      },
+      {
+        "file": "cam01_seqB_val_f0244.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "box": [
+          1061,
+          440,
+          1296,
+          640
+        ],
+        "size_category": "medium"
+      },
+      {
+        "file": "cam01_seqB_val_f0244.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "box": [
+          717,
+          456,
+          973,
+          746
+        ],
+        "size_category": "medium"
+      },
+      {
+        "file": "cam01_seqB_val_f0246.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "box": [
+          1053,
+          441,
+          1293,
+          644
+        ],
+        "size_category": "medium"
+      },
+      {
+        "file": "cam01_seqB_val_f0246.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "box": [
+          712,
+          457,
+          969,
+          747
+        ],
+        "size_category": "medium"
+      },
+      {
+        "file": "cam01_seqB_val_f0246.jpg",
+        "camera": "CAM-01",
+        "class": "truck",
+        "box": [
+          180,
+          505,
+          880,
+          1069
+        ],
+        "size_category": "large"
+      },
+      {
+        "file": "cam01_seqB_val_f0248.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "box": [
+          1046,
+          442,
+          1290,
+          647
+        ],
+        "size_category": "medium"
+      },
+      {
+        "file": "cam01_seqB_val_f0248.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "box": [
+          707,
+          457,
+          964,
+          747
+        ],
+        "size_category": "medium"
+      },
+      {
+        "file": "cam01_seqB_val_f0248.jpg",
+        "camera": "CAM-01",
+        "class": "truck",
+        "box": [
+          140,
+          510,
+          851,
+          1069
+        ],
+        "size_category": "large"
+      },
+      {
+        "file": "cam01_seqB_val_f0250.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "box": [
+          702,
+          458,
+          960,
+          748
+        ],
+        "size_category": "medium"
+      },
+      {
+        "file": "cam01_seqB_val_f0252.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "box": [
+          697,
+          459,
+          956,
+          749
+        ],
+        "size_category": "medium"
+      },
+      {
+        "file": "cam01_seqB_val_f0254.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "box": [
+          1023,
+          444,
+          1281,
+          658
+        ],
+        "size_category": "medium"
+      },
+      {
+        "file": "cam01_seqB_val_f0254.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "box": [
+          692,
+          459,
+          952,
+          749
+        ],
+        "size_category": "medium"
+      },
+      {
+        "file": "cam01_seqB_val_f0264.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "box": [
+          1005,
+          446,
+          1272,
+          667
+        ],
+        "size_category": "medium"
+      },
+      {
+        "file": "cam01_seqB_val_f0266.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "box": [
+          1002,
+          447,
+          1271,
+          668
+        ],
+        "size_category": "medium"
+      },
+      {
+        "file": "cam01_seqB_val_f0268.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "box": [
+          999,
+          447,
+          1269,
+          670
+        ],
+        "size_category": "medium"
+      }
+    ],
+    "false_positive_samples": [
+      {
+        "file": "cam01_seqB_val_f0240.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "confidence": 0.6,
+        "box": [
+          1142,
+          435,
+          1215,
+          598
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0240.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "confidence": 0.568,
+        "box": [
+          884,
+          432,
+          1099,
+          688
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0240.jpg",
+        "camera": "CAM-01",
+        "class": "person",
+        "confidence": 0.553,
+        "box": [
+          1624,
+          449,
+          1723,
+          862
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0240.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "confidence": 0.505,
+        "box": [
+          591,
+          463,
+          1086,
+          1052
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0240.jpg",
+        "camera": "CAM-01",
+        "class": "person",
+        "confidence": 0.455,
+        "box": [
+          1702,
+          420,
+          1757,
+          578
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0240.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "confidence": 0.404,
+        "box": [
+          1186,
+          446,
+          1360,
+          690
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0240.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "confidence": 0.393,
+        "box": [
+          1028,
+          424,
+          1130,
+          568
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0240.jpg",
+        "camera": "CAM-01",
+        "class": "person",
+        "confidence": 0.385,
+        "box": [
+          1497,
+          430,
+          1560,
+          548
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0240.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "confidence": 0.37,
+        "box": [
+          1144,
+          451,
+          1200,
+          597
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0240.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "confidence": 0.36,
+        "box": [
+          960,
+          428,
+          1101,
+          692
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0242.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "confidence": 0.66,
+        "box": [
+          1138,
+          444,
+          1214,
+          601
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0242.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "confidence": 0.647,
+        "box": [
+          872,
+          434,
+          1087,
+          692
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0242.jpg",
+        "camera": "CAM-01",
+        "class": "person",
+        "confidence": 0.624,
+        "box": [
+          1621,
+          453,
+          1723,
+          862
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0242.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "confidence": 0.528,
+        "box": [
+          1185,
+          450,
+          1371,
+          700
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0242.jpg",
+        "camera": "CAM-01",
+        "class": "person",
+        "confidence": 0.472,
+        "box": [
+          1495,
+          432,
+          1560,
+          548
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0242.jpg",
+        "camera": "CAM-01",
+        "class": "person",
+        "confidence": 0.449,
+        "box": [
+          1698,
+          418,
+          1757,
+          581
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0244.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "confidence": 0.676,
+        "box": [
+          1132,
+          442,
+          1214,
+          604
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0244.jpg",
+        "camera": "CAM-01",
+        "class": "car",
+        "confidence": 0.653,
+        "box": [
+          864,
+          434,
+          1080,
+          695
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0244.jpg",
+        "camera": "CAM-01",
+        "class": "person",
+        "confidence": 0.638,
+        "box": [
+          1624,
+          454,
+          1722,
+          863
+        ],
+        "is_hard_negative": false
+      },
+      {
+        "file": "cam01_seqB_val_f0244.jpg",
+        "camera": "CAM-01",
+        "class": "person",
+        "confidence": 0.517,
+        "box": [
+          1579,
+          422,
+          1651,
+          646
+        ],
+        "is_hard_negative": false
+      }
+    ]
+  }
+}
