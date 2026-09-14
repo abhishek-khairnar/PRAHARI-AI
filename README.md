@@ -285,7 +285,7 @@ sequenceDiagram
         Notif->>DB: INSERT into incidents & user_notifications
         Notif->>WS: Broadcast JSON notification frame
         WS-->>UI: Push live alert to authenticated clients
-        UI->>UI: Increment unread badge; populate drawer; highlight camera card
+        UI->>UI: Increment unread badge, populate drawer, and highlight camera card
     end
 ```
 
@@ -631,7 +631,7 @@ sequenceDiagram
         Browser->>Browser: Merge delta, update unread count, set status = "ready"
     else Invalid / Expired Token
         WS-->>Browser: Close Connection (Code 1008 Policy Violation)
-        Browser->>Browser: Terminate reconnect loop; show "Sign in required"
+        Browser->>Browser: Terminate reconnect loop and display sign in required prompt
     end
 ```
 

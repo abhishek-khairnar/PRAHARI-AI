@@ -78,7 +78,7 @@
 ## 6. Documentation Quality & Compliance
 
 - **README Structure**: Complete 54 sections conforming strictly to release guidelines.
-- **Mermaid Diagrams**: Exactly 17 valid GitHub-compatible Mermaid diagrams verified (flowcharts, sequence diagrams, state machines, ER diagram).
+- **Mermaid Diagrams**: Exactly 17 valid GitHub-compatible Mermaid diagrams verified (flowcharts, sequence diagrams, state machines, ER diagram) with 100% clean visual rendering on GitHub.
 - **ANPR Terminology**: Outdated claim *"VERIFIED = format + confidence"* completely removed. Clearly distinguishes plate detected, OCR read, low confidence, format valid, temporal consensus, and validated ANPR read. Explicitly discloses that authoritative owner verification requires external registry (e.g. VAHAN).
 - **Face Privacy**: Explicitly documents detection-only behavior via YuNet ONNX, live counting without identity matching, and absence of biometric database.
 - **Notification Architecture**: Documents invariant `DATABASE = SOURCE OF TRUTH`, REST recovery via `since_id` cursor, and real-time WebSocket delivery.
