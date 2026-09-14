@@ -22,6 +22,7 @@ import torch
 from ultralytics import YOLO
 from centroid_tracker import CentroidTracker
 from anpr_engine import ANPREngine
+from anpr_consensus import resolve_temporal_consensus
 from database import db_manager
 
 # Logging setup
@@ -92,11 +93,13 @@ class ModelRegistry:
         
         # 1. Shared YOLO Object Detector
         try:
-            model_path = os.path.join(os.path.dirname(__file__), "yolov8n.pt")
+            model_path = os.path.join(os.path.dirname(__file__), "weights", "yolov8n.pt")
+            if not os.path.exists(model_path):
+                model_path = os.path.join(os.path.dirname(__file__), "yolov8n.pt")
             if not os.path.exists(model_path):
                 model_path = "yolov8n.pt"
             self.yolo_model = YOLO(model_path)
-            logger.info(f"[ModelRegistry] Shared YOLOv8n detector loaded successfully on {self.device.upper()}")
+            logger.info(f"[ModelRegistry] Shared YOLOv8n detector loaded successfully from {model_path} on {self.device.upper()}")
         except Exception as e:
             logger.error(f"[ModelRegistry] Error loading YOLO model: {e}")
             try:
@@ -543,37 +546,15 @@ class RTSPStreamReader:
                 if cleaned_text and len(cleaned_text) >= 4:
                     self.vehicle_ocr_history[obj_id].append((cleaned_text, raw_text, ocr_conf, is_valid_fmt, tier, c_ts, plate_crop))
 
-            # Temporal Consensus across observations
+            # Validation-Aware & Character-Wise Temporal Consensus
             recent_obs = [obs for obs in self.vehicle_ocr_history[obj_id] if (now_ts - obs[5]) <= 25.0]
             if recent_obs:
-                candidate_groups = {}
-                for obs in recent_obs:
-                    c_text, r_text, conf, valid, t_tier, ts, p_crop = obs
-                    found_group = False
-                    for g_key in list(candidate_groups.keys()):
-                        if c_text == g_key or (len(c_text) == len(g_key) and sum(1 for a, b in zip(c_text, g_key) if a != b) <= 1):
-                            candidate_groups[g_key].append(obs)
-                            found_group = True
-                            break
-                    if not found_group:
-                        candidate_groups[c_text] = [obs]
-
-                best_group_key = None
-                best_group_score = 0.0
-                for g_key, g_obs in candidate_groups.items():
-                    score = sum(obs[2] * (1.6 if obs[3] else 0.8) for obs in g_obs)
-                    if score > best_group_score:
-                        best_group_score = score
-                        best_group_key = g_key
-
-                if best_group_key and best_group_score > 0.0:
-                    group_obs = candidate_groups[best_group_key]
-                    best_obs = max(group_obs, key=lambda o: o[2])
-                    best_plate_found = best_obs[0]
-                    best_conf_found = best_obs[2]
-                    best_valid_found = best_obs[3]
-                    best_tier_found = best_obs[4]
-                    best_crop_found = best_obs[6]
+                consensus_res = resolve_temporal_consensus(recent_obs, window_seconds=25.0, current_ts=now_ts)
+                best_plate_found = consensus_res["published_plate"]
+                best_conf_found = consensus_res["published_conf"]
+                best_valid_found = consensus_res["is_valid"]
+                best_tier_found = consensus_res["tier_num"]
+                best_crop_found = consensus_res["best_crop"]
 
             # Publication & Database linkage
             if best_plate_found and best_conf_found >= 0.25:
@@ -599,8 +580,8 @@ class RTSPStreamReader:
                         plate_fn = self._save_anpr_snapshot(best_crop_found, obj_id, now_str)
                         plate_url = f"/anpr/{plate_fn}"
                         if best_valid_found and best_conf_found >= 0.45:
-                            val_status = "VERIFIED"
-                            is_verified = True
+                            val_status = "FORMAT_VALID"
+                            is_verified = False  # Identity verification requires external authoritative registry
                         elif best_valid_found and best_conf_found >= 0.30:
                             val_status = "DETECTED"
                             is_verified = False
@@ -834,7 +815,7 @@ class RTSPStreamReader:
 
             is_new_intrusion, direction = self.tracker.check_intrusion_crossing(obj_id, line_y)
 
-            if is_new_intrusion and (obj_id not in self.alerted_object_ids):
+            if is_new_intrusion:
                 self.alerted_object_ids.add(obj_id)
                 self.recent_alerts.append((cx, cy, now_ts))
                 now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -1290,6 +1271,11 @@ class RTSPStreamReader:
                 self.status = "OFFLINE"
                 self.current_fps = 0.0
                 self.latest_jpeg = self._create_placeholder_frame(f"{self.camera_id}: Reconnecting...")
+            with self._state_lock:
+                self.face_count = 0
+                self.people_count = 0
+                self.vehicle_count = 0
+                self.total_objects = 0
             time.sleep(1.0)
 
     def _ai_processing_loop(self):

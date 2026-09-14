@@ -4,6 +4,7 @@ import json
 import logging
 import threading
 from datetime import datetime
+from typing import Optional, List, Dict, Any
 
 logger = logging.getLogger("PRAHARI-DB")
 
@@ -21,7 +22,7 @@ class DatabaseManager:
 
     def __init__(self, db_path: str = None):
         self.db_path = db_path or os.getenv("PRAHARI_DB_PATH", DEFAULT_DB_PATH)
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
         self._last_sync_timestamp = None
         self._init_db()
 
@@ -264,10 +265,87 @@ class DatabaseManager:
                 )
             """)
 
+            # 11. Persistent Notifications Table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS notifications (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    incident_id INTEGER,
+                    source_event_id INTEGER,
+                    source_event_table TEXT,
+                    camera_id TEXT,
+                    notification_type TEXT NOT NULL,
+                    severity TEXT NOT NULL CHECK(severity IN ('CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO')),
+                    title TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    metadata TEXT,
+                    dedupe_key TEXT,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY (incident_id) REFERENCES admin_incidents (id) ON DELETE SET NULL
+                )
+            """)
+
+            # 12. Notification Recipients Table (Per-user read tracking & routing)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS notification_recipients (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    notification_id INTEGER NOT NULL,
+                    user_id INTEGER NOT NULL,
+                    is_read INTEGER DEFAULT 0,
+                    read_at TEXT,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY (notification_id) REFERENCES notifications (id) ON DELETE CASCADE,
+                    FOREIGN KEY (user_id) REFERENCES admin_users (id) ON DELETE CASCADE,
+                    UNIQUE (notification_id, user_id)
+                )
+            """)
+
+            # 13. Notification User Preferences Table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS notification_preferences (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER UNIQUE NOT NULL,
+                    critical_enabled INTEGER DEFAULT 1,
+                    high_enabled INTEGER DEFAULT 1,
+                    medium_enabled INTEGER DEFAULT 1,
+                    low_enabled INTEGER DEFAULT 0,
+                    sound_enabled INTEGER DEFAULT 1,
+                    browser_enabled INTEGER DEFAULT 0,
+                    web_push_enabled INTEGER DEFAULT 0,
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES admin_users (id) ON DELETE CASCADE
+                )
+            """)
+
+            # 14. Notification Deliveries Table (Multi-channel audit & delivery tracking)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS notification_deliveries (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    notification_id INTEGER NOT NULL,
+                    user_id INTEGER NOT NULL,
+                    channel TEXT NOT NULL CHECK(channel IN ('IN_APP', 'BROWSER', 'SOUND', 'WEB_PUSH')),
+                    status TEXT NOT NULL CHECK(status IN ('DELIVERED', 'FAILED', 'SKIPPED', 'ATTEMPTED')),
+                    attempted_at TEXT NOT NULL,
+                    delivered_at TEXT,
+                    failed_at TEXT,
+                    error_code TEXT,
+                    safe_error_message TEXT,
+                    FOREIGN KEY (notification_id) REFERENCES notifications (id) ON DELETE CASCADE,
+                    FOREIGN KEY (user_id) REFERENCES admin_users (id) ON DELETE CASCADE
+                )
+            """)
+
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_admin_users_user ON admin_users (username)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_admin_incidents_status ON admin_incidents (status)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_admin_incidents_cam ON admin_incidents (camera_id)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_admin_audit_ts ON admin_audit_logs (timestamp DESC)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_notif_created ON notifications (created_at DESC)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_notif_inc ON notifications (incident_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_notif_dedupe ON notifications (dedupe_key)")
+            cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_notif_dedupe_unique ON notifications (dedupe_key) WHERE dedupe_key IS NOT NULL")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_notif_recip_user_read ON notification_recipients (user_id, is_read, created_at DESC)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_notif_recip_notif ON notification_recipients (notification_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_notif_pref_user ON notification_preferences (user_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_notif_deliv_notif ON notification_deliveries (notification_id)")
 
             # Seed default Camera Config if empty
             cursor.execute("SELECT COUNT(*) FROM admin_camera_config")
@@ -1548,9 +1626,143 @@ class DatabaseManager:
             ))
             new_inc_id = cursor.lastrowid
             logger.warning(f"🚨 [NEW INCIDENT {inc_code}] Created from {event_table}:{event_id} ({event_type} on {camera_id}, Severity={severity})")
+            self._create_and_dispatch_incident_notification_internal(
+                cursor=cursor,
+                incident_id=new_inc_id,
+                incident_code=inc_code,
+                camera_id=camera_id,
+                event_type=event_type,
+                severity=severity,
+                event_id=event_id,
+                event_table=event_table
+            )
             return new_inc_id
         except Exception as ex:
             logger.error(f"[IncidentPolicy] Failed to evaluate event {event_table}:{event_id} - {ex}")
+            return None
+
+    def _create_and_dispatch_incident_notification_internal(
+        self,
+        cursor,
+        incident_id: int,
+        incident_code: str,
+        camera_id: str,
+        event_type: str,
+        severity: str,
+        event_id: Optional[int] = None,
+        event_table: Optional[str] = "security_events"
+    ):
+        """
+        Internal transaction-safe helper that creates persistent notification and recipients
+        on the active SQLite cursor, and dispatches real-time WebSocket events.
+        """
+        try:
+            clean_event = event_type.replace('_', ' ').title()
+            title = f"{severity.upper()} SECURITY ALERT"
+            message = f"{clean_event} detected on {camera_id} ({incident_code})"
+            dedupe_key = f"INC_{incident_id}_INCIDENT_CREATED_{severity.upper()}"
+            meta = json.dumps({
+                "incident_id": incident_id,
+                "incident_code": incident_code,
+                "camera_id": camera_id,
+                "event_type": event_type,
+                "severity": severity,
+                "source_event_id": event_id,
+                "source_event_table": event_table
+            })
+            now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            # Check deduplication on dedupe_key
+            if dedupe_key:
+                cursor.execute("SELECT id FROM notifications WHERE dedupe_key = ? LIMIT 1", (dedupe_key,))
+                existing = cursor.fetchone()
+                if existing:
+                    logger.info(f"[IncidentNotification] Suppressed duplicate notification for key: {dedupe_key}")
+                    return None
+
+            cursor.execute("""
+                INSERT OR IGNORE INTO notifications (
+                    incident_id, source_event_id, source_event_table, camera_id,
+                    notification_type, severity, title, message, metadata, dedupe_key, created_at
+                ) VALUES (?, ?, ?, ?, 'INCIDENT_CREATED', ?, ?, ?, ?, ?, ?)
+            """, (incident_id, event_id, event_table, camera_id, severity, title, message, meta, dedupe_key, now_str))
+            notif_id = cursor.lastrowid
+            if not notif_id or notif_id <= 0:
+                logger.info(f"[IncidentNotification] Duplicate insertion prevented for dedupe_key: {dedupe_key}")
+                return None
+
+            # Determine recipients
+            cursor.execute("SELECT id, role FROM admin_users WHERE is_active = 1")
+            active_users = cursor.fetchall()
+            recip_user_ids = []
+            sev_upper = severity.upper()
+            for u in active_users:
+                uid = u["id"]
+                role = u["role"]
+                role_ok = False
+                if role in ("SUPER_ADMIN", "ADMIN"):
+                    role_ok = True
+                elif role == "SUPERVISOR":
+                    role_ok = sev_upper in ("CRITICAL", "HIGH", "MEDIUM")
+                elif role == "OFFICER":
+                    role_ok = sev_upper in ("CRITICAL", "HIGH")
+
+                if not role_ok:
+                    continue
+
+                cursor.execute("SELECT * FROM notification_preferences WHERE user_id = ?", (uid,))
+                pref = cursor.fetchone()
+                if pref:
+                    if sev_upper == "CRITICAL" and not pref["critical_enabled"]:
+                        continue
+                    if sev_upper == "HIGH" and not pref["high_enabled"]:
+                        continue
+                    if sev_upper == "MEDIUM" and not pref["medium_enabled"]:
+                        continue
+                    if sev_upper in ("LOW", "INFO") and not pref["low_enabled"]:
+                        continue
+
+                recip_user_ids.append(uid)
+                cursor.execute("""
+                    INSERT OR IGNORE INTO notification_recipients (notification_id, user_id, is_read, read_at, created_at)
+                    VALUES (?, ?, 0, NULL, ?)
+                """, (notif_id, uid, now_str))
+                cursor.execute("""
+                    INSERT INTO notification_deliveries (notification_id, user_id, channel, status, attempted_at, delivered_at)
+                    VALUES (?, ?, 'IN_APP', 'DELIVERED', ?, ?)
+                """, (notif_id, uid, now_str, now_str))
+
+            # Non-blocking WebSocket dispatch
+            try:
+                from notifications.notification_realtime import ws_manager
+                for ruid in recip_user_ids:
+                    cursor.execute("SELECT COUNT(*) FROM notification_recipients WHERE user_id = ? AND is_read = 0", (ruid,))
+                    unread_cnt = cursor.fetchone()[0]
+                    ws_manager.dispatch_payload_threadsafe([ruid], {
+                        "type": "notification.created",
+                        "notification": {
+                            "id": notif_id,
+                            "incident_id": incident_id,
+                            "incident_code": incident_code,
+                            "camera_id": camera_id,
+                            "notification_type": "INCIDENT_CREATED",
+                            "severity": severity,
+                            "title": title,
+                            "message": message,
+                            "metadata": meta,
+                            "dedupe_key": dedupe_key,
+                            "created_at": now_str,
+                            "is_read": False,
+                            "read_at": None
+                        },
+                        "unread_count": unread_cnt
+                    })
+            except Exception as ws_err:
+                logger.debug(f"[IncidentNotification] WS broadcast exception: {ws_err}")
+
+            return notif_id
+        except Exception as ex:
+            logger.error(f"[IncidentNotification] Failed to create internal notification: {ex}")
             return None
 
     def evaluate_and_create_incident_from_event(
@@ -1596,8 +1808,18 @@ class DatabaseManager:
                         incident_code, event_id, event_table, camera_id, zone_name, event_type, severity, status, assigned_officer_id, assigned_officer_name, evidence_snapshot, notes, detected_at, created_at, updated_at
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (incident_code, event_id, event_table, camera_id, zone_name, event_type, severity, status, assigned_officer_id, assigned_officer_name, evidence_snapshot, notes, det_time, now_str, now_str))
-                conn.commit()
                 new_id = cursor.lastrowid
+                self._create_and_dispatch_incident_notification_internal(
+                    cursor=cursor,
+                    incident_id=new_id,
+                    incident_code=incident_code,
+                    camera_id=camera_id,
+                    event_type=event_type,
+                    severity=severity,
+                    event_id=event_id,
+                    event_table=event_table
+                )
+                conn.commit()
                 conn.close()
                 return new_id
             except Exception as e:
@@ -1660,17 +1882,75 @@ class DatabaseManager:
                 open_count = cursor.fetchone()[0]
                 cursor.execute("SELECT COUNT(*) FROM admin_incidents")
                 total_count = cursor.fetchone()[0]
+
+                # Authoritative breakdown of active (unresolved) incidents by severity
+                cursor.execute("""
+                    SELECT UPPER(severity) as sev, COUNT(*) as cnt
+                    FROM admin_incidents
+                    WHERE status IN ('NEW', 'ACKNOWLEDGED', 'INVESTIGATING')
+                    GROUP BY UPPER(severity)
+                """)
+                active_by_sev = {r["sev"]: r["cnt"] for r in cursor.fetchall()}
+                for s in ["CRITICAL", "HIGH", "MEDIUM", "LOW"]:
+                    active_by_sev.setdefault(s, 0)
+
                 conn.close()
                 return {
                     "total": total_count,
                     "open": open_count,
                     "closed": status_counts["RESOLVED"] + status_counts["DISMISSED"],
-                    "by_status": status_counts
+                    "by_status": status_counts,
+                    "active_critical": active_by_sev["CRITICAL"],
+                    "active_high": active_by_sev["HIGH"],
+                    "active_medium": active_by_sev["MEDIUM"],
+                    "active_low": active_by_sev["LOW"],
+                    "active_by_severity": active_by_sev
                 }
             except Exception as e:
                 logger.error(f"Error summarizing incidents: {e}")
                 empty_counts = {s: 0 for s in ["NEW", "ACKNOWLEDGED", "INVESTIGATING", "RESOLVED", "DISMISSED"]}
-                return {"total": 0, "open": 0, "closed": 0, "by_status": empty_counts}
+                empty_sev = {s: 0 for s in ["CRITICAL", "HIGH", "MEDIUM", "LOW"]}
+                return {
+                    "total": 0,
+                    "open": 0,
+                    "closed": 0,
+                    "by_status": empty_counts,
+                    "active_critical": 0,
+                    "active_high": 0,
+                    "active_medium": 0,
+                    "active_low": 0,
+                    "active_by_severity": empty_sev
+                }
+
+    def get_verified_anpr_count(self) -> int:
+        """Returns total validated ANPR reads from persisted SQLite records (Format Valid & Consensus, Conf >= 45%)."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT COUNT(*) FROM anpr_events 
+                    WHERE (confidence >= 0.45 OR validation_status IN ('FORMAT_VALID', 'CONSENSUS', 'VERIFIED'))
+                      AND validation_status NOT IN ('NOT_READ', 'LOW_CONFIDENCE')
+                      AND plate_text IS NOT NULL 
+                      AND plate_text != '' 
+                      AND plate_text != 'N/A' 
+                      AND plate_text != 'PLATE NOT READ'
+                """)
+                cnt = cursor.fetchone()[0]
+                conn.close()
+                return cnt
+            except Exception as e:
+                logger.error(f"Error fetching verified anpr count: {e}")
+                return 0
+
+    def is_healthy(self) -> bool:
+        """Returns True if the SQLite database is healthy and responding."""
+        try:
+            health = self.get_database_health()
+            return health.get("status") == "ONLINE"
+        except Exception:
+            return False
 
     def count_admin_incidents_by_query(self, status=None, severity=None, camera_id=None) -> int:
         """Count total incidents matching filter query (for pagination)."""
@@ -1764,6 +2044,428 @@ class DatabaseManager:
                 logger.error(f"Error counting audit logs: {e}")
                 return 0
 
+    # ─── Persistent Notifications API ───
+
+    def create_notification(
+        self,
+        incident_id: Optional[int] = None,
+        source_event_id: Optional[int] = None,
+        source_event_table: Optional[str] = None,
+        camera_id: Optional[str] = None,
+        notification_type: str = "INCIDENT_CREATED",
+        severity: str = "HIGH",
+        title: str = "",
+        message: str = "",
+        metadata: Optional[str] = None,
+        dedupe_key: Optional[str] = None
+    ) -> Optional[int]:
+        """Insert a persistent notification, checking for duplicate dedupe_key."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+
+                # Deduplication check on dedupe_key if provided
+                if dedupe_key:
+                    cursor.execute("SELECT id FROM notifications WHERE dedupe_key = ? LIMIT 1", (dedupe_key,))
+                    existing = cursor.fetchone()
+                    if existing:
+                        logger.info(f"[Notification] Suppressed duplicate notification for key: {dedupe_key}")
+                        conn.close()
+                        return None
+
+                now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                cursor.execute("""
+                    INSERT OR IGNORE INTO notifications (
+                        incident_id, source_event_id, source_event_table, camera_id,
+                        notification_type, severity, title, message, metadata, dedupe_key, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    incident_id, source_event_id, source_event_table, camera_id,
+                    notification_type, severity, title, message, metadata, dedupe_key, now_str
+                ))
+                new_id = cursor.lastrowid
+                if not new_id or new_id <= 0:
+                    logger.info(f"[Notification] Duplicate insertion ignored for dedupe_key: {dedupe_key}")
+                    conn.close()
+                    return None
+                conn.commit()
+                conn.close()
+                return new_id
+            except Exception as e:
+                logger.error(f"Error creating notification: {e}")
+                return None
+
+    def add_notification_recipients(self, notification_id: int, user_ids: List[int]) -> int:
+        """Assign notification to authorized recipients with initial unread state."""
+        if not user_ids:
+            return 0
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                inserted = 0
+                for uid in user_ids:
+                    cursor.execute("""
+                        INSERT OR IGNORE INTO notification_recipients (notification_id, user_id, is_read, read_at, created_at)
+                        VALUES (?, ?, 0, NULL, ?)
+                    """, (notification_id, uid, now_str))
+                    if cursor.rowcount > 0:
+                        inserted += 1
+                conn.commit()
+                conn.close()
+                return inserted
+            except Exception as e:
+                logger.error(f"Error adding notification recipients: {e}")
+                return 0
+
+    def list_user_notifications(
+        self,
+        user_id: int,
+        is_read: Optional[bool] = None,
+        severity: Optional[str] = None,
+        limit: int = 50,
+        offset: int = 0,
+        since_id: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
+        """List persistent notifications for a specific recipient with read status, pagination, and optional since_id cursor."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                query = """
+                    SELECT
+                        n.id,
+                        n.incident_id,
+                        n.source_event_id,
+                        n.source_event_table,
+                        n.camera_id,
+                        n.notification_type,
+                        n.severity,
+                        n.title,
+                        n.message,
+                        n.metadata,
+                        n.dedupe_key,
+                        n.created_at,
+                        nr.is_read,
+                        nr.read_at
+                    FROM notifications n
+                    JOIN notification_recipients nr ON n.id = nr.notification_id
+                    WHERE nr.user_id = ?
+                """
+                params = [user_id]
+                if is_read is not None:
+                    query += " AND nr.is_read = ?"
+                    params.append(1 if is_read else 0)
+                if severity:
+                    query += " AND n.severity = ?"
+                    params.append(severity)
+                if since_id is not None:
+                    query += " AND n.id > ?"
+                    params.append(since_id)
+
+                query += " ORDER BY n.id DESC LIMIT ? OFFSET ?"
+                params.extend([limit, offset])
+                cursor.execute(query, params)
+                rows = cursor.fetchall()
+                conn.close()
+                return [dict(r) for r in rows]
+            except Exception as e:
+                logger.error(f"Error listing user notifications for user {user_id}: {e}")
+                return []
+
+    def count_user_notifications(
+        self,
+        user_id: int,
+        is_read: Optional[bool] = None,
+        severity: Optional[str] = None,
+        since_id: Optional[int] = None
+    ) -> int:
+        """Count total notifications matching filter for pagination."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                query = """
+                    SELECT COUNT(*)
+                    FROM notifications n
+                    JOIN notification_recipients nr ON n.id = nr.notification_id
+                    WHERE nr.user_id = ?
+                """
+                params = [user_id]
+                if is_read is not None:
+                    query += " AND nr.is_read = ?"
+                    params.append(1 if is_read else 0)
+                if severity:
+                    query += " AND n.severity = ?"
+                    params.append(severity)
+                if since_id is not None:
+                    query += " AND n.id > ?"
+                    params.append(since_id)
+
+                cursor.execute(query, params)
+                cnt = cursor.fetchone()[0]
+                conn.close()
+                return cnt
+            except Exception as e:
+                logger.error(f"Error counting user notifications: {e}")
+                return 0
+
+    def ensure_rbac_users(self) -> Dict[str, int]:
+        """
+        Ensures standard RBAC role accounts exist (ADMIN, SUPERVISOR, OFFICER)
+        alongside SUPER_ADMIN for role testing and live operation.
+        Does not modify existing accounts or delete any records.
+        """
+        import bcrypt
+        accounts = [
+            ("admin_ops", "ADMIN", "Operations Administrator"),
+            ("supervisor_sec", "SUPERVISOR", "Security Supervisor"),
+            ("officer_patrol", "OFFICER", "Patrol Officer")
+        ]
+        created = {}
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                default_pass = os.getenv("PRAHARI_ADMIN_PASSWORD", "Admin@Prahari2026!")
+                pw_hash = bcrypt.hashpw(default_pass.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+                now_seed = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+                for username, role, full_name in accounts:
+                    cursor.execute("SELECT id FROM admin_users WHERE username = ?", (username,))
+                    row = cursor.fetchone()
+                    if row:
+                        created[username] = row["id"]
+                    else:
+                        cursor.execute("""
+                            INSERT INTO admin_users (username, password_hash, full_name, role, is_active, must_change_password, created_at)
+                            VALUES (?, ?, ?, ?, 1, 0, ?)
+                        """, (username, pw_hash, full_name, role, now_seed))
+                        conn.commit()
+                        created[username] = cursor.lastrowid
+                        logger.info(f"[AdminAuth] Seeded RBAC account: {username} ({role})")
+
+                conn.close()
+                return created
+            except Exception as e:
+                logger.error(f"Error ensuring RBAC users: {e}")
+                return created
+
+    def get_user_unread_count(self, user_id: int) -> int:
+        """Fetch authoritative unread count directly from the database."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT COUNT(*) FROM notification_recipients
+                    WHERE user_id = ? AND is_read = 0
+                """, (user_id,))
+                cnt = cursor.fetchone()[0]
+                conn.close()
+                return cnt
+            except Exception as e:
+                logger.error(f"Error fetching unread count for user {user_id}: {e}")
+                return 0
+
+    def mark_notification_read(self, notification_id: int, user_id: int) -> bool:
+        """Mark a single notification as read for a specific recipient."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                cursor.execute("""
+                    UPDATE notification_recipients
+                    SET is_read = 1, read_at = ?
+                    WHERE notification_id = ? AND user_id = ?
+                """, (now_str, notification_id, user_id))
+                conn.commit()
+                conn.close()
+                return True
+            except Exception as e:
+                logger.error(f"Error marking notification {notification_id} read: {e}")
+                return False
+
+    def mark_all_notifications_read(self, user_id: int) -> int:
+        """Mark all unread notifications for a user as read."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                cursor.execute("""
+                    UPDATE notification_recipients
+                    SET is_read = 1, read_at = ?
+                    WHERE user_id = ? AND is_read = 0
+                """, (now_str, user_id))
+                count = cursor.rowcount
+                conn.commit()
+                conn.close()
+                return count
+            except Exception as e:
+                logger.error(f"Error marking all notifications read for user {user_id}: {e}")
+                return 0
+
+    def get_user_notification_preferences(self, user_id: int) -> Dict[str, Any]:
+        """Get notification preferences for a user, returning secure defaults if unset."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM notification_preferences WHERE user_id = ?", (user_id,))
+                row = cursor.fetchone()
+                conn.close()
+                if row:
+                    return dict(row)
+                return {
+                    "user_id": user_id,
+                    "critical_enabled": 1,
+                    "high_enabled": 1,
+                    "medium_enabled": 1,
+                    "low_enabled": 0,
+                    "sound_enabled": 1,
+                    "browser_enabled": 0,
+                    "web_push_enabled": 0,
+                    "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                }
+            except Exception as e:
+                logger.error(f"Error fetching preferences for user {user_id}: {e}")
+                return {
+                    "user_id": user_id,
+                    "critical_enabled": 1,
+                    "high_enabled": 1,
+                    "medium_enabled": 1,
+                    "low_enabled": 0,
+                    "sound_enabled": 1,
+                    "browser_enabled": 0,
+                    "web_push_enabled": 0,
+                    "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                }
+
+    def update_user_notification_preferences(
+        self,
+        user_id: int,
+        critical_enabled: Optional[int] = None,
+        high_enabled: Optional[int] = None,
+        medium_enabled: Optional[int] = None,
+        low_enabled: Optional[int] = None,
+        sound_enabled: Optional[int] = None,
+        browser_enabled: Optional[int] = None,
+        web_push_enabled: Optional[int] = None
+    ) -> bool:
+        """Upsert user notification delivery and severity preferences."""
+        with self._lock:
+            try:
+                current = self.get_user_notification_preferences(user_id)
+                crit = critical_enabled if critical_enabled is not None else current["critical_enabled"]
+                high = high_enabled if high_enabled is not None else current["high_enabled"]
+                med = medium_enabled if medium_enabled is not None else current["medium_enabled"]
+                low = low_enabled if low_enabled is not None else current["low_enabled"]
+                snd = sound_enabled if sound_enabled is not None else current["sound_enabled"]
+                brw = browser_enabled if browser_enabled is not None else current["browser_enabled"]
+                wpush = web_push_enabled if web_push_enabled is not None else current["web_push_enabled"]
+                now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT INTO notification_preferences (
+                        user_id, critical_enabled, high_enabled, medium_enabled, low_enabled,
+                        sound_enabled, browser_enabled, web_push_enabled, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(user_id) DO UPDATE SET
+                        critical_enabled = excluded.critical_enabled,
+                        high_enabled = excluded.high_enabled,
+                        medium_enabled = excluded.medium_enabled,
+                        low_enabled = excluded.low_enabled,
+                        sound_enabled = excluded.sound_enabled,
+                        browser_enabled = excluded.browser_enabled,
+                        web_push_enabled = excluded.web_push_enabled,
+                        updated_at = excluded.updated_at
+                """, (user_id, crit, high, med, low, snd, brw, wpush, now_str))
+                conn.commit()
+                conn.close()
+                return True
+            except Exception as e:
+                logger.error(f"Error updating preferences for user {user_id}: {e}")
+                return False
+
+    def log_notification_delivery(
+        self,
+        notification_id: int,
+        user_id: int,
+        channel: str,
+        status: str,
+        error_code: Optional[str] = None,
+        safe_error_message: Optional[str] = None
+    ) -> int:
+        """Record delivery attempt/status across channels (IN_APP, BROWSER, SOUND, WEB_PUSH)."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                delivered_at = now_str if status == "DELIVERED" else None
+                failed_at = now_str if status == "FAILED" else None
+                cursor.execute("""
+                    INSERT INTO notification_deliveries (
+                        notification_id, user_id, channel, status, attempted_at,
+                        delivered_at, failed_at, error_code, safe_error_message
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    notification_id, user_id, channel, status, now_str,
+                    delivered_at, failed_at, error_code, safe_error_message
+                ))
+                new_id = cursor.lastrowid
+                conn.commit()
+                conn.close()
+                return new_id
+            except Exception as e:
+                logger.error(f"Error logging delivery for notif {notification_id}: {e}")
+                return -1
+
+    def cleanup_old_notifications(self, retention_days: int = 30) -> int:
+        """
+        Safely purges historical notifications older than retention_days.
+        CRITICAL: Never touches admin_incidents or surveillance event tables.
+        """
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                cursor.execute("""
+                    DELETE FROM notifications
+                    WHERE id IN (
+                        SELECT id FROM notifications
+                        WHERE datetime(created_at) < datetime('now', '-' || ? || ' days')
+                    )
+                """, (int(retention_days),))
+                deleted = cursor.rowcount
+                conn.commit()
+                conn.close()
+                logger.info(f"[NotificationRetention] Purged {deleted} notifications older than {retention_days} days.")
+                return deleted
+            except Exception as e:
+                logger.error(f"Error in cleanup_old_notifications: {e}")
+                return 0
+
+    def get_notification_by_id(self, notification_id: int) -> Optional[Dict[str, Any]]:
+        """Fetch a single notification by id."""
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM notifications WHERE id = ?", (notification_id,))
+                row = cursor.fetchone()
+                conn.close()
+                return dict(row) if row else None
+            except Exception as e:
+                logger.error(f"Error fetching notification {notification_id}: {e}")
+                return None
+
     # ─── System & Database Health Telemetry ───
 
     def get_database_health(self) -> dict:
@@ -1786,6 +2488,10 @@ class DatabaseManager:
                 incidents = cursor.fetchone()[0]
                 cursor.execute("SELECT COUNT(*) FROM admin_audit_logs")
                 audits = cursor.fetchone()[0]
+                cursor.execute("SELECT COUNT(*) FROM notifications")
+                notifs = cursor.fetchone()[0]
+                cursor.execute("SELECT COUNT(*) FROM notification_recipients")
+                recips = cursor.fetchone()[0]
                 conn.close()
 
                 db_size_mb = 0.0
@@ -1803,7 +2509,9 @@ class DatabaseManager:
                         "security_events": secs,
                         "admin_users": users,
                         "admin_incidents": incidents,
-                        "admin_audit_logs": audits
+                        "admin_audit_logs": audits,
+                        "notifications": notifs,
+                        "notification_recipients": recips
                     }
                 }
             except Exception as e:

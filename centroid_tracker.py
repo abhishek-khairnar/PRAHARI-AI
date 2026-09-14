@@ -34,6 +34,8 @@ class CentroidTracker:
         self.crossed_fence = OrderedDict()    # object_id -> bool
         self.crossing_direction = OrderedDict() # object_id -> "IN" / "OUT" / None
         self.fence_sides = OrderedDict()      # object_id -> -1 (above) / 1 (below)
+        self.confirmed_fence_sides = OrderedDict()  # object_id -> confirmed side (-1 / 1)
+        self.candidate_crossing_sides = OrderedDict() # object_id -> candidate opposite side (-1 / 1)
         
         self.max_disappeared = max_disappeared
         self.max_distance = max_distance
@@ -51,6 +53,8 @@ class CentroidTracker:
         self.crossed_fence.clear()
         self.crossing_direction.clear()
         self.fence_sides.clear()
+        self.confirmed_fence_sides.clear()
+        self.candidate_crossing_sides.clear()
         if reset_counter:
             self.next_object_id = 1
 
@@ -68,6 +72,8 @@ class CentroidTracker:
         self.crossed_fence[object_id] = False
         self.crossing_direction[object_id] = None
         self.fence_sides[object_id] = None
+        self.confirmed_fence_sides[object_id] = None
+        self.candidate_crossing_sides[object_id] = None
         
         self.next_object_id += 1
         return object_id
@@ -77,7 +83,8 @@ class CentroidTracker:
         for d in (
             self.objects, self.prev_objects, self.disappeared, self.hits,
             self.classes, self.confidences, self.bboxes, self.trajectories,
-            self.crossed_fence, self.crossing_direction, self.fence_sides
+            self.crossed_fence, self.crossing_direction, self.fence_sides,
+            self.confirmed_fence_sides, self.candidate_crossing_sides
         ):
             if object_id in d:
                 del d[object_id]
@@ -204,44 +211,47 @@ class CentroidTracker:
     def check_intrusion_crossing(self, object_id: int, line_y: int) -> tuple:
         """
         Evaluates genuine centroid crossing of the virtual fence line at line_y.
-        Requires hits >= 2 to prevent single-frame spurious detection noise.
+        Requires 2 consecutive frame hits on the candidate new side to confirm a legitimate crossing,
+        preventing boundary jitter or single-frame noise from triggering false alerts.
+        Supports legitimate subsequent re-crossings (IN -> OUT -> IN) without duplicate alerts.
         Returns: (is_new_intrusion, direction) where direction is 'IN' (moving down) or 'OUT' (moving up).
         """
-        if object_id not in self.objects or object_id not in self.prev_objects:
+        if object_id not in self.objects:
             return False, None
 
         (cx, cy) = self.objects[object_id]
         current_side = -1 if cy < line_y else 1
-        previous_side = self.fence_sides.get(object_id)
 
-        if previous_side is None:
+        # Initialize confirmed side on first observation
+        if self.confirmed_fence_sides.get(object_id) is None:
+            self.confirmed_fence_sides[object_id] = current_side
+            self.fence_sides[object_id] = current_side
+            self.candidate_crossing_sides[object_id] = None
+            return False, None
+
+        confirmed_side = self.confirmed_fence_sides[object_id]
+
+        # If object is currently on its confirmed side, any pending crossing candidate is cleared
+        if current_side == confirmed_side:
+            self.candidate_crossing_sides[object_id] = None
             self.fence_sides[object_id] = current_side
             return False, None
 
-        if self.hits.get(object_id, 0) < 2:
-            return False, None
-
-        (prev_cx, prev_cy) = self.prev_objects[object_id]
-
-        is_new_intrusion = False
-        direction = None
-
-        if previous_side != current_side:
-            if previous_side == -1 and current_side == 1:
-                direction = "IN"   # Moving downwards / crossing into zone
-            elif previous_side == 1 and current_side == -1:
-                direction = "OUT"  # Moving upwards / crossing out of zone
-
+        # Object is observed on the opposite side of confirmed_side.
+        # Check if this is the second consecutive hit on this candidate side
+        if self.candidate_crossing_sides.get(object_id) == current_side:
+            # Confirmed crossing!
+            direction = "IN" if (confirmed_side == -1 and current_side == 1) else "OUT"
+            self.confirmed_fence_sides[object_id] = current_side
             self.fence_sides[object_id] = current_side
-
-            # Allow new crossing if direction changed or not yet crossed in this direction
-            last_dir = self.crossing_direction.get(object_id)
-            if (not self.crossed_fence.get(object_id, False)) or (last_dir != direction):
-                self.crossed_fence[object_id] = True
-                self.crossing_direction[object_id] = direction
-                is_new_intrusion = True
-
-        return is_new_intrusion, (direction or self.crossing_direction.get(object_id, "IN"))
+            self.candidate_crossing_sides[object_id] = None
+            self.crossed_fence[object_id] = True
+            self.crossing_direction[object_id] = direction
+            return True, direction
+        else:
+            # First observation on the candidate new side (1 hit): mark as pending candidate
+            self.candidate_crossing_sides[object_id] = current_side
+            return False, None
 
     def _get_active_objects(self) -> dict:
         """Returns dictionary of currently tracked objects."""

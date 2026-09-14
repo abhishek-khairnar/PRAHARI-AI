@@ -1,0 +1,24 @@
+{
+  "CAM-01": {
+    "precision": 0.4691,
+    "recall": 0.9048,
+    "f1": 0.6179,
+    "tp": 38,
+    "fp": 43,
+    "fn": 4,
+    "samples_evaluated": 24,
+    "total_gt_faces": 42,
+    "total_detected_faces": 81
+  },
+  "CAM-03": {
+    "precision": 1.0,
+    "recall": 0.6667,
+    "f1": 0.8,
+    "tp": 2,
+    "fp": 0,
+    "fn": 1,
+    "samples_evaluated": 7,
+    "total_gt_faces": 3,
+    "total_detected_faces": 2
+  }
+}

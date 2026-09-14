@@ -1,0 +1,58 @@
+[
+  {
+    "camera_id": "CAM-01",
+    "camera_name": "Border Post Alpha",
+    "filename": "border_demo.mp4",
+    "path": "D:\\PRAHARI-AI\\demo_videos\\border_demo.mp4",
+    "duration_seconds": 13.37,
+    "width": 1920,
+    "height": 1080,
+    "fps": 30.0,
+    "frame_count": 401,
+    "file_size_bytes": 10801432,
+    "line_y_ratio": 0.7,
+    "fence_y_pixels": 756
+  },
+  {
+    "camera_id": "CAM-02",
+    "camera_name": "Night Surveillance Bravo",
+    "filename": "night_demo.mp4",
+    "path": "D:\\PRAHARI-AI\\demo_videos\\night_demo.mp4",
+    "duration_seconds": 10.0,
+    "width": 720,
+    "height": 1280,
+    "fps": 30.0,
+    "frame_count": 300,
+    "file_size_bytes": 1900053,
+    "line_y_ratio": 0.65,
+    "fence_y_pixels": 832
+  },
+  {
+    "camera_id": "CAM-03",
+    "camera_name": "Perimeter Activity Charlie",
+    "filename": "activity-demo.mp4",
+    "path": "D:\\PRAHARI-AI\\demo_videos\\activity-demo.mp4",
+    "duration_seconds": 21.46,
+    "width": 1920,
+    "height": 1080,
+    "fps": 24.0,
+    "frame_count": 515,
+    "file_size_bytes": 2450526,
+    "line_y_ratio": 0.6,
+    "fence_y_pixels": 648
+  },
+  {
+    "camera_id": "CAM-04",
+    "camera_name": "Urban Facility Delta",
+    "filename": "cctv_demo.mp4",
+    "path": "D:\\PRAHARI-AI\\demo_videos\\cctv_demo.mp4",
+    "duration_seconds": 9.04,
+    "width": 1280,
+    "height": 720,
+    "fps": 29.97,
+    "frame_count": 271,
+    "file_size_bytes": 3486566,
+    "line_y_ratio": 0.7,
+    "fence_y_pixels": 503
+  }
+]

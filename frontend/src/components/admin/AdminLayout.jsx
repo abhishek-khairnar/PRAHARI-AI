@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import {
   ShieldAlert, LayoutDashboard, Users, Video, Sliders,
   BellRing, AlertTriangle, Activity, FileText, ArrowLeft,
-  LogOut, UserCheck
+  LogOut, UserCheck, Bell
 } from 'lucide-react';
 
+import { ErrorBoundary } from '../common/ErrorBoundary';
 import { AdminOverview } from './AdminOverview';
 import { AdminUsers } from './AdminUsers';
 import { AdminCameras } from './AdminCameras';
@@ -13,6 +14,7 @@ import { AdminAlertRules } from './AdminAlertRules';
 import { AdminIncidents } from './AdminIncidents';
 import { AdminSystemHealth } from './AdminSystemHealth';
 import { AdminAuditLogs } from './AdminAuditLogs';
+import { AdminNotifications } from './AdminNotifications';
 
 export function AdminLayout({
   currentUser,
@@ -30,6 +32,7 @@ export function AdminLayout({
     { id: 'zones', label: 'Zones & Fences', icon: Sliders, visible: true },
     { id: 'alerts', label: 'Alert Rules', icon: BellRing, visible: true },
     { id: 'incidents', label: 'Incidents', icon: AlertTriangle, visible: true },
+    { id: 'notifications', label: 'Notifications', icon: Bell, visible: true },
     { id: 'system', label: 'System Health', icon: Activity, visible: true },
     { id: 'audit', label: 'Audit Logs', icon: FileText, visible: isSuperAdminOrAdmin },
   ];
@@ -48,6 +51,8 @@ export function AdminLayout({
         return <AdminAlertRules currentUser={currentUser} />;
       case 'incidents':
         return <AdminIncidents currentUser={currentUser} />;
+      case 'notifications':
+        return <AdminNotifications currentUser={currentUser} onNavigate={onTabChange} />;
       case 'system':
         return <AdminSystemHealth />;
       case 'audit':
@@ -126,7 +131,9 @@ export function AdminLayout({
 
         {/* View Content */}
         <main className="admin-view-body">
-          {renderActiveView()}
+          <ErrorBoundary onRetry={() => onTabChange(activeTab)}>
+            {renderActiveView()}
+          </ErrorBoundary>
         </main>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShieldAlert, Cpu, Activity, Video, Camera, BarChart3 } from 'lucide-react';
+import { NotificationBell } from './notifications/NotificationBell';
 
 export function Header({
   gpuInfo = {},
@@ -11,7 +12,12 @@ export function Header({
   isWebcamTransitioning = false,
   onToggleWebcam,
   onOpenAnalytics,
-  onNavigateToAdmin
+  onNavigateToAdmin,
+  unreadCount = 0,
+  attentionSeverity = null,
+  notificationConnectionStatus = 'disconnected',
+  isNotificationDrawerOpen = false,
+  onToggleNotificationDrawer
 }) {
   const gpuAvailable = gpuInfo.available;
   const gpuName = gpuInfo.device_name || gpuInfo.name || (gpuAvailable ? "CUDA GPU" : "CPU Fallback");
@@ -84,6 +90,13 @@ export function Header({
           <Camera style={{ width: 15, height: 15 }} />
           <span>{webcamLabel}</span>
         </button>
+        <NotificationBell
+          unreadCount={unreadCount}
+          attentionSeverity={attentionSeverity}
+          connectionStatus={notificationConnectionStatus}
+          isOpen={isNotificationDrawerOpen}
+          onToggle={onToggleNotificationDrawer}
+        />
         <button className="btn-header btn-primary" onClick={onOpenAnalytics}>
           <BarChart3 style={{ width: 15, height: 15 }} />
           <span>Analytics</span>

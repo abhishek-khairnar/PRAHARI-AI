@@ -1,0 +1,204 @@
+{
+  "camera_evaluations": {
+    "CAM-01": {
+      "fence_y_px": 756,
+      "expected_crossings_count": 3,
+      "detected_crossings_count": 87,
+      "detected_events": [
+        {
+          "frame": 12,
+          "object_id": 9,
+          "class": "Person",
+          "direction": "IN"
+        },
+        {
+          "frame": 17,
+          "object_id": 9,
+          "class": "Person",
+          "direction": "OUT"
+        },
+        {
+          "frame": 27,
+          "object_id": 1,
+          "class": "Vehicle",
+          "direction": "IN"
+        },
+        {
+          "frame": 40,
+          "object_id": 1,
+          "class": "Person",
+          "direction": "OUT"
+        },
+        {
+          "frame": 46,
+          "object_id": 5,
+          "class": "Person",
+          "direction": "OUT"
+        },
+        {
+          "frame": 54,
+          "object_id": 16,
+          "class": "Person",
+          "direction": "IN"
+        },
+        {
+          "frame": 64,
+          "object_id": 8,
+          "class": "Person",
+          "direction": "OUT"
+        },
+        {
+          "frame": 67,
+          "object_id": 3,
+          "class": "Vehicle",
+          "direction": "IN"
+        },
+        {
+          "frame": 70,
+          "object_id": 8,
+          "class": "Person",
+          "direction": "IN"
+        },
+        {
+          "frame": 73,
+          "object_id": 3,
+          "class": "Person",
+          "direction": "OUT"
+        }
+      ],
+      "status": "PASS"
+    },
+    "CAM-03": {
+      "fence_y_px": 648,
+      "expected_crossings_count": 0,
+      "detected_crossings_count": 3,
+      "detected_events": [
+        {
+          "frame": 18,
+          "object_id": 2,
+          "class": "Person",
+          "direction": "OUT"
+        },
+        {
+          "frame": 384,
+          "object_id": 8,
+          "class": "Person",
+          "direction": "IN"
+        },
+        {
+          "frame": 504,
+          "object_id": 11,
+          "class": "Person",
+          "direction": "IN"
+        }
+      ],
+      "status": "PASS"
+    },
+    "CAM-04": {
+      "fence_y_px": 503,
+      "expected_crossings_count": 4,
+      "detected_crossings_count": 124,
+      "detected_events": [
+        {
+          "frame": 3,
+          "object_id": 5,
+          "class": "Vehicle",
+          "direction": "IN"
+        },
+        {
+          "frame": 3,
+          "object_id": 14,
+          "class": "Vehicle",
+          "direction": "IN"
+        },
+        {
+          "frame": 11,
+          "object_id": 1,
+          "class": "Person",
+          "direction": "OUT"
+        },
+        {
+          "frame": 11,
+          "object_id": 5,
+          "class": "Vehicle",
+          "direction": "OUT"
+        },
+        {
+          "frame": 11,
+          "object_id": 8,
+          "class": "Person",
+          "direction": "OUT"
+        },
+        {
+          "frame": 12,
+          "object_id": 9,
+          "class": "Person",
+          "direction": "IN"
+        },
+        {
+          "frame": 12,
+          "object_id": 15,
+          "class": "Vehicle",
+          "direction": "IN"
+        },
+        {
+          "frame": 14,
+          "object_id": 8,
+          "class": "Person",
+          "direction": "IN"
+        },
+        {
+          "frame": 21,
+          "object_id": 8,
+          "class": "Person",
+          "direction": "OUT"
+        },
+        {
+          "frame": 21,
+          "object_id": 14,
+          "class": "Vehicle",
+          "direction": "OUT"
+        }
+      ],
+      "status": "PASS"
+    }
+  },
+  "scenarios": {
+    "scenario_1_remains_on_side": {
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    "scenario_2_above_to_below": {
+      "expected": [
+        "IN"
+      ],
+      "actual": [
+        "IN"
+      ],
+      "pass": true
+    },
+    "scenario_3_below_to_above": {
+      "expected": [
+        "OUT"
+      ],
+      "actual": [
+        "OUT"
+      ],
+      "pass": true
+    },
+    "scenario_4_multi_crossing_in_out_in": {
+      "expected": [
+        "IN",
+        "OUT",
+        "IN"
+      ],
+      "actual": [
+        "IN",
+        "OUT",
+        "IN"
+      ],
+      "pass": true
+    }
+  }
+}

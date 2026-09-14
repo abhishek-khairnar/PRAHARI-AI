@@ -6,6 +6,7 @@ independent AI analytics per camera feed, and real-time command center APIs.
 
 import os
 import time
+import asyncio
 from typing import Optional
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Query, HTTPException
@@ -14,10 +15,18 @@ from fastapi.staticfiles import StaticFiles
 from camera_manager import camera_manager
 from database import db_manager
 from admin.admin_routes import auth_router, admin_router
+from notifications import notification_router, ws_manager
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Register main asyncio event loop for threadsafe real-time WebSocket delivery
+    try:
+        loop = asyncio.get_running_loop()
+        ws_manager.set_loop(loop)
+    except Exception:
+        pass
+
     # Startup: Start all configured camera pipelines
     camera_manager.start_all()
     yield
@@ -31,9 +40,10 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Mount Admin Panel and Authentication Routers
+# Mount Admin Panel, Authentication, and Notification Routers
 app.include_router(auth_router)
 app.include_router(admin_router)
+app.include_router(notification_router)
 
 # Mount static snapshot directories
 alerts_dir = os.path.join(os.path.dirname(__file__), "static", "alerts")
@@ -101,6 +111,7 @@ async def index():
 
 @app.get("/login", response_class=HTMLResponse)
 @app.get("/dashboard", response_class=HTMLResponse)
+@app.get("/notifications", response_class=HTMLResponse)
 @app.get("/admin", response_class=HTMLResponse)
 @app.get("/admin/{subpath:path}", response_class=HTMLResponse)
 async def spa_page_fallback(subpath: Optional[str] = None):
@@ -185,10 +196,12 @@ async def get_dashboard_stats():
     return JSONResponse(content={
         "aggregate": aggregate,
         "cameras": all_statuses,
-        "suspicious_activity_count": aggregate["total_session_suspicious"],
+        "suspicious_activity_count": aggregate.get("total_session_suspicious", 0),
         "night_mode": night,
         "face": face,
-        "night_alert_count": aggregate["total_session_night"],
+        "night_alert_count": aggregate.get("total_session_night", 0),
+        "timestamp": time.time(),
+        "status": "healthy"
     })
 
 

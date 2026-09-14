@@ -1,0 +1,11 @@
+{
+  "start_memory_mb": 5882.4,
+  "end_memory_mb": 5223.99,
+  "total_memory_growth_mb": -658.41,
+  "start_gpu_vram_mb": 151.33,
+  "end_gpu_vram_mb": 151.33,
+  "vram_stability": "STABLE",
+  "deadlocks_observed": false,
+  "queue_overflows": false,
+  "frame_reader_exceptions": false
+}

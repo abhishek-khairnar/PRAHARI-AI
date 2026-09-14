@@ -107,6 +107,7 @@ export async function login(username, password) {
 
   setAuthToken(data.access_token);
   setStoredUser(data.user);
+  window.dispatchEvent(new CustomEvent('prahari:auth_changed', { detail: data.user }));
   return data;
 }
 
@@ -131,6 +132,7 @@ export async function logout() {
     console.warn('Logout warning:', err);
   } finally {
     clearAuth();
+    window.dispatchEvent(new CustomEvent('prahari:unauthorized'));
   }
 }
 

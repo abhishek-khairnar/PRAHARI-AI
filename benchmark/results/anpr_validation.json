@@ -1,0 +1,257 @@
+{
+  "total_ground_truth_vehicles": 5,
+  "readable_vehicles": 2,
+  "plate_detection_recall": 1.0,
+  "exact_match_accuracy": 1.0,
+  "mean_character_accuracy": 1.0,
+  "false_reads": 0,
+  "unreadable_correctly_ignored": 1,
+  "tier_distribution": {
+    "VERIFIED": 2,
+    "DETECTED": 2,
+    "LOW_CONFIDENCE": 0,
+    "NOT_READ": 1
+  },
+  "association_metrics": {
+    "total_gt_vehicles": 5,
+    "matched_gt_vehicles": 5,
+    "unmatched_gt_vehicles": 0,
+    "rejected_detections": 92,
+    "per_vehicle_matches": {
+      "V1_SilverSedan": {
+        "matched_frames": 13,
+        "unmatched_frames": 0,
+        "plate_crops_count": 10,
+        "ocr_reads_count": 10
+      },
+      "V2_DarkSedan": {
+        "matched_frames": 7,
+        "unmatched_frames": 3,
+        "plate_crops_count": 4,
+        "ocr_reads_count": 4
+      },
+      "V3_WhiteHatchback": {
+        "matched_frames": 8,
+        "unmatched_frames": 1,
+        "plate_crops_count": 6,
+        "ocr_reads_count": 6
+      },
+      "V4_DistantTruck": {
+        "matched_frames": 15,
+        "unmatched_frames": 1,
+        "plate_crops_count": 1,
+        "ocr_reads_count": 1
+      },
+      "V5_WhiteVan": {
+        "matched_frames": 13,
+        "unmatched_frames": 3,
+        "plate_crops_count": 3,
+        "ocr_reads_count": 0
+      }
+    }
+  },
+  "detection_metrics": {
+    "plate_detection_recall": 1.0,
+    "total_vehicles": 5,
+    "detected_count": 5,
+    "missed_count": 0,
+    "detected_vehicles": [
+      "V1_SilverSedan",
+      "V2_DarkSedan",
+      "V3_WhiteHatchback",
+      "V4_DistantTruck",
+      "V5_WhiteVan"
+    ],
+    "missed_vehicles": []
+  },
+  "readability_metrics": {
+    "readable_samples": 2,
+    "partially_occluded_samples": 1,
+    "unreadable_samples": 1,
+    "too_small_samples": 1,
+    "invalid_ground_truth_samples": 1,
+    "readability_breakdown": {
+      "READABLE": [
+        "V1_SilverSedan",
+        "V2_DarkSedan"
+      ],
+      "PARTIALLY_OCCLUDED": [
+        "V3_WhiteHatchback"
+      ],
+      "PHYSICALLY_UNREADABLE": [
+        "V5_WhiteVan"
+      ],
+      "TOO_SMALL_FOR_RELIABLE_EVALUATION": [
+        "V4_DistantTruck"
+      ],
+      "INVALID_GROUND_TRUTH": [
+        "V3_WhiteHatchback"
+      ]
+    }
+  },
+  "ocr_metrics_valid_readable": {
+    "evaluated_samples": 2,
+    "exact_matches": 2,
+    "exact_match_accuracy": 1.0,
+    "mean_character_accuracy": 1.0,
+    "per_vehicle_ocr": [
+      {
+        "vehicle_id": "V1_SilverSedan",
+        "expected_plate": "MH02FU9304",
+        "published_plate": "MH02FU9304",
+        "published_conf": 0.79,
+        "published_tier": "VERIFIED",
+        "exact_match": true,
+        "character_accuracy": 1.0
+      },
+      {
+        "vehicle_id": "V2_DarkSedan",
+        "expected_plate": "MH02FX6786",
+        "published_plate": "MH02FX6786",
+        "published_conf": 0.47,
+        "published_tier": "VERIFIED",
+        "exact_match": true,
+        "character_accuracy": 1.0
+      }
+    ]
+  },
+  "safety_metrics": {
+    "false_verified_count": 0,
+    "genuine_verified_count": 2,
+    "verified_precision": 1.0,
+    "cross_vehicle_contamination_pct": 0.0,
+    "tier_distribution": {
+      "VERIFIED": 2,
+      "DETECTED": 2,
+      "LOW_CONFIDENCE": 0,
+      "NOT_READ": 1
+    }
+  },
+  "detailed_results": [
+    {
+      "vehicle_id": "V1_SilverSedan",
+      "expected_plate": "MH02FU9304",
+      "visibility": "clear",
+      "readability_class": "READABLE",
+      "ground_truth_status": "VERIFIED_VALID",
+      "occlusion": "NONE",
+      "observable_text": "MH02FU9304",
+      "legacy_annotation": null,
+      "plate_bbox_dimensions": {
+        "width_px": 247,
+        "height_px": 57,
+        "area_px2": 14079
+      },
+      "plate_detected": true,
+      "published_plate": "MH02FU9304",
+      "published_conf": 0.79,
+      "published_tier": "VERIFIED",
+      "exact_match": true,
+      "character_accuracy": 1.0,
+      "matched_frames": 13,
+      "unmatched_frames": 0,
+      "plate_crops_count": 10,
+      "ocr_reads_count": 10
+    },
+    {
+      "vehicle_id": "V2_DarkSedan",
+      "expected_plate": "MH02FX6786",
+      "visibility": "moderate",
+      "readability_class": "READABLE",
+      "ground_truth_status": "VERIFIED_VALID",
+      "occlusion": "NONE",
+      "observable_text": "MH02FX6786",
+      "legacy_annotation": null,
+      "plate_bbox_dimensions": {
+        "width_px": 135,
+        "height_px": 38,
+        "area_px2": 5130
+      },
+      "plate_detected": true,
+      "published_plate": "MH02FX6786",
+      "published_conf": 0.47,
+      "published_tier": "VERIFIED",
+      "exact_match": true,
+      "character_accuracy": 1.0,
+      "matched_frames": 7,
+      "unmatched_frames": 3,
+      "plate_crops_count": 4,
+      "ocr_reads_count": 4
+    },
+    {
+      "vehicle_id": "V3_WhiteHatchback",
+      "expected_plate": null,
+      "visibility": "moderate",
+      "readability_class": "PARTIALLY_OCCLUDED",
+      "ground_truth_status": "INVALID_GROUND_TRUTH",
+      "occlusion": "PARTIAL_FRONT_LEFT",
+      "observable_text": "01CR1176",
+      "legacy_annotation": "DL01CR1176",
+      "plate_bbox_dimensions": {
+        "width_px": 86,
+        "height_px": 36,
+        "area_px2": 3096
+      },
+      "plate_detected": true,
+      "published_plate": "ICR1176",
+      "published_conf": 0.66,
+      "published_tier": "DETECTED",
+      "exact_match": false,
+      "character_accuracy": 0.0,
+      "matched_frames": 8,
+      "unmatched_frames": 1,
+      "plate_crops_count": 6,
+      "ocr_reads_count": 6
+    },
+    {
+      "vehicle_id": "V4_DistantTruck",
+      "expected_plate": null,
+      "visibility": "unreadable",
+      "readability_class": "TOO_SMALL_FOR_RELIABLE_EVALUATION",
+      "ground_truth_status": "UNREADABLE",
+      "occlusion": "PARTIAL_BARRIER",
+      "observable_text": null,
+      "legacy_annotation": null,
+      "plate_bbox_dimensions": {
+        "width_px": 108,
+        "height_px": 28,
+        "area_px2": 3024
+      },
+      "plate_detected": true,
+      "published_plate": "OTEX7625",
+      "published_conf": 0.36,
+      "published_tier": "DETECTED",
+      "exact_match": false,
+      "character_accuracy": 0.0,
+      "matched_frames": 15,
+      "unmatched_frames": 1,
+      "plate_crops_count": 1,
+      "ocr_reads_count": 1
+    },
+    {
+      "vehicle_id": "V5_WhiteVan",
+      "expected_plate": null,
+      "visibility": "poor",
+      "readability_class": "PHYSICALLY_UNREADABLE",
+      "ground_truth_status": "UNREADABLE",
+      "occlusion": "DISTANCE_SHADOW",
+      "observable_text": null,
+      "legacy_annotation": null,
+      "plate_bbox_dimensions": {
+        "width_px": 169,
+        "height_px": 226,
+        "area_px2": 38194
+      },
+      "plate_detected": true,
+      "published_plate": null,
+      "published_conf": 0.0,
+      "published_tier": "NOT_READ",
+      "exact_match": false,
+      "character_accuracy": 1.0,
+      "matched_frames": 13,
+      "unmatched_frames": 3,
+      "plate_crops_count": 3,
+      "ocr_reads_count": 0
+    }
+  ]
+}

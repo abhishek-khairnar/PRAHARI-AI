@@ -1,0 +1,9 @@
+{
+  "total_frames_evaluated": 300,
+  "day_segment_accuracy": 1.0,
+  "night_segment_accuracy": 0.85,
+  "first_night_trigger_frame": 249,
+  "hysteresis_stability": "STABLE",
+  "false_night_alerts": 0,
+  "missed_night_alerts": 9
+}

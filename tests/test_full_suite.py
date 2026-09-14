@@ -11,18 +11,40 @@ Tests:
 
 import os
 import sys
+import tempfile
+import shutil
 import unittest
 from fastapi.testclient import TestClient
 
+# ─── Configure Isolated Temporary Test Database BEFORE Application Imports ───
+_test_temp_dir = tempfile.mkdtemp(prefix="prahari_test_suite_")
+_test_db_path = os.path.join(_test_temp_dir, "test_prahari_events.db")
+os.environ["PRAHARI_DB_PATH"] = _test_db_path
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import database
+test_db_manager = database.DatabaseManager(db_path=_test_db_path)
+database.db_manager = test_db_manager
+
 from database import db_manager
 from rtsp_stream import ModelRegistry, RTSPStreamReader, NIGHT_ENTER_THRESHOLD, NIGHT_EXIT_THRESHOLD
 from camera_manager import CameraManager
 from main import app
 
 
+def tearDownModule():
+    """Cleans up isolated temporary test database directory after all tests finish."""
+    try:
+        shutil.rmtree(_test_temp_dir, ignore_errors=True)
+    except Exception:
+        pass
+
+
 class TestDatabaseLayer(unittest.TestCase):
     """Tests SQLite database reliability, indexing, and analytics queries."""
+
+    def setUp(self):
+        database.db_manager.set_db_path(_test_db_path)
 
     def test_database_connection_and_wal(self):
         self.assertIsNotNone(db_manager)
@@ -68,6 +90,14 @@ class TestDatabaseLayer(unittest.TestCase):
         self.assertIn("event_breakdown", analytics)
         self.assertIn("verified_plates_count", analytics)
         self.assertIsInstance(analytics["events_per_camera"], dict)
+
+    def test_database_isolation_from_production(self):
+        """Regression test for P0-2: Verify that tests never write to prahari_events.db."""
+        prod_db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "prahari_events.db"))
+        active_test_db_path = os.path.abspath(db_manager.db_path)
+        self.assertNotEqual(active_test_db_path, prod_db_path)
+        self.assertTrue(os.path.exists(active_test_db_path))
+        self.assertEqual(active_test_db_path, os.path.abspath(_test_db_path))
 
 
 class TestModelRegistry(unittest.TestCase):

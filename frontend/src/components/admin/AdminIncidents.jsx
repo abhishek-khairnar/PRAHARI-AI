@@ -119,23 +119,29 @@ export function AdminIncidents({ currentUser }) {
     }
   };
 
+  const getSnapshotFilename = (snapshotPath) => {
+    if (!snapshotPath || typeof snapshotPath !== 'string') return '';
+    return snapshotPath.split(/[\\/]/).pop() || '';
+  };
+
   const isOfficer = currentUser?.role === 'OFFICER';
   const canResolve = ['SUPER_ADMIN', 'ADMIN', 'SUPERVISOR'].includes(currentUser?.role);
   const canReopen = ['SUPER_ADMIN', 'ADMIN'].includes(currentUser?.role);
 
-  const filtered = incidents.filter((i) => {
-    const q = searchTerm.toLowerCase();
+  const filtered = (incidents || []).filter((i) => {
+    if (!i) return false;
+    const q = (searchTerm || '').toLowerCase();
     return (
       (i.incident_code || '').toLowerCase().includes(q) ||
       (i.camera_id || '').toLowerCase().includes(q) ||
       (i.event_type || '').toLowerCase().includes(q) ||
-      (i.assigned_officer_name && i.assigned_officer_name.toLowerCase().includes(q))
+      (i.assigned_officer_name && String(i.assigned_officer_name).toLowerCase().includes(q))
     );
   });
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const totalPages = Math.max(1, Math.ceil((totalCount || 0) / pageSize));
   const startItem = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
-  const endItem = Math.min(page * pageSize, totalCount);
+  const endItem = Math.min(page * pageSize, totalCount || 0);
 
   return (
     <div className="admin-page-content">
@@ -178,59 +184,111 @@ export function AdminIncidents({ currentUser }) {
         </div>
 
         <div className="filter-select-group">
-          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}>
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            aria-label="Filter by Status"
+          >
             <option value="">All Statuses</option>
             {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
 
-          <select value={severityFilter} onChange={(e) => { setSeverityFilter(e.target.value); setPage(1); }}>
+          <select
+            value={severityFilter}
+            onChange={(e) => { setSeverityFilter(e.target.value); setPage(1); }}
+            aria-label="Filter by Severity"
+          >
             <option value="">All Severities</option>
             {SEVERITIES.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
 
-          <select value={cameraFilter} onChange={(e) => { setCameraFilter(e.target.value); setPage(1); }}>
+          <select
+            value={cameraFilter}
+            onChange={(e) => { setCameraFilter(e.target.value); setPage(1); }}
+            aria-label="Filter by Camera"
+          >
             <option value="">All Cameras</option>
             {CAMERAS.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
       </div>
 
-      {/* Incidents Table */}
+      {/* Incidents Table (Phases 8 & 9) */}
       <div className="admin-table-wrapper">
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Incident Code</th>
-              <th>Detected Time</th>
-              <th>Camera</th>
-              <th>Event Category</th>
-              <th>Severity</th>
-              <th>Assigned Operator</th>
-              <th>Status</th>
-              <th style={{ textAlign: 'right' }}>Actions</th>
+              <th style={{ width: '130px', textAlign: 'left' }}>Incident</th>
+              <th style={{ width: '160px', textAlign: 'left' }}>Detected</th>
+              <th style={{ width: '110px', textAlign: 'center' }}>Camera</th>
+              <th style={{ textAlign: 'left' }}>Event</th>
+              <th style={{ width: '120px', textAlign: 'center' }}>Severity</th>
+              <th style={{ textAlign: 'left' }}>Assigned Operator</th>
+              <th style={{ width: '130px', textAlign: 'center' }}>Status</th>
+              <th style={{ width: '110px', textAlign: 'right' }}>Action</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={8} className="admin-empty-cell">
-                  {loading ? 'Loading incidents from database...' : 'No active incidents recorded. Surveillance system operational.'}
+                <td colSpan={8} className="soc-empty-cell">
+                  {loading ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '24px 0' }}>
+                      <RefreshCw className="spin-icon" style={{ width: 18, height: 18, color: 'var(--primary)' }} />
+                      <span>Loading incidents from database...</span>
+                    </div>
+                  ) : (searchTerm || statusFilter || severityFilter || cameraFilter) ? (
+                    <div className="soc-empty-state">
+                      <AlertTriangle style={{ width: 32, height: 32, color: 'var(--text-muted)', opacity: 0.5 }} />
+                      <h3>No incidents match your current filters</h3>
+                      <p>Try clearing or adjusting your search criteria and filters.</p>
+                      <button
+                        className="btn-secondary"
+                        onClick={() => {
+                          setSearchTerm('');
+                          setStatusFilter('');
+                          setSeverityFilter('');
+                          setCameraFilter('');
+                          setPage(1);
+                        }}
+                        style={{ marginTop: 8 }}
+                      >
+                        Clear Filters
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="soc-empty-state">
+                      <Shield style={{ width: 36, height: 36, color: 'var(--text-muted)', opacity: 0.4 }} />
+                      <h3>No active incidents recorded</h3>
+                      <p>Surveillance system is operational and all sectors are normal.</p>
+                    </div>
+                  )}
                 </td>
               </tr>
             ) : (
               filtered.map((inc) => (
                 <tr key={inc.id}>
-                  <td className="mono-cell"><strong>{inc.incident_code}</strong></td>
-                  <td className="mono-cell" style={{ fontSize: '0.8rem' }}>{inc.detected_at || inc.created_at}</td>
-                  <td><span className="cam-badge">{inc.camera_id}</span></td>
-                  <td style={{ textTransform: 'capitalize' }}>{(inc.event_type || '').replace('_', ' ')}</td>
-                  <td>
+                  <td className="mono-cell" style={{ textAlign: 'left' }}>
+                    <strong>{inc.incident_code}</strong>
+                  </td>
+                  <td className="mono-cell" style={{ fontSize: '0.8125rem', textAlign: 'left', color: 'var(--text-secondary)' }}>
+                    {inc.detected_at || inc.created_at}
+                  </td>
+                  <td style={{ textAlign: 'center' }}>
+                    <span className="cam-badge">{inc.camera_id}</span>
+                  </td>
+                  <td style={{ textTransform: 'capitalize', textAlign: 'left' }}>
+                    {(inc.event_type || '').replace('_', ' ')}
+                  </td>
+                  <td style={{ textAlign: 'center' }}>
                     <span className={`severity-tag sev-${(inc.severity || 'info').toLowerCase()}`}>
                       {inc.severity}
                     </span>
                   </td>
-                  <td>{inc.assigned_officer_name || <span style={{ color: 'var(--text-muted)' }}>Unassigned</span>}</td>
-                  <td>
+                  <td style={{ textAlign: 'left' }}>
+                    {inc.assigned_officer_name || <span style={{ color: 'var(--text-muted)' }}>Unassigned</span>}
+                  </td>
+                  <td style={{ textAlign: 'center' }}>
                     <span className={`status-pill status-${(inc.status || 'new').toLowerCase()}`}>
                       {inc.status}
                     </span>
@@ -239,7 +297,8 @@ export function AdminIncidents({ currentUser }) {
                     <button
                       className="btn-table-action"
                       onClick={() => handleOpenDetail(inc)}
-                      title="Inspect & Process"
+                      title={`Inspect & Process ${inc.incident_code}`}
+                      aria-label={`Inspect ${inc.incident_code}`}
                     >
                       <Eye style={{ width: 14, height: 14 }} />
                       <span>Inspect</span>
@@ -337,13 +396,13 @@ export function AdminIncidents({ currentUser }) {
                     <h4>Evidentiary Capture</h4>
                     <div className="incident-snapshot-wrapper">
                       <img
-                        src={`/alerts/${selectedIncident.evidence_snapshot.split(/[\\/]/).pop()}`}
+                        src={`/alerts/${getSnapshotFilename(selectedIncident.evidence_snapshot)}`}
                         alt="Incident Evidence"
                         className="incident-evidence-img"
                         onError={(e) => { e.target.style.display = 'none'; }}
                       />
                       <div className="snapshot-filename mono-cell">
-                        {selectedIncident.evidence_snapshot.split(/[\\/]/).pop()}
+                        {getSnapshotFilename(selectedIncident.evidence_snapshot)}
                       </div>
                     </div>
                   </div>

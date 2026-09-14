@@ -1,0 +1,75 @@
+{
+  "analysis_type": "BENCHMARK-ONLY IMAGE SIZE ANALYSIS",
+  "production_imgsz_frozen": 640,
+  "resolutions": {
+    "imgsz_640": {
+      "imgsz": 640,
+      "overall": {
+        "precision": 0.6078,
+        "recall": 0.8378,
+        "f1": 0.7045,
+        "tp": 31,
+        "fp": 20,
+        "fn": 6
+      },
+      "person": {
+        "precision": 0.5714,
+        "recall": 0.7059,
+        "f1": 0.6316,
+        "tp": 12,
+        "fp": 9,
+        "fn": 5
+      },
+      "macro_f1": 0.6956,
+      "avg_latency_ms": 124.87,
+      "fps": 8.01,
+      "vram_mb": 12.1
+    },
+    "imgsz_768": {
+      "imgsz": 768,
+      "overall": {
+        "precision": 0.5357,
+        "recall": 0.8108,
+        "f1": 0.6452,
+        "tp": 30,
+        "fp": 26,
+        "fn": 7
+      },
+      "person": {
+        "precision": 0.4783,
+        "recall": 0.6471,
+        "f1": 0.55,
+        "tp": 11,
+        "fp": 12,
+        "fn": 6
+      },
+      "macro_f1": 0.6589,
+      "avg_latency_ms": 116.49,
+      "fps": 8.58,
+      "vram_mb": 12.12
+    },
+    "imgsz_960": {
+      "imgsz": 960,
+      "overall": {
+        "precision": 0.4828,
+        "recall": 0.7568,
+        "f1": 0.5895,
+        "tp": 28,
+        "fp": 30,
+        "fn": 9
+      },
+      "person": {
+        "precision": 0.48,
+        "recall": 0.7059,
+        "f1": 0.5714,
+        "tp": 12,
+        "fp": 13,
+        "fn": 5
+      },
+      "macro_f1": 0.4602,
+      "avg_latency_ms": 112.38,
+      "fps": 8.9,
+      "vram_mb": 12.16
+    }
+  }
+}

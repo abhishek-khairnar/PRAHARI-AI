@@ -1,0 +1,18 @@
+{
+  "database_unchanged": true,
+  "pre_benchmark_counts": {
+    "intrusion_events": 25598,
+    "anpr_events": 4115,
+    "security_events": 5869,
+    "system_events": 284
+  },
+  "post_benchmark_counts": {
+    "intrusion_events": 25598,
+    "anpr_events": 4115,
+    "security_events": 5869,
+    "system_events": 284
+  },
+  "test_rows_introduced": 0,
+  "production_files_modified": [],
+  "status": "PASS"
+}

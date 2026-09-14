@@ -1,12 +1,10 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Header } from './components/Header';
-import { SystemStatus } from './components/SystemStatus';
-import { CameraGrid } from './components/CameraGrid';
-import { ActivityFeed } from './components/ActivityFeed';
+import { Dashboard } from './components/dashboard/Dashboard';
 import { FocusModal } from './components/FocusModal';
 import { AnalyticsDrawer } from './components/AnalyticsDrawer';
 import { Lightbox } from './components/Lightbox';
 import { usePolling } from './hooks/usePolling';
+import './styles/dashboard.css';
 
 import { AdminLayout } from './components/admin/AdminLayout';
 import { AdminLogin } from './components/admin/AdminLogin';
@@ -28,10 +26,19 @@ import {
   stopWebcam
 } from './services/api';
 
+import { useNotificationSocket } from './hooks/useNotificationSocket';
+import { NotificationDrawer } from './components/notifications/NotificationDrawer';
+import { ToastContainer } from './components/notifications/ToastContainer';
+import { NotificationsPage } from './components/notifications/NotificationsPage';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
+
 const parseRoute = () => {
   const path = window.location.pathname;
   if (path === '/login') {
     return { view: 'login', tab: 'overview' };
+  }
+  if (path === '/notifications') {
+    return { view: 'notifications', tab: 'all' };
   }
   if (path.startsWith('/admin')) {
     const parts = path.split('/').filter(Boolean);
@@ -64,7 +71,10 @@ export function App() {
     };
     const handleUnauthorized = () => {
       setCurrentUser(null);
-      navigateTo('login');
+      const path = window.location.pathname;
+      if (path.startsWith('/admin') || path === '/notifications') {
+        navigateTo('login');
+      }
     };
     window.addEventListener('popstate', handlePopState);
     window.addEventListener('prahari:unauthorized', handleUnauthorized);
@@ -81,13 +91,53 @@ export function App() {
     };
   }, []);
 
+  // Ensure #root has cc-root class for zero padding on operations dashboard
+  useEffect(() => {
+    const rootEl = document.getElementById('root');
+    if (rootEl) {
+      if (currentRoute.view === 'dashboard') {
+        rootEl.classList.add('cc-root');
+      } else {
+        rootEl.classList.remove('cc-root');
+      }
+    }
+  }, [currentRoute.view]);
+
+  const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] = useState(false);
+
   const navigateTo = (view, tab = 'overview') => {
     let path = '/dashboard';
     if (view === 'login') path = '/login';
+    else if (view === 'notifications') path = '/notifications';
     else if (view === 'admin') path = tab === 'overview' ? '/admin' : `/admin/${tab}`;
     window.history.pushState({}, '', path);
     setCurrentRoute({ view, tab });
   };
+
+  const handleOpenIncident = useCallback((incidentId) => {
+    navigateTo('admin', 'incidents');
+  }, []);
+
+  const {
+    status: notifStatus,
+    error: notifError,
+    notifications,
+    unreadCount,
+    activeIncidentsCount,
+    attentionSeverity,
+    connectionStatus: notifConnectionStatus,
+    toasts,
+    soundActive,
+    desktopPermission,
+    dismissToast,
+    handleMarkRead,
+    handleMarkAllRead,
+    toggleSound,
+    requestDesktopPermission,
+    refreshNotifications
+  } = useNotificationSocket({
+    onOpenIncident: handleOpenIncident
+  });
 
   const isDashboardView = currentRoute.view === 'dashboard';
 
@@ -221,68 +271,70 @@ export function App() {
     }
 
     return (
-      <AdminLayout
-        currentUser={currentUser}
-        activeTab={currentRoute.tab || 'overview'}
-        onTabChange={(tab) => navigateTo('admin', tab)}
-        onLogout={async () => {
-          await logout();
-          setCurrentUser(null);
-          navigateTo('dashboard');
-        }}
-        onBackToDashboard={() => navigateTo('dashboard')}
-      />
+      <ErrorBoundary onRetry={() => navigateTo('admin', currentRoute.tab || 'overview')}>
+        <AdminLayout
+          currentUser={currentUser}
+          activeTab={currentRoute.tab || 'overview'}
+          onTabChange={(tab) => navigateTo('admin', tab)}
+          onLogout={async () => {
+            await logout();
+            setCurrentUser(null);
+            navigateTo('dashboard');
+          }}
+          onBackToDashboard={() => navigateTo('dashboard')}
+        />
+        <ToastContainer
+          toasts={toasts}
+          onDismiss={dismissToast}
+          onOpenIncident={handleOpenIncident}
+        />
+      </ErrorBoundary>
+    );
+  }
+
+  // ─── RENDER NOTIFICATIONS VIEW ───
+  if (currentRoute.view === 'notifications') {
+    return (
+      <ErrorBoundary onRetry={() => navigateTo('notifications')}>
+        <NotificationsPage
+          onNavigateToIncident={(incidentId) => navigateTo('admin', 'incidents')}
+          onBack={() => navigateTo('dashboard')}
+        />
+        <ToastContainer
+          toasts={toasts}
+          onDismiss={dismissToast}
+          onOpenIncident={handleOpenIncident}
+        />
+      </ErrorBoundary>
     );
   }
 
   // ─── RENDER OPERATIONS DASHBOARD VIEW ───
-  const agg = dashboardData.aggregate || {};
-  const camerasList = dashboardData.cameras || [];
-  const telemetryMap = {};
-  camerasList.forEach(c => {
-    if (c.camera_id) telemetryMap[c.camera_id] = c;
-  });
-
   return (
     <>
-      <Header
-        gpuInfo={agg.gpu || {}}
-        aggregateAiFps={agg.aggregate_ai_fps || 0.0}
-        activeCameras={agg.active_cameras || 0}
-        totalCameras={agg.total_cameras || 4}
-        threatScore={agg.threat_score || 0}
+      <Dashboard
+        dashboardData={dashboardData}
+        verifiedAnprCount={verifiedAnprCount}
+        eventsFeed={eventsFeed}
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
         isWebcamRunning={isWebcamRunning}
         isWebcamTransitioning={isWebcamTransitioning}
         onToggleWebcam={handleToggleWebcam}
+        onFocusCamera={handleFocusCamera}
+        onOpenLightbox={handleOpenLightbox}
+        onOpenIncident={(incidentId) => navigateTo('admin', 'incidents')}
         onOpenAnalytics={handleOpenAnalytics}
         onNavigateToAdmin={() => navigateTo(currentUser ? 'admin' : 'login', 'overview')}
+        currentUser={currentUser}
+        unreadCount={unreadCount}
+        activeIncidentsCount={activeIncidentsCount}
+        attentionSeverity={attentionSeverity}
+        notificationConnectionStatus={notifConnectionStatus}
+        isNotificationDrawerOpen={isNotificationDrawerOpen}
+        onToggleNotificationDrawer={() => setIsNotificationDrawerOpen(prev => !prev)}
+        onViewAllNotifications={() => navigateTo('notifications')}
       />
-
-      <SystemStatus
-        totalPeopleCount={agg.total_people_count || 0}
-        totalVehicleCount={agg.total_vehicle_count || 0}
-        aggregateAiFps={agg.aggregate_ai_fps || 0.0}
-        captureFps={agg.aggregate_capture_fps || 0.0}
-        totalLiveFaces={agg.total_live_faces || 0}
-        verifiedAnprCount={verifiedAnprCount}
-        totalSessionAlerts={agg.total_session_alerts || 0}
-        totalSessionSuspicious={agg.total_session_suspicious || 0}
-      />
-
-      <div className="workspace">
-        <CameraGrid
-          telemetryMap={telemetryMap}
-          isWebcamRunning={isWebcamRunning}
-          onFocusCamera={handleFocusCamera}
-        />
-
-        <ActivityFeed
-          events={eventsFeed}
-          activeTab={activeTab}
-          onSelectTab={setActiveTab}
-          onOpenLightbox={handleOpenLightbox}
-        />
-      </div>
 
       <FocusModal
         isOpen={focusModal.isOpen}
@@ -303,6 +355,33 @@ export function App() {
         imageUrl={lightboxModal.imgUrl}
         caption={lightboxModal.caption}
         onClose={() => setLightboxModal({ isOpen: false, imgUrl: '', caption: '' })}
+      />
+
+      <NotificationDrawer
+        isOpen={isNotificationDrawerOpen}
+        onClose={() => setIsNotificationDrawerOpen(false)}
+        status={notifStatus}
+        error={notifError}
+        onRetry={refreshNotifications}
+        onNavigateToLogin={() => navigateTo('login')}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        activeIncidentsCount={activeIncidentsCount}
+        connectionStatus={notifConnectionStatus}
+        soundActive={soundActive}
+        onToggleSound={toggleSound}
+        desktopPermission={desktopPermission}
+        onRequestDesktopPermission={requestDesktopPermission}
+        onMarkRead={handleMarkRead}
+        onMarkAllRead={handleMarkAllRead}
+        onOpenIncident={(incidentId) => navigateTo('admin', 'incidents')}
+        onViewAll={() => navigateTo('notifications')}
+      />
+
+      <ToastContainer
+        toasts={toasts}
+        onDismiss={dismissToast}
+        onOpenIncident={(incidentId) => navigateTo('admin', 'incidents')}
       />
     </>
   );

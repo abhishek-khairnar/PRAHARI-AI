@@ -1,0 +1,3344 @@
+{
+  "benchmark_date": "2026-09-12T18:00:00",
+  "phase": "PHASE_A2_1",
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+    "vram_total_gb": 6.0,
+    "cpu_cores": 16
+  },
+  "inventory": [
+    {
+      "id": "yolov8n_prod",
+      "name": "Production Baseline (YOLOv8n)",
+      "path": "weights/yolov8n.pt",
+      "expected_sha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36",
+      "architecture": "YOLOv8n",
+      "framework": "Ultralytics YOLOv8 (PyTorch)",
+      "category": "COCO Pretrained Nano",
+      "is_production": true,
+      "status": "BENCHMARKABLE",
+      "exists": true,
+      "size_bytes": 6549796,
+      "size_mb": 6.25,
+      "sha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36",
+      "sha256_match": true
+    },
+    {
+      "id": "yolov8s_candidate",
+      "name": "Candidate 1: YOLOv8s COCO",
+      "path": "weights/candidates/yolov8s.pt",
+      "expected_sha256": "1f47a78bf100391c2a140b7ac73a1caae18c32779be7d310658112f7ac9aa78a",
+      "architecture": "YOLOv8s",
+      "framework": "Ultralytics YOLOv8 (PyTorch)",
+      "category": "COCO Pretrained Small",
+      "is_production": false,
+      "status": "BENCHMARKABLE",
+      "exists": true,
+      "size_bytes": 22588772,
+      "size_mb": 21.54,
+      "sha256": "1f47a78bf100391c2a140b7ac73a1caae18c32779be7d310658112f7ac9aa78a",
+      "sha256_match": true
+    },
+    {
+      "id": "prahari_yolov8s_v1",
+      "name": "Candidate 2: PRAHARI Fine-Tuned YOLOv8s",
+      "path": "weights/candidates/prahari_yolov8s_v1.pt",
+      "expected_sha256": "10beb8e08a2153e8c1143f21f69665388998d82c97580456eb10674ac169897d",
+      "architecture": "YOLOv8s-Custom",
+      "framework": "Ultralytics YOLOv8 (PyTorch)",
+      "category": "PRAHARI Surveillance Domain Small (15 epochs)",
+      "is_production": false,
+      "status": "EXISTING_RESULT",
+      "exists": true,
+      "size_bytes": 22516963,
+      "size_mb": 21.47,
+      "sha256": "10beb8e08a2153e8c1143f21f69665388998d82c97580456eb10674ac169897d",
+      "sha256_match": true
+    },
+    {
+      "id": "yolo26n",
+      "name": "Candidate 3: YOLO26n Upstream COCO",
+      "path": "yolo26n.pt",
+      "expected_sha256": "9b09cc8bf347f0fc8a5f7657480587f25db09b34bf33b0652110fb03a8ad4fef",
+      "architecture": "YOLO26n (End-to-End)",
+      "framework": "Ultralytics YOLO26 (PyTorch)",
+      "category": "COCO Pretrained Nano (End-to-End MuSGD)",
+      "is_production": false,
+      "status": "BENCHMARKABLE",
+      "exists": true,
+      "size_bytes": 5544453,
+      "size_mb": 5.29,
+      "sha256": "9b09cc8bf347f0fc8a5f7657480587f25db09b34bf33b0652110fb03a8ad4fef",
+      "sha256_match": true
+    },
+    {
+      "id": "license_plate_detector",
+      "name": "ANPR License Plate Detector",
+      "path": "weights/license-plate-finetune-v1n.pt",
+      "expected_sha256": "0aec75976c56eb6f26dfb274c430620ec65137915ff1ae47c3a48c7af8afb7b2",
+      "architecture": "YOLOv8n-LicensePlate",
+      "framework": "Ultralytics YOLOv8",
+      "category": "Specialized OCR/Plate Detector",
+      "is_production": true,
+      "status": "NOT_BENCHMARKABLE",
+      "reason": "Single-class specialized license plate detector (1 class: License_Plate). Incompatible with surveillance ontology.",
+      "exists": true,
+      "size_bytes": 5465235,
+      "size_mb": 5.21,
+      "sha256": "0aec75976c56eb6f26dfb274c430620ec65137915ff1ae47c3a48c7af8afb7b2",
+      "sha256_match": true
+    },
+    {
+      "id": "yunet_face_detector",
+      "name": "YuNet Face Detector",
+      "path": "weights/face_detection_yunet_2023mar.onnx",
+      "expected_sha256": "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4",
+      "architecture": "YuNet",
+      "framework": "OpenCV ONNX",
+      "category": "Specialized Face Detector",
+      "is_production": true,
+      "status": "NOT_BENCHMARKABLE",
+      "reason": "Specialized ONNX facial landmark/face detector. Incompatible with surveillance object detection ontology.",
+      "exists": true,
+      "size_bytes": 232589,
+      "size_mb": 0.22,
+      "sha256": "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4",
+      "sha256_match": true
+    },
+    {
+      "id": "scratch_git_blob",
+      "name": "Git Blob Recovery Artifact",
+      "path": "scratch/yolov8s_git_0ef56a8.pt",
+      "expected_sha256": "cc52a12b1b0394ba31185f6085c292fe0780ae43cb76d25e397ec15ff5fa3400",
+      "architecture": "Unknown / Corrupt",
+      "framework": "None",
+      "category": "Corrupted Git LFS / Binary Artifact",
+      "is_production": false,
+      "status": "NOT_BENCHMARKABLE",
+      "reason": "Corrupted file: UnpicklingError: invalid load key, '\\xff'. Not a loadable PyTorch checkpoint.",
+      "exists": true,
+      "size_bytes": 45535850,
+      "size_mb": 43.43,
+      "sha256": "cc52a12b1b0394ba31185f6085c292fe0780ae43cb76d25e397ec15ff5fa3400",
+      "sha256_match": true
+    }
+  ],
+  "load_tests": {
+    "weights/yolov8n.pt": {
+      "load_success": true,
+      "inference_success": true,
+      "load_time_ms": 25.68,
+      "smoke_inference_latency_ms": 5800.02,
+      "num_params": 3157200,
+      "num_classes": 80,
+      "detected_count_smoke": 4,
+      "detected_classes_smoke": [
+        "bus",
+        "person",
+        "person",
+        "person"
+      ]
+    },
+    "weights/candidates/yolov8s.pt": {
+      "load_success": true,
+      "inference_success": true,
+      "load_time_ms": 70.89,
+      "smoke_inference_latency_ms": 245.85,
+      "num_params": 11166560,
+      "num_classes": 80,
+      "detected_count_smoke": 5,
+      "detected_classes_smoke": [
+        "bus",
+        "person",
+        "person",
+        "person",
+        "person"
+      ]
+    },
+    "yolo26n.pt": {
+      "load_success": true,
+      "inference_success": true,
+      "load_time_ms": 129.32,
+      "smoke_inference_latency_ms": 806.39,
+      "num_params": 2572280,
+      "num_classes": 80,
+      "detected_count_smoke": 5,
+      "detected_classes_smoke": [
+        "bus",
+        "person",
+        "person",
+        "person",
+        "person"
+      ]
+    }
+  },
+  "spatial_benchmark_a1": {
+    "weights/yolov8n.pt": {
+      "cameras": {
+        "CAM-01": {
+          "status": "FAIL",
+          "status_reason": "Failed benchmark numerical threshold: Person F1 (0.57) < 0.70; Overall F1 (0.62) < 0.70",
+          "camera_name": "Border Post Alpha",
+          "environment": "Daylight border post checkpoint",
+          "frames_evaluated": 2,
+          "per_class": {
+            "person": {
+              "precision": 0.5,
+              "recall": 0.6667,
+              "f1": 0.5714,
+              "tp": 6,
+              "fp": 6,
+              "fn": 3,
+              "gt_count": 9,
+              "pred_count": 12,
+              "ap50": 0.4213
+            },
+            "car": {
+              "precision": 0.5455,
+              "recall": 1.0,
+              "f1": 0.7059,
+              "tp": 6,
+              "fp": 5,
+              "fn": 0,
+              "gt_count": 6,
+              "pred_count": 11,
+              "ap50": 0.8571
+            },
+            "motorcycle": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 1,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 1,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6667,
+              "tp": 1,
+              "fp": 0,
+              "fn": 1,
+              "gt_count": 2,
+              "pred_count": 1,
+              "ap50": 0.5
+            }
+          },
+          "macro": {
+            "precision": 0.6818,
+            "recall": 0.7222,
+            "f1": 0.7015,
+            "evaluated_classes": [
+              "person",
+              "car",
+              "truck"
+            ]
+          },
+          "overall": {
+            "precision": 0.52,
+            "recall": 0.7647,
+            "f1": 0.619,
+            "tp": 13,
+            "fp": 12,
+            "fn": 4,
+            "total_gt": 17,
+            "total_pred": 25,
+            "count_mae": 4.0
+          },
+          "person_analysis": {
+            "gt_person_count": 9,
+            "pred_person_count": 12,
+            "tp": 6,
+            "fp": 6,
+            "fn": 3,
+            "precision": 0.5,
+            "recall": 0.6667,
+            "f1": 0.5714,
+            "category_breakdown": {
+              "large_near": {
+                "gt": 7,
+                "tp": 5,
+                "fn": 2
+              },
+              "small_distant": {
+                "gt": 2,
+                "tp": 1,
+                "fn": 1
+              },
+              "occluded": {
+                "gt": 2,
+                "tp": 2,
+                "fn": 0
+              },
+              "unoccluded": {
+                "gt": 7,
+                "tp": 4,
+                "fn": 3
+              }
+            }
+          },
+          "vehicle_analysis": {
+            "car": {
+              "precision": 0.5455,
+              "recall": 1.0,
+              "f1": 0.7059,
+              "tp": 6,
+              "fp": 5,
+              "fn": 0,
+              "gt_count": 6,
+              "pred_count": 11,
+              "ap50": 0.8571
+            },
+            "motorcycle": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 1,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 1,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6667,
+              "tp": 1,
+              "fp": 0,
+              "fn": 1,
+              "gt_count": 2,
+              "pred_count": 1,
+              "ap50": 0.5
+            }
+          }
+        },
+        "CAM-02": {
+          "status": "PASS",
+          "status_reason": "Overall F1 (0.92) and Macro F1 (0.96) meet acceptance threshold.",
+          "camera_name": "Night Surveillance Bravo",
+          "environment": "Highway with lighting transition (Day -> Transition -> Night)",
+          "frames_evaluated": 5,
+          "per_class": {
+            "person": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "car": {
+              "precision": 0.8333,
+              "recall": 1.0,
+              "f1": 0.9091,
+              "tp": 5,
+              "fp": 1,
+              "fn": 0,
+              "gt_count": 5,
+              "pred_count": 6,
+              "ap50": 1.0
+            },
+            "motorcycle": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "tp": 1,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 1,
+              "pred_count": 1,
+              "ap50": 1.0
+            }
+          },
+          "macro": {
+            "precision": 0.9166,
+            "recall": 1.0,
+            "f1": 0.9565,
+            "evaluated_classes": [
+              "car",
+              "truck"
+            ]
+          },
+          "overall": {
+            "precision": 0.8571,
+            "recall": 1.0,
+            "f1": 0.9231,
+            "tp": 6,
+            "fp": 1,
+            "fn": 0,
+            "total_gt": 6,
+            "total_pred": 7,
+            "count_mae": 0.2
+          },
+          "person_analysis": {
+            "gt_person_count": 0,
+            "pred_person_count": 0,
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "category_breakdown": {
+              "large_near": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              },
+              "small_distant": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              },
+              "occluded": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              },
+              "unoccluded": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              }
+            }
+          },
+          "vehicle_analysis": {
+            "car": {
+              "precision": 0.8333,
+              "recall": 1.0,
+              "f1": 0.9091,
+              "tp": 5,
+              "fp": 1,
+              "fn": 0,
+              "gt_count": 5,
+              "pred_count": 6,
+              "ap50": 1.0
+            },
+            "motorcycle": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "tp": 1,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 1,
+              "pred_count": 1,
+              "ap50": 1.0
+            }
+          }
+        },
+        "CAM-03": {
+          "status": "FAIL",
+          "status_reason": "Failed benchmark numerical threshold: Person F1 (0.29) < 0.70; Overall F1 (0.29) < 0.70",
+          "camera_name": "Perimeter Activity Charlie",
+          "environment": "Open grassy perimeter field with security fence",
+          "frames_evaluated": 3,
+          "per_class": {
+            "person": {
+              "precision": 0.25,
+              "recall": 0.3333,
+              "f1": 0.2857,
+              "tp": 1,
+              "fp": 3,
+              "fn": 2,
+              "gt_count": 3,
+              "pred_count": 4,
+              "ap50": 0.3333
+            },
+            "car": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "motorcycle": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            }
+          },
+          "macro": {
+            "precision": 0.25,
+            "recall": 0.3333,
+            "f1": 0.2857,
+            "evaluated_classes": [
+              "person"
+            ]
+          },
+          "overall": {
+            "precision": 0.25,
+            "recall": 0.3333,
+            "f1": 0.2857,
+            "tp": 1,
+            "fp": 3,
+            "fn": 2,
+            "total_gt": 3,
+            "total_pred": 4,
+            "count_mae": 0.3333
+          },
+          "person_analysis": {
+            "gt_person_count": 3,
+            "pred_person_count": 4,
+            "tp": 1,
+            "fp": 3,
+            "fn": 2,
+            "precision": 0.25,
+            "recall": 0.3333,
+            "f1": 0.2857,
+            "category_breakdown": {
+              "large_near": {
+                "gt": 3,
+                "tp": 1,
+                "fn": 2
+              },
+              "small_distant": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              },
+              "occluded": {
+                "gt": 1,
+                "tp": 1,
+                "fn": 0
+              },
+              "unoccluded": {
+                "gt": 2,
+                "tp": 0,
+                "fn": 2
+              }
+            }
+          },
+          "vehicle_analysis": {
+            "car": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "motorcycle": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            }
+          }
+        },
+        "CAM-04": {
+          "status": "PASS",
+          "status_reason": "Overall F1 (0.85) and Macro F1 (0.84) meet acceptance threshold.",
+          "camera_name": "Urban Facility Delta",
+          "environment": "Dense urban intersection with pedestrians, civilian cars, and two-wheelers",
+          "frames_evaluated": 1,
+          "per_class": {
+            "person": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "tp": 5,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 5,
+              "pred_count": 5,
+              "ap50": 1.0
+            },
+            "car": {
+              "precision": 0.6667,
+              "recall": 1.0,
+              "f1": 0.8,
+              "tp": 4,
+              "fp": 2,
+              "fn": 0,
+              "gt_count": 4,
+              "pred_count": 6,
+              "ap50": 0.95
+            },
+            "motorcycle": {
+              "precision": 0.5,
+              "recall": 1.0,
+              "f1": 0.6667,
+              "tp": 2,
+              "fp": 2,
+              "fn": 0,
+              "gt_count": 2,
+              "pred_count": 4,
+              "ap50": 1.0
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            }
+          },
+          "macro": {
+            "precision": 0.7222,
+            "recall": 1.0,
+            "f1": 0.8387,
+            "evaluated_classes": [
+              "person",
+              "car",
+              "motorcycle"
+            ]
+          },
+          "overall": {
+            "precision": 0.7333,
+            "recall": 1.0,
+            "f1": 0.8462,
+            "tp": 11,
+            "fp": 4,
+            "fn": 0,
+            "total_gt": 11,
+            "total_pred": 15,
+            "count_mae": 4.0
+          },
+          "person_analysis": {
+            "gt_person_count": 5,
+            "pred_person_count": 5,
+            "tp": 5,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "category_breakdown": {
+              "large_near": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              },
+              "small_distant": {
+                "gt": 5,
+                "tp": 5,
+                "fn": 0
+              },
+              "occluded": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              },
+              "unoccluded": {
+                "gt": 5,
+                "tp": 5,
+                "fn": 0
+              }
+            }
+          },
+          "vehicle_analysis": {
+            "car": {
+              "precision": 0.6667,
+              "recall": 1.0,
+              "f1": 0.8,
+              "tp": 4,
+              "fp": 2,
+              "fn": 0,
+              "gt_count": 4,
+              "pred_count": 6,
+              "ap50": 0.95
+            },
+            "motorcycle": {
+              "precision": 0.5,
+              "recall": 1.0,
+              "f1": 0.6667,
+              "tp": 2,
+              "fp": 2,
+              "fn": 0,
+              "gt_count": 2,
+              "pred_count": 4,
+              "ap50": 1.0
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            }
+          }
+        }
+      },
+      "macro_summary": {
+        "mean_precision": 0.6426,
+        "mean_recall": 0.7639,
+        "mean_f1": 0.6956,
+        "total_cameras": 4,
+        "evaluated_cameras": [
+          "CAM-01",
+          "CAM-02",
+          "CAM-03",
+          "CAM-04"
+        ],
+        "passed_cameras": [
+          "CAM-02",
+          "CAM-04"
+        ],
+        "failed_cameras": [
+          "CAM-01",
+          "CAM-03"
+        ]
+      },
+      "truck_misclassification_audit": {
+        "total_gt_trucks": 3,
+        "predicted_as_truck": 2,
+        "predicted_as_car": 1,
+        "predicted_as_bus": 0,
+        "unmatched_missed": 0,
+        "details": [
+          {
+            "camera": "CAM-01",
+            "frame": 0,
+            "gt_box": [
+              1255,
+              391,
+              1398,
+              568
+            ],
+            "best_overlapping_prediction": "car",
+            "overlap_iou": 1.0,
+            "pred_conf": 0.42
+          },
+          {
+            "camera": "CAM-01",
+            "frame": 60,
+            "gt_box": [
+              1113,
+              393,
+              1344,
+              679
+            ],
+            "best_overlapping_prediction": "truck",
+            "overlap_iou": 1.0,
+            "pred_conf": 0.53
+          },
+          {
+            "camera": "CAM-02",
+            "frame": 120,
+            "gt_box": [
+              0,
+              674,
+              205,
+              1050
+            ],
+            "best_overlapping_prediction": "truck",
+            "overlap_iou": 1.0,
+            "pred_conf": 0.52
+          }
+        ]
+      },
+      "benchmark_parameters": {
+        "iou_threshold": 0.5,
+        "confidence_threshold": 0.35,
+        "image_size": 640,
+        "classes": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          7
+        ]
+      },
+      "pooled_metrics": {
+        "per_class": {
+          "person": {
+            "precision": 0.5714,
+            "recall": 0.7059,
+            "f1": 0.6316,
+            "tp": 12,
+            "fp": 9,
+            "fn": 5
+          },
+          "car": {
+            "precision": 0.6522,
+            "recall": 1.0,
+            "f1": 0.7895,
+            "tp": 15,
+            "fp": 8,
+            "fn": 0
+          },
+          "motorcycle": {
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6667,
+            "tp": 2,
+            "fp": 2,
+            "fn": 0
+          },
+          "truck": {
+            "precision": 1.0,
+            "recall": 0.6667,
+            "f1": 0.8,
+            "tp": 2,
+            "fp": 0,
+            "fn": 1
+          },
+          "bus": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "tp": 0,
+            "fp": 1,
+            "fn": 0
+          }
+        },
+        "overall": {
+          "precision": 0.6078,
+          "recall": 0.8378,
+          "f1": 0.7045,
+          "tp": 31,
+          "fp": 20,
+          "fn": 6
+        },
+        "macro": {
+          "precision": 0.6809,
+          "recall": 0.8431,
+          "f1": 0.722,
+          "active_classes": [
+            "person",
+            "car",
+            "motorcycle",
+            "truck"
+          ]
+        }
+      }
+    },
+    "weights/candidates/yolov8s.pt": {
+      "cameras": {
+        "CAM-01": {
+          "status": "FAIL",
+          "status_reason": "Failed benchmark numerical threshold: Person F1 (0.43) < 0.70; Truck F1 (0.33) < 0.50; Overall F1 (0.45) < 0.70",
+          "camera_name": "Border Post Alpha",
+          "environment": "Daylight border post checkpoint",
+          "frames_evaluated": 2,
+          "per_class": {
+            "person": {
+              "precision": 0.3571,
+              "recall": 0.5556,
+              "f1": 0.4348,
+              "tp": 5,
+              "fp": 9,
+              "fn": 4,
+              "gt_count": 9,
+              "pred_count": 14,
+              "ap50": 0.3752
+            },
+            "car": {
+              "precision": 0.4,
+              "recall": 1.0,
+              "f1": 0.5714,
+              "tp": 6,
+              "fp": 9,
+              "fn": 0,
+              "gt_count": 6,
+              "pred_count": 15,
+              "ap50": 0.9048
+            },
+            "motorcycle": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 3,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 3,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 0.25,
+              "recall": 0.5,
+              "f1": 0.3333,
+              "tp": 1,
+              "fp": 3,
+              "fn": 1,
+              "gt_count": 2,
+              "pred_count": 4,
+              "ap50": 0.1667
+            }
+          },
+          "macro": {
+            "precision": 0.3357,
+            "recall": 0.6852,
+            "f1": 0.4506,
+            "evaluated_classes": [
+              "person",
+              "car",
+              "truck"
+            ]
+          },
+          "overall": {
+            "precision": 0.3333,
+            "recall": 0.7059,
+            "f1": 0.4528,
+            "tp": 12,
+            "fp": 24,
+            "fn": 5,
+            "total_gt": 17,
+            "total_pred": 36,
+            "count_mae": 9.5
+          },
+          "person_analysis": {
+            "gt_person_count": 9,
+            "pred_person_count": 14,
+            "tp": 5,
+            "fp": 9,
+            "fn": 4,
+            "precision": 0.3571,
+            "recall": 0.5556,
+            "f1": 0.4348,
+            "category_breakdown": {
+              "large_near": {
+                "gt": 7,
+                "tp": 4,
+                "fn": 3
+              },
+              "small_distant": {
+                "gt": 2,
+                "tp": 1,
+                "fn": 1
+              },
+              "occluded": {
+                "gt": 2,
+                "tp": 1,
+                "fn": 1
+              },
+              "unoccluded": {
+                "gt": 7,
+                "tp": 4,
+                "fn": 3
+              }
+            }
+          },
+          "vehicle_analysis": {
+            "car": {
+              "precision": 0.4,
+              "recall": 1.0,
+              "f1": 0.5714,
+              "tp": 6,
+              "fp": 9,
+              "fn": 0,
+              "gt_count": 6,
+              "pred_count": 15,
+              "ap50": 0.9048
+            },
+            "motorcycle": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 3,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 3,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 0.25,
+              "recall": 0.5,
+              "f1": 0.3333,
+              "tp": 1,
+              "fp": 3,
+              "fn": 1,
+              "gt_count": 2,
+              "pred_count": 4,
+              "ap50": 0.1667
+            }
+          }
+        },
+        "CAM-02": {
+          "status": "PASS",
+          "status_reason": "Overall F1 (0.92) and Macro F1 (0.96) meet acceptance threshold.",
+          "camera_name": "Night Surveillance Bravo",
+          "environment": "Highway with lighting transition (Day -> Transition -> Night)",
+          "frames_evaluated": 5,
+          "per_class": {
+            "person": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "car": {
+              "precision": 0.8333,
+              "recall": 1.0,
+              "f1": 0.9091,
+              "tp": 5,
+              "fp": 1,
+              "fn": 0,
+              "gt_count": 5,
+              "pred_count": 6,
+              "ap50": 1.0
+            },
+            "motorcycle": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "tp": 1,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 1,
+              "pred_count": 1,
+              "ap50": 1.0
+            }
+          },
+          "macro": {
+            "precision": 0.9166,
+            "recall": 1.0,
+            "f1": 0.9565,
+            "evaluated_classes": [
+              "car",
+              "truck"
+            ]
+          },
+          "overall": {
+            "precision": 0.8571,
+            "recall": 1.0,
+            "f1": 0.9231,
+            "tp": 6,
+            "fp": 1,
+            "fn": 0,
+            "total_gt": 6,
+            "total_pred": 7,
+            "count_mae": 0.2
+          },
+          "person_analysis": {
+            "gt_person_count": 0,
+            "pred_person_count": 0,
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "category_breakdown": {
+              "large_near": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              },
+              "small_distant": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              },
+              "occluded": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              },
+              "unoccluded": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              }
+            }
+          },
+          "vehicle_analysis": {
+            "car": {
+              "precision": 0.8333,
+              "recall": 1.0,
+              "f1": 0.9091,
+              "tp": 5,
+              "fp": 1,
+              "fn": 0,
+              "gt_count": 5,
+              "pred_count": 6,
+              "ap50": 1.0
+            },
+            "motorcycle": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "tp": 1,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 1,
+              "pred_count": 1,
+              "ap50": 1.0
+            }
+          }
+        },
+        "CAM-03": {
+          "status": "FAIL",
+          "status_reason": "Failed benchmark numerical threshold: Person F1 (0.22) < 0.70; Overall F1 (0.22) < 0.70",
+          "camera_name": "Perimeter Activity Charlie",
+          "environment": "Open grassy perimeter field with security fence",
+          "frames_evaluated": 3,
+          "per_class": {
+            "person": {
+              "precision": 0.1667,
+              "recall": 0.3333,
+              "f1": 0.2222,
+              "tp": 1,
+              "fp": 5,
+              "fn": 2,
+              "gt_count": 3,
+              "pred_count": 6,
+              "ap50": 0.3333
+            },
+            "car": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "motorcycle": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            }
+          },
+          "macro": {
+            "precision": 0.1667,
+            "recall": 0.3333,
+            "f1": 0.2222,
+            "evaluated_classes": [
+              "person"
+            ]
+          },
+          "overall": {
+            "precision": 0.1667,
+            "recall": 0.3333,
+            "f1": 0.2222,
+            "tp": 1,
+            "fp": 5,
+            "fn": 2,
+            "total_gt": 3,
+            "total_pred": 6,
+            "count_mae": 1.0
+          },
+          "person_analysis": {
+            "gt_person_count": 3,
+            "pred_person_count": 6,
+            "tp": 1,
+            "fp": 5,
+            "fn": 2,
+            "precision": 0.1667,
+            "recall": 0.3333,
+            "f1": 0.2222,
+            "category_breakdown": {
+              "large_near": {
+                "gt": 3,
+                "tp": 1,
+                "fn": 2
+              },
+              "small_distant": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              },
+              "occluded": {
+                "gt": 1,
+                "tp": 1,
+                "fn": 0
+              },
+              "unoccluded": {
+                "gt": 2,
+                "tp": 0,
+                "fn": 2
+              }
+            }
+          },
+          "vehicle_analysis": {
+            "car": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "motorcycle": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            }
+          }
+        },
+        "CAM-04": {
+          "status": "PASS",
+          "status_reason": "Overall F1 (0.71) and Macro F1 (0.73) meet acceptance threshold.",
+          "camera_name": "Urban Facility Delta",
+          "environment": "Dense urban intersection with pedestrians, civilian cars, and two-wheelers",
+          "frames_evaluated": 1,
+          "per_class": {
+            "person": {
+              "precision": 0.8,
+              "recall": 0.8,
+              "f1": 0.8,
+              "tp": 4,
+              "fp": 1,
+              "fn": 1,
+              "gt_count": 5,
+              "pred_count": 5,
+              "ap50": 0.8
+            },
+            "car": {
+              "precision": 0.6667,
+              "recall": 1.0,
+              "f1": 0.8,
+              "tp": 4,
+              "fp": 2,
+              "fn": 0,
+              "gt_count": 4,
+              "pred_count": 6,
+              "ap50": 0.95
+            },
+            "motorcycle": {
+              "precision": 0.3333,
+              "recall": 1.0,
+              "f1": 0.5,
+              "tp": 2,
+              "fp": 4,
+              "fn": 0,
+              "gt_count": 2,
+              "pred_count": 6,
+              "ap50": 1.0
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            }
+          },
+          "macro": {
+            "precision": 0.6,
+            "recall": 0.9333,
+            "f1": 0.7304,
+            "evaluated_classes": [
+              "person",
+              "car",
+              "motorcycle"
+            ]
+          },
+          "overall": {
+            "precision": 0.5882,
+            "recall": 0.9091,
+            "f1": 0.7143,
+            "tp": 10,
+            "fp": 7,
+            "fn": 1,
+            "total_gt": 11,
+            "total_pred": 17,
+            "count_mae": 6.0
+          },
+          "person_analysis": {
+            "gt_person_count": 5,
+            "pred_person_count": 5,
+            "tp": 4,
+            "fp": 1,
+            "fn": 1,
+            "precision": 0.8,
+            "recall": 0.8,
+            "f1": 0.8,
+            "category_breakdown": {
+              "large_near": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              },
+              "small_distant": {
+                "gt": 5,
+                "tp": 4,
+                "fn": 1
+              },
+              "occluded": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              },
+              "unoccluded": {
+                "gt": 5,
+                "tp": 4,
+                "fn": 1
+              }
+            }
+          },
+          "vehicle_analysis": {
+            "car": {
+              "precision": 0.6667,
+              "recall": 1.0,
+              "f1": 0.8,
+              "tp": 4,
+              "fp": 2,
+              "fn": 0,
+              "gt_count": 4,
+              "pred_count": 6,
+              "ap50": 0.95
+            },
+            "motorcycle": {
+              "precision": 0.3333,
+              "recall": 1.0,
+              "f1": 0.5,
+              "tp": 2,
+              "fp": 4,
+              "fn": 0,
+              "gt_count": 2,
+              "pred_count": 6,
+              "ap50": 1.0
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            }
+          }
+        }
+      },
+      "macro_summary": {
+        "mean_precision": 0.5048,
+        "mean_recall": 0.7379,
+        "mean_f1": 0.5899,
+        "total_cameras": 4,
+        "evaluated_cameras": [
+          "CAM-01",
+          "CAM-02",
+          "CAM-03",
+          "CAM-04"
+        ],
+        "passed_cameras": [
+          "CAM-02",
+          "CAM-04"
+        ],
+        "failed_cameras": [
+          "CAM-01",
+          "CAM-03"
+        ]
+      },
+      "truck_misclassification_audit": {
+        "total_gt_trucks": 3,
+        "predicted_as_truck": 1,
+        "predicted_as_car": 2,
+        "predicted_as_bus": 0,
+        "unmatched_missed": 0,
+        "details": [
+          {
+            "camera": "CAM-01",
+            "frame": 0,
+            "gt_box": [
+              1255,
+              391,
+              1398,
+              568
+            ],
+            "best_overlapping_prediction": "car",
+            "overlap_iou": 0.855,
+            "pred_conf": 0.58
+          },
+          {
+            "camera": "CAM-01",
+            "frame": 60,
+            "gt_box": [
+              1113,
+              393,
+              1344,
+              679
+            ],
+            "best_overlapping_prediction": "car",
+            "overlap_iou": 0.942,
+            "pred_conf": 0.4
+          },
+          {
+            "camera": "CAM-02",
+            "frame": 120,
+            "gt_box": [
+              0,
+              674,
+              205,
+              1050
+            ],
+            "best_overlapping_prediction": "truck",
+            "overlap_iou": 0.939,
+            "pred_conf": 0.65
+          }
+        ]
+      },
+      "benchmark_parameters": {
+        "iou_threshold": 0.5,
+        "confidence_threshold": 0.35,
+        "image_size": 640,
+        "classes": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          7
+        ]
+      },
+      "pooled_metrics": {
+        "per_class": {
+          "person": {
+            "precision": 0.4,
+            "recall": 0.5882,
+            "f1": 0.4762,
+            "tp": 10,
+            "fp": 15,
+            "fn": 7
+          },
+          "car": {
+            "precision": 0.5556,
+            "recall": 1.0,
+            "f1": 0.7143,
+            "tp": 15,
+            "fp": 12,
+            "fn": 0
+          },
+          "motorcycle": {
+            "precision": 0.3333,
+            "recall": 1.0,
+            "f1": 0.5,
+            "tp": 2,
+            "fp": 4,
+            "fn": 0
+          },
+          "truck": {
+            "precision": 0.4,
+            "recall": 0.6667,
+            "f1": 0.5,
+            "tp": 2,
+            "fp": 3,
+            "fn": 1
+          },
+          "bus": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "tp": 0,
+            "fp": 3,
+            "fn": 0
+          }
+        },
+        "overall": {
+          "precision": 0.4394,
+          "recall": 0.7838,
+          "f1": 0.5631,
+          "tp": 29,
+          "fp": 37,
+          "fn": 8
+        },
+        "macro": {
+          "precision": 0.4222,
+          "recall": 0.8137,
+          "f1": 0.5476,
+          "active_classes": [
+            "person",
+            "car",
+            "motorcycle",
+            "truck"
+          ]
+        }
+      }
+    },
+    "yolo26n.pt": {
+      "cameras": {
+        "CAM-01": {
+          "status": "FAIL",
+          "status_reason": "Failed benchmark numerical threshold: Person F1 (0.53) < 0.70; Truck F1 (0.40) < 0.50; Overall F1 (0.60) < 0.70",
+          "camera_name": "Border Post Alpha",
+          "environment": "Daylight border post checkpoint",
+          "frames_evaluated": 2,
+          "per_class": {
+            "person": {
+              "precision": 0.5,
+              "recall": 0.5556,
+              "f1": 0.5263,
+              "tp": 5,
+              "fp": 5,
+              "fn": 4,
+              "gt_count": 9,
+              "pred_count": 10,
+              "ap50": 0.5016
+            },
+            "car": {
+              "precision": 0.6667,
+              "recall": 1.0,
+              "f1": 0.8,
+              "tp": 6,
+              "fp": 3,
+              "fn": 0,
+              "gt_count": 6,
+              "pred_count": 9,
+              "ap50": 0.8333
+            },
+            "motorcycle": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 1,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 1,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 0.3333,
+              "recall": 0.5,
+              "f1": 0.4,
+              "tp": 1,
+              "fp": 2,
+              "fn": 1,
+              "gt_count": 2,
+              "pred_count": 3,
+              "ap50": 0.25
+            }
+          },
+          "macro": {
+            "precision": 0.5,
+            "recall": 0.6852,
+            "f1": 0.5781,
+            "evaluated_classes": [
+              "person",
+              "car",
+              "truck"
+            ]
+          },
+          "overall": {
+            "precision": 0.5217,
+            "recall": 0.7059,
+            "f1": 0.6,
+            "tp": 12,
+            "fp": 11,
+            "fn": 5,
+            "total_gt": 17,
+            "total_pred": 23,
+            "count_mae": 3.0
+          },
+          "person_analysis": {
+            "gt_person_count": 9,
+            "pred_person_count": 10,
+            "tp": 5,
+            "fp": 5,
+            "fn": 4,
+            "precision": 0.5,
+            "recall": 0.5556,
+            "f1": 0.5263,
+            "category_breakdown": {
+              "large_near": {
+                "gt": 7,
+                "tp": 4,
+                "fn": 3
+              },
+              "small_distant": {
+                "gt": 2,
+                "tp": 1,
+                "fn": 1
+              },
+              "occluded": {
+                "gt": 2,
+                "tp": 1,
+                "fn": 1
+              },
+              "unoccluded": {
+                "gt": 7,
+                "tp": 4,
+                "fn": 3
+              }
+            }
+          },
+          "vehicle_analysis": {
+            "car": {
+              "precision": 0.6667,
+              "recall": 1.0,
+              "f1": 0.8,
+              "tp": 6,
+              "fp": 3,
+              "fn": 0,
+              "gt_count": 6,
+              "pred_count": 9,
+              "ap50": 0.8333
+            },
+            "motorcycle": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 1,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 1,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 0.3333,
+              "recall": 0.5,
+              "f1": 0.4,
+              "tp": 1,
+              "fp": 2,
+              "fn": 1,
+              "gt_count": 2,
+              "pred_count": 3,
+              "ap50": 0.25
+            }
+          }
+        },
+        "CAM-02": {
+          "status": "PASS",
+          "status_reason": "Overall F1 (0.92) and Macro F1 (0.96) meet acceptance threshold.",
+          "camera_name": "Night Surveillance Bravo",
+          "environment": "Highway with lighting transition (Day -> Transition -> Night)",
+          "frames_evaluated": 5,
+          "per_class": {
+            "person": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "car": {
+              "precision": 0.8333,
+              "recall": 1.0,
+              "f1": 0.9091,
+              "tp": 5,
+              "fp": 1,
+              "fn": 0,
+              "gt_count": 5,
+              "pred_count": 6,
+              "ap50": 1.0
+            },
+            "motorcycle": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "tp": 1,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 1,
+              "pred_count": 1,
+              "ap50": 1.0
+            }
+          },
+          "macro": {
+            "precision": 0.9166,
+            "recall": 1.0,
+            "f1": 0.9565,
+            "evaluated_classes": [
+              "car",
+              "truck"
+            ]
+          },
+          "overall": {
+            "precision": 0.8571,
+            "recall": 1.0,
+            "f1": 0.9231,
+            "tp": 6,
+            "fp": 1,
+            "fn": 0,
+            "total_gt": 6,
+            "total_pred": 7,
+            "count_mae": 0.2
+          },
+          "person_analysis": {
+            "gt_person_count": 0,
+            "pred_person_count": 0,
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "category_breakdown": {
+              "large_near": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              },
+              "small_distant": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              },
+              "occluded": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              },
+              "unoccluded": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              }
+            }
+          },
+          "vehicle_analysis": {
+            "car": {
+              "precision": 0.8333,
+              "recall": 1.0,
+              "f1": 0.9091,
+              "tp": 5,
+              "fp": 1,
+              "fn": 0,
+              "gt_count": 5,
+              "pred_count": 6,
+              "ap50": 1.0
+            },
+            "motorcycle": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "tp": 1,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 1,
+              "pred_count": 1,
+              "ap50": 1.0
+            }
+          }
+        },
+        "CAM-03": {
+          "status": "FAIL",
+          "status_reason": "Failed benchmark numerical threshold: Person F1 (0.22) < 0.70; Overall F1 (0.22) < 0.70",
+          "camera_name": "Perimeter Activity Charlie",
+          "environment": "Open grassy perimeter field with security fence",
+          "frames_evaluated": 3,
+          "per_class": {
+            "person": {
+              "precision": 0.1667,
+              "recall": 0.3333,
+              "f1": 0.2222,
+              "tp": 1,
+              "fp": 5,
+              "fn": 2,
+              "gt_count": 3,
+              "pred_count": 6,
+              "ap50": 0.3333
+            },
+            "car": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "motorcycle": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            }
+          },
+          "macro": {
+            "precision": 0.1667,
+            "recall": 0.3333,
+            "f1": 0.2222,
+            "evaluated_classes": [
+              "person"
+            ]
+          },
+          "overall": {
+            "precision": 0.1667,
+            "recall": 0.3333,
+            "f1": 0.2222,
+            "tp": 1,
+            "fp": 5,
+            "fn": 2,
+            "total_gt": 3,
+            "total_pred": 6,
+            "count_mae": 1.0
+          },
+          "person_analysis": {
+            "gt_person_count": 3,
+            "pred_person_count": 6,
+            "tp": 1,
+            "fp": 5,
+            "fn": 2,
+            "precision": 0.1667,
+            "recall": 0.3333,
+            "f1": 0.2222,
+            "category_breakdown": {
+              "large_near": {
+                "gt": 3,
+                "tp": 1,
+                "fn": 2
+              },
+              "small_distant": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              },
+              "occluded": {
+                "gt": 1,
+                "tp": 1,
+                "fn": 0
+              },
+              "unoccluded": {
+                "gt": 2,
+                "tp": 0,
+                "fn": 2
+              }
+            }
+          },
+          "vehicle_analysis": {
+            "car": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "motorcycle": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            }
+          }
+        },
+        "CAM-04": {
+          "status": "FAIL",
+          "status_reason": "Failed benchmark numerical threshold: Person F1 (0.33) < 0.70; Overall F1 (0.59) < 0.70",
+          "camera_name": "Urban Facility Delta",
+          "environment": "Dense urban intersection with pedestrians, civilian cars, and two-wheelers",
+          "frames_evaluated": 1,
+          "per_class": {
+            "person": {
+              "precision": 1.0,
+              "recall": 0.2,
+              "f1": 0.3333,
+              "tp": 1,
+              "fp": 0,
+              "fn": 4,
+              "gt_count": 5,
+              "pred_count": 1,
+              "ap50": 0.2
+            },
+            "car": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6667,
+              "tp": 2,
+              "fp": 0,
+              "fn": 2,
+              "gt_count": 4,
+              "pred_count": 2,
+              "ap50": 0.5
+            },
+            "motorcycle": {
+              "precision": 0.6667,
+              "recall": 1.0,
+              "f1": 0.8,
+              "tp": 2,
+              "fp": 1,
+              "fn": 0,
+              "gt_count": 2,
+              "pred_count": 3,
+              "ap50": 1.0
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            }
+          },
+          "macro": {
+            "precision": 0.8889,
+            "recall": 0.5667,
+            "f1": 0.6921,
+            "evaluated_classes": [
+              "person",
+              "car",
+              "motorcycle"
+            ]
+          },
+          "overall": {
+            "precision": 0.8333,
+            "recall": 0.4545,
+            "f1": 0.5882,
+            "tp": 5,
+            "fp": 1,
+            "fn": 6,
+            "total_gt": 11,
+            "total_pred": 6,
+            "count_mae": 5.0
+          },
+          "person_analysis": {
+            "gt_person_count": 5,
+            "pred_person_count": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 4,
+            "precision": 1.0,
+            "recall": 0.2,
+            "f1": 0.3333,
+            "category_breakdown": {
+              "large_near": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              },
+              "small_distant": {
+                "gt": 5,
+                "tp": 1,
+                "fn": 4
+              },
+              "occluded": {
+                "gt": 0,
+                "tp": 0,
+                "fn": 0
+              },
+              "unoccluded": {
+                "gt": 5,
+                "tp": 1,
+                "fn": 4
+              }
+            }
+          },
+          "vehicle_analysis": {
+            "car": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6667,
+              "tp": 2,
+              "fp": 0,
+              "fn": 2,
+              "gt_count": 4,
+              "pred_count": 2,
+              "ap50": 0.5
+            },
+            "motorcycle": {
+              "precision": 0.6667,
+              "recall": 1.0,
+              "f1": 0.8,
+              "tp": 2,
+              "fp": 1,
+              "fn": 0,
+              "gt_count": 2,
+              "pred_count": 3,
+              "ap50": 1.0
+            },
+            "bus": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            },
+            "truck": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "gt_count": 0,
+              "pred_count": 0,
+              "ap50": null
+            }
+          }
+        }
+      },
+      "macro_summary": {
+        "mean_precision": 0.618,
+        "mean_recall": 0.6463,
+        "mean_f1": 0.6122,
+        "total_cameras": 4,
+        "evaluated_cameras": [
+          "CAM-01",
+          "CAM-02",
+          "CAM-03",
+          "CAM-04"
+        ],
+        "passed_cameras": [
+          "CAM-02"
+        ],
+        "failed_cameras": [
+          "CAM-01",
+          "CAM-03",
+          "CAM-04"
+        ]
+      },
+      "truck_misclassification_audit": {
+        "total_gt_trucks": 3,
+        "predicted_as_truck": 2,
+        "predicted_as_car": 1,
+        "predicted_as_bus": 0,
+        "unmatched_missed": 0,
+        "details": [
+          {
+            "camera": "CAM-01",
+            "frame": 0,
+            "gt_box": [
+              1255,
+              391,
+              1398,
+              568
+            ],
+            "best_overlapping_prediction": "car",
+            "overlap_iou": 0.831,
+            "pred_conf": 0.51
+          },
+          {
+            "camera": "CAM-01",
+            "frame": 60,
+            "gt_box": [
+              1113,
+              393,
+              1344,
+              679
+            ],
+            "best_overlapping_prediction": "truck",
+            "overlap_iou": 0.863,
+            "pred_conf": 0.42
+          },
+          {
+            "camera": "CAM-02",
+            "frame": 120,
+            "gt_box": [
+              0,
+              674,
+              205,
+              1050
+            ],
+            "best_overlapping_prediction": "truck",
+            "overlap_iou": 0.961,
+            "pred_conf": 0.53
+          }
+        ]
+      },
+      "benchmark_parameters": {
+        "iou_threshold": 0.5,
+        "confidence_threshold": 0.35,
+        "image_size": 640,
+        "classes": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          7
+        ]
+      },
+      "pooled_metrics": {
+        "per_class": {
+          "person": {
+            "precision": 0.4118,
+            "recall": 0.4118,
+            "f1": 0.4118,
+            "tp": 7,
+            "fp": 10,
+            "fn": 10
+          },
+          "car": {
+            "precision": 0.7647,
+            "recall": 0.8667,
+            "f1": 0.8125,
+            "tp": 13,
+            "fp": 4,
+            "fn": 2
+          },
+          "motorcycle": {
+            "precision": 0.6667,
+            "recall": 1.0,
+            "f1": 0.8,
+            "tp": 2,
+            "fp": 1,
+            "fn": 0
+          },
+          "truck": {
+            "precision": 0.5,
+            "recall": 0.6667,
+            "f1": 0.5714,
+            "tp": 2,
+            "fp": 2,
+            "fn": 1
+          },
+          "bus": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "tp": 0,
+            "fp": 1,
+            "fn": 0
+          }
+        },
+        "overall": {
+          "precision": 0.5714,
+          "recall": 0.6486,
+          "f1": 0.6076,
+          "tp": 24,
+          "fp": 18,
+          "fn": 13
+        },
+        "macro": {
+          "precision": 0.5858,
+          "recall": 0.7363,
+          "f1": 0.6489,
+          "active_classes": [
+            "person",
+            "car",
+            "motorcycle",
+            "truck"
+          ]
+        }
+      }
+    }
+  },
+  "held_out_test_set": {
+    "weights/yolov8n.pt": {
+      "overall": {
+        "precision": 0.3958,
+        "recall": 0.8261,
+        "f1": 0.5352,
+        "tp": 19,
+        "fp": 29,
+        "fn": 4,
+        "total_gt": 23,
+        "total_pred": 48,
+        "count_mae": 25
+      },
+      "per_class": {
+        "bus": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "tp": 0,
+          "fp": 2,
+          "fn": 0,
+          "gt_count": 0,
+          "pred_count": 2
+        },
+        "car": {
+          "precision": 0.4706,
+          "recall": 1.0,
+          "f1": 0.64,
+          "tp": 8,
+          "fp": 9,
+          "fn": 0,
+          "gt_count": 8,
+          "pred_count": 17
+        },
+        "motorcycle": {
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.6667,
+          "tp": 4,
+          "fp": 4,
+          "fn": 0,
+          "gt_count": 4,
+          "pred_count": 8
+        },
+        "person": {
+          "precision": 0.3333,
+          "recall": 0.75,
+          "f1": 0.4615,
+          "tp": 6,
+          "fp": 12,
+          "fn": 2,
+          "gt_count": 8,
+          "pred_count": 18
+        },
+        "truck": {
+          "precision": 0.3333,
+          "recall": 0.3333,
+          "f1": 0.3333,
+          "tp": 1,
+          "fp": 2,
+          "fn": 2,
+          "gt_count": 3,
+          "pred_count": 3
+        }
+      },
+      "macro": {
+        "precision": 0.4093,
+        "recall": 0.7708,
+        "f1": 0.5347,
+        "evaluated_classes": [
+          "car",
+          "motorcycle",
+          "person",
+          "truck"
+        ]
+      },
+      "total_test_images": 10
+    },
+    "weights/candidates/yolov8s.pt": {
+      "overall": {
+        "precision": 0.3239,
+        "recall": 1.0,
+        "f1": 0.4894,
+        "tp": 23,
+        "fp": 48,
+        "fn": 0,
+        "total_gt": 23,
+        "total_pred": 71,
+        "count_mae": 48
+      },
+      "per_class": {
+        "bus": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "tp": 0,
+          "fp": 3,
+          "fn": 0,
+          "gt_count": 0,
+          "pred_count": 3
+        },
+        "car": {
+          "precision": 0.3636,
+          "recall": 1.0,
+          "f1": 0.5333,
+          "tp": 8,
+          "fp": 14,
+          "fn": 0,
+          "gt_count": 8,
+          "pred_count": 22
+        },
+        "motorcycle": {
+          "precision": 0.3333,
+          "recall": 1.0,
+          "f1": 0.5,
+          "tp": 4,
+          "fp": 8,
+          "fn": 0,
+          "gt_count": 4,
+          "pred_count": 12
+        },
+        "person": {
+          "precision": 0.2857,
+          "recall": 1.0,
+          "f1": 0.4444,
+          "tp": 8,
+          "fp": 20,
+          "fn": 0,
+          "gt_count": 8,
+          "pred_count": 28
+        },
+        "truck": {
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.6667,
+          "tp": 3,
+          "fp": 3,
+          "fn": 0,
+          "gt_count": 3,
+          "pred_count": 6
+        }
+      },
+      "macro": {
+        "precision": 0.3706,
+        "recall": 1.0,
+        "f1": 0.5408,
+        "evaluated_classes": [
+          "car",
+          "motorcycle",
+          "person",
+          "truck"
+        ]
+      },
+      "total_test_images": 10
+    },
+    "yolo26n.pt": {
+      "overall": {
+        "precision": 0.4872,
+        "recall": 0.8261,
+        "f1": 0.6129,
+        "tp": 19,
+        "fp": 20,
+        "fn": 4,
+        "total_gt": 23,
+        "total_pred": 39,
+        "count_mae": 16
+      },
+      "per_class": {
+        "bus": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "tp": 0,
+          "fp": 2,
+          "fn": 0,
+          "gt_count": 0,
+          "pred_count": 2
+        },
+        "car": {
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.6667,
+          "tp": 8,
+          "fp": 8,
+          "fn": 0,
+          "gt_count": 8,
+          "pred_count": 16
+        },
+        "motorcycle": {
+          "precision": 0.75,
+          "recall": 0.75,
+          "f1": 0.75,
+          "tp": 3,
+          "fp": 1,
+          "fn": 1,
+          "gt_count": 4,
+          "pred_count": 4
+        },
+        "person": {
+          "precision": 0.4167,
+          "recall": 0.625,
+          "f1": 0.5,
+          "tp": 5,
+          "fp": 7,
+          "fn": 3,
+          "gt_count": 8,
+          "pred_count": 12
+        },
+        "truck": {
+          "precision": 0.6,
+          "recall": 1.0,
+          "f1": 0.75,
+          "tp": 3,
+          "fp": 2,
+          "fn": 0,
+          "gt_count": 3,
+          "pred_count": 5
+        }
+      },
+      "macro": {
+        "precision": 0.5667,
+        "recall": 0.8438,
+        "f1": 0.678,
+        "evaluated_classes": [
+          "car",
+          "motorcycle",
+          "person",
+          "truck"
+        ]
+      },
+      "total_test_images": 10
+    }
+  },
+  "confidence_sweeps": {
+    "weights/yolov8n.pt": {
+      "analysis_type": "BENCHMARK-ONLY THRESHOLD ANALYSIS",
+      "production_conf_frozen": 0.35,
+      "operating_points": {
+        "conf_0.20": {
+          "conf": 0.2,
+          "overall": {
+            "precision": 0.4306,
+            "recall": 0.8378,
+            "f1": 0.5688,
+            "tp": 31,
+            "fp": 41,
+            "fn": 6
+          },
+          "person": {
+            "precision": 0.4138,
+            "recall": 0.7059,
+            "f1": 0.5217,
+            "tp": 12,
+            "fp": 17,
+            "fn": 5
+          },
+          "vehicles": {
+            "precision": 0.4634,
+            "recall": 0.95,
+            "f1": 0.623,
+            "tp": 19,
+            "fp": 22,
+            "fn": 1
+          },
+          "passed_cameras": [
+            "CAM-02"
+          ],
+          "failed_cameras": [
+            "CAM-01",
+            "CAM-03",
+            "CAM-04"
+          ]
+        },
+        "conf_0.25": {
+          "conf": 0.25,
+          "overall": {
+            "precision": 0.4844,
+            "recall": 0.8378,
+            "f1": 0.6139,
+            "tp": 31,
+            "fp": 33,
+            "fn": 6
+          },
+          "person": {
+            "precision": 0.4615,
+            "recall": 0.7059,
+            "f1": 0.5581,
+            "tp": 12,
+            "fp": 14,
+            "fn": 5
+          },
+          "vehicles": {
+            "precision": 0.5278,
+            "recall": 0.95,
+            "f1": 0.6786,
+            "tp": 19,
+            "fp": 17,
+            "fn": 1
+          },
+          "passed_cameras": [
+            "CAM-02",
+            "CAM-04"
+          ],
+          "failed_cameras": [
+            "CAM-01",
+            "CAM-03"
+          ]
+        },
+        "conf_0.30": {
+          "conf": 0.3,
+          "overall": {
+            "precision": 0.5345,
+            "recall": 0.8378,
+            "f1": 0.6526,
+            "tp": 31,
+            "fp": 27,
+            "fn": 6
+          },
+          "person": {
+            "precision": 0.5217,
+            "recall": 0.7059,
+            "f1": 0.6,
+            "tp": 12,
+            "fp": 11,
+            "fn": 5
+          },
+          "vehicles": {
+            "precision": 0.5588,
+            "recall": 0.95,
+            "f1": 0.7037,
+            "tp": 19,
+            "fp": 15,
+            "fn": 1
+          },
+          "passed_cameras": [
+            "CAM-02",
+            "CAM-04"
+          ],
+          "failed_cameras": [
+            "CAM-01",
+            "CAM-03"
+          ]
+        },
+        "conf_0.35": {
+          "conf": 0.35,
+          "overall": {
+            "precision": 0.6078,
+            "recall": 0.8378,
+            "f1": 0.7045,
+            "tp": 31,
+            "fp": 20,
+            "fn": 6
+          },
+          "person": {
+            "precision": 0.5714,
+            "recall": 0.7059,
+            "f1": 0.6316,
+            "tp": 12,
+            "fp": 9,
+            "fn": 5
+          },
+          "vehicles": {
+            "precision": 0.6552,
+            "recall": 0.95,
+            "f1": 0.7755,
+            "tp": 19,
+            "fp": 10,
+            "fn": 1
+          },
+          "passed_cameras": [
+            "CAM-02",
+            "CAM-04"
+          ],
+          "failed_cameras": [
+            "CAM-01",
+            "CAM-03"
+          ]
+        },
+        "conf_0.40": {
+          "conf": 0.4,
+          "overall": {
+            "precision": 0.6,
+            "recall": 0.7297,
+            "f1": 0.6585,
+            "tp": 27,
+            "fp": 18,
+            "fn": 10
+          },
+          "person": {
+            "precision": 0.4706,
+            "recall": 0.4706,
+            "f1": 0.4706,
+            "tp": 8,
+            "fp": 9,
+            "fn": 9
+          },
+          "vehicles": {
+            "precision": 0.7037,
+            "recall": 0.95,
+            "f1": 0.8085,
+            "tp": 19,
+            "fp": 8,
+            "fn": 1
+          },
+          "passed_cameras": [
+            "CAM-02"
+          ],
+          "failed_cameras": [
+            "CAM-01",
+            "CAM-03",
+            "CAM-04"
+          ]
+        },
+        "conf_0.45": {
+          "conf": 0.45,
+          "overall": {
+            "precision": 0.7105,
+            "recall": 0.7297,
+            "f1": 0.72,
+            "tp": 27,
+            "fp": 11,
+            "fn": 10
+          },
+          "person": {
+            "precision": 0.5,
+            "recall": 0.4706,
+            "f1": 0.4848,
+            "tp": 8,
+            "fp": 8,
+            "fn": 9
+          },
+          "vehicles": {
+            "precision": 0.8636,
+            "recall": 0.95,
+            "f1": 0.9048,
+            "tp": 19,
+            "fp": 3,
+            "fn": 1
+          },
+          "passed_cameras": [
+            "CAM-02",
+            "CAM-04"
+          ],
+          "failed_cameras": [
+            "CAM-01",
+            "CAM-03"
+          ]
+        },
+        "conf_0.50": {
+          "conf": 0.5,
+          "overall": {
+            "precision": 0.7027,
+            "recall": 0.7027,
+            "f1": 0.7027,
+            "tp": 26,
+            "fp": 11,
+            "fn": 11
+          },
+          "person": {
+            "precision": 0.4667,
+            "recall": 0.4118,
+            "f1": 0.4375,
+            "tp": 7,
+            "fp": 8,
+            "fn": 10
+          },
+          "vehicles": {
+            "precision": 0.8636,
+            "recall": 0.95,
+            "f1": 0.9048,
+            "tp": 19,
+            "fp": 3,
+            "fn": 1
+          },
+          "passed_cameras": [
+            "CAM-02",
+            "CAM-04"
+          ],
+          "failed_cameras": [
+            "CAM-01",
+            "CAM-03"
+          ]
+        }
+      }
+    },
+    "yolo26n.pt": {
+      "analysis_type": "BENCHMARK-ONLY THRESHOLD ANALYSIS",
+      "production_conf_frozen": 0.35,
+      "operating_points": {
+        "conf_0.20": {
+          "conf": 0.2,
+          "overall": {
+            "precision": 0.4828,
+            "recall": 0.7568,
+            "f1": 0.5895,
+            "tp": 28,
+            "fp": 30,
+            "fn": 9
+          },
+          "person": {
+            "precision": 0.3913,
+            "recall": 0.5294,
+            "f1": 0.45,
+            "tp": 9,
+            "fp": 14,
+            "fn": 8
+          },
+          "vehicles": {
+            "precision": 0.5588,
+            "recall": 0.95,
+            "f1": 0.7037,
+            "tp": 19,
+            "fp": 15,
+            "fn": 1
+          },
+          "passed_cameras": [
+            "CAM-02"
+          ],
+          "failed_cameras": [
+            "CAM-01",
+            "CAM-03",
+            "CAM-04"
+          ]
+        },
+        "conf_0.25": {
+          "conf": 0.25,
+          "overall": {
+            "precision": 0.4902,
+            "recall": 0.6757,
+            "f1": 0.5682,
+            "tp": 25,
+            "fp": 26,
+            "fn": 12
+          },
+          "person": {
+            "precision": 0.381,
+            "recall": 0.4706,
+            "f1": 0.4211,
+            "tp": 8,
+            "fp": 13,
+            "fn": 9
+          },
+          "vehicles": {
+            "precision": 0.5862,
+            "recall": 0.85,
+            "f1": 0.6939,
+            "tp": 17,
+            "fp": 12,
+            "fn": 3
+          },
+          "passed_cameras": [
+            "CAM-02"
+          ],
+          "failed_cameras": [
+            "CAM-01",
+            "CAM-03",
+            "CAM-04"
+          ]
+        },
+        "conf_0.30": {
+          "conf": 0.3,
+          "overall": {
+            "precision": 0.5333,
+            "recall": 0.6486,
+            "f1": 0.5854,
+            "tp": 24,
+            "fp": 21,
+            "fn": 13
+          },
+          "person": {
+            "precision": 0.3889,
+            "recall": 0.4118,
+            "f1": 0.4,
+            "tp": 7,
+            "fp": 11,
+            "fn": 10
+          },
+          "vehicles": {
+            "precision": 0.6538,
+            "recall": 0.85,
+            "f1": 0.7391,
+            "tp": 17,
+            "fp": 9,
+            "fn": 3
+          },
+          "passed_cameras": [
+            "CAM-02"
+          ],
+          "failed_cameras": [
+            "CAM-01",
+            "CAM-03",
+            "CAM-04"
+          ]
+        },
+        "conf_0.35": {
+          "conf": 0.35,
+          "overall": {
+            "precision": 0.5714,
+            "recall": 0.6486,
+            "f1": 0.6076,
+            "tp": 24,
+            "fp": 18,
+            "fn": 13
+          },
+          "person": {
+            "precision": 0.4118,
+            "recall": 0.4118,
+            "f1": 0.4118,
+            "tp": 7,
+            "fp": 10,
+            "fn": 10
+          },
+          "vehicles": {
+            "precision": 0.7083,
+            "recall": 0.85,
+            "f1": 0.7727,
+            "tp": 17,
+            "fp": 7,
+            "fn": 3
+          },
+          "passed_cameras": [
+            "CAM-02"
+          ],
+          "failed_cameras": [
+            "CAM-01",
+            "CAM-03",
+            "CAM-04"
+          ]
+        },
+        "conf_0.40": {
+          "conf": 0.4,
+          "overall": {
+            "precision": 0.6154,
+            "recall": 0.6486,
+            "f1": 0.6316,
+            "tp": 24,
+            "fp": 15,
+            "fn": 13
+          },
+          "person": {
+            "precision": 0.4375,
+            "recall": 0.4118,
+            "f1": 0.4242,
+            "tp": 7,
+            "fp": 9,
+            "fn": 10
+          },
+          "vehicles": {
+            "precision": 0.7727,
+            "recall": 0.85,
+            "f1": 0.8095,
+            "tp": 17,
+            "fp": 5,
+            "fn": 3
+          },
+          "passed_cameras": [
+            "CAM-02"
+          ],
+          "failed_cameras": [
+            "CAM-01",
+            "CAM-03",
+            "CAM-04"
+          ]
+        },
+        "conf_0.45": {
+          "conf": 0.45,
+          "overall": {
+            "precision": 0.6571,
+            "recall": 0.6216,
+            "f1": 0.6389,
+            "tp": 23,
+            "fp": 12,
+            "fn": 14
+          },
+          "person": {
+            "precision": 0.4667,
+            "recall": 0.4118,
+            "f1": 0.4375,
+            "tp": 7,
+            "fp": 8,
+            "fn": 10
+          },
+          "vehicles": {
+            "precision": 0.8421,
+            "recall": 0.8,
+            "f1": 0.8205,
+            "tp": 16,
+            "fp": 3,
+            "fn": 4
+          },
+          "passed_cameras": [
+            "CAM-02"
+          ],
+          "failed_cameras": [
+            "CAM-01",
+            "CAM-03",
+            "CAM-04"
+          ]
+        },
+        "conf_0.50": {
+          "conf": 0.5,
+          "overall": {
+            "precision": 0.6667,
+            "recall": 0.5946,
+            "f1": 0.6286,
+            "tp": 22,
+            "fp": 11,
+            "fn": 15
+          },
+          "person": {
+            "precision": 0.4667,
+            "recall": 0.4118,
+            "f1": 0.4375,
+            "tp": 7,
+            "fp": 8,
+            "fn": 10
+          },
+          "vehicles": {
+            "precision": 0.8333,
+            "recall": 0.75,
+            "f1": 0.7895,
+            "tp": 15,
+            "fp": 3,
+            "fn": 5
+          },
+          "passed_cameras": [
+            "CAM-02"
+          ],
+          "failed_cameras": [
+            "CAM-01",
+            "CAM-03",
+            "CAM-04"
+          ]
+        }
+      }
+    }
+  },
+  "resource_profiles": {
+    "weights/yolov8n.pt": {
+      "device": "cuda",
+      "device_name": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+      "avg_latency_ms": 6.89,
+      "fps": 145.2,
+      "peak_vram_mb": 120.13,
+      "vram_delta_mb": 19.42,
+      "avg_cpu_percent": 4.4
+    },
+    "weights/candidates/yolov8s.pt": {
+      "device": "cuda",
+      "device_name": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+      "avg_latency_ms": 11.72,
+      "fps": 85.35,
+      "peak_vram_mb": 137.19,
+      "vram_delta_mb": 31.25,
+      "avg_cpu_percent": 5.7
+    },
+    "yolo26n.pt": {
+      "device": "cuda",
+      "device_name": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+      "avg_latency_ms": 9.03,
+      "fps": 110.7,
+      "peak_vram_mb": 129.42,
+      "vram_delta_mb": 18.75,
+      "avg_cpu_percent": 3.8
+    }
+  },
+  "existing_phase_a2_results": {
+    "prahari_yolov8s_v1": {
+      "status": "EXISTING_RESULT",
+      "description": "PRAHARI-trained domain candidate from Phase A2 (15 epochs on small surveillance dataset with 5 classes).",
+      "parameters": 11137535,
+      "mAP50": 0.0021,
+      "fitness": 0.00105,
+      "reason": "Requires significantly more training epochs (>100) and curated transfer learning with frozen backbone to adapt from COCO to custom 5-class head."
+    }
+  }
+}
